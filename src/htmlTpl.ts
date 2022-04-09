@@ -21,6 +21,6 @@ window.__vite_plugin_react_preamble_installed__ = true
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="${serverHost}:${serverPort}/src/main.jsx"></script>
+    <script type="module" src="${serverHost}:${serverPort}/src/main.jsx" nonce="15645643165464"></script>
   </body>
 </html>`
