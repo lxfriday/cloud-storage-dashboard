@@ -12,8 +12,23 @@ export function requestGetQiniuPublicConfig() {
   })
 }
 
+export function requestGetQiniuResourceList() {
+  vscodeApi.postMessage({
+    command: 'getQiniuResourceList',
+  })
+}
+
 export function requestGetQiniuBucketList() {
   vscodeApi.postMessage({
     command: 'getQiniuBucketList',
   })
 }
+
+export function requestUpdateBucket(newBucket) {
+  vscodeApi.postMessage({
+    command: 'updateBucket',
+    data: newBucket,
+  })
+}
+
+// getBucketDomains

@@ -2,7 +2,7 @@ import * as qiniu from 'qiniu'
 import * as vscode from 'vscode'
 import * as Request from './request'
 
-function notiTpl(msg) {
+function notiTpl(msg: string) {
   return `七牛：${msg}`
 }
 
@@ -62,7 +62,7 @@ const urls = {
 //   })
 // }
 
-export class Qiniu {
+class Qiniu {
   // base config
   ak: string
   sk: string
@@ -77,7 +77,7 @@ export class Qiniu {
   marker: string // 分页用
 
   qiniuMac: qiniu.auth.digest.Mac
-  qiniuConfig: qiniu.conf.Config
+  // qiniuConfig: qiniu.conf.Config
 
   constructor(params: { ak: string; sk: string; bucket: string; imgDomain: string }) {
     this.ak = params.ak
@@ -91,7 +91,7 @@ export class Qiniu {
     this.marker = ''
 
     this.qiniuMac = new qiniu.auth.digest.Mac(params.ak, params.sk)
-    this.qiniuConfig = new qiniu.conf.Config()
+    // this.qiniuConfig = new qiniu.conf.Config()
   }
 
   // 上传用的 token
@@ -107,7 +107,8 @@ export class Qiniu {
   }
 
   getResourceList(): Promise<{ list: Array<any>; reachEnd: boolean }> {
-    const bucketManager = new qiniu.rs.BucketManager(this.qiniuMac, this.qiniuConfig)
+    // const bucketManager = new qiniu.rs.BucketManager(this.qiniuMac, this.qiniuConfig)
+    const bucketManager = new qiniu.rs.BucketManager(this.qiniuMac, new qiniu.conf.Config())
     const options = {
       limit: this.limit,
       // prefix: 'testfolder/',
@@ -150,10 +151,15 @@ export class Qiniu {
   getBucketList() {
     return Request.get({
       url: urls.buckets,
-      config: {
-        headers: {
-          authorization: this.generateHTTPAuthorization(urls.buckets),
-        },
+    })
+  }
+
+  // 获取 bucket 对应的 domains
+  getBucketDomains(bucket: string) {
+    return Request.get({
+      url: urls.domains,
+      params: {
+        tbl: bucket,
       },
     })
   }
@@ -162,3 +168,12 @@ export class Qiniu {
     return qiniu.util.generateAccessToken(this.qiniuMac, url)
   }
 }
+
+const qiniuE = new Qiniu({
+  ak: qiniuConfig.ak,
+  sk: qiniuConfig.sk,
+  bucket: qiniuConfig.bucket,
+  imgDomain: qiniuConfig.imgDomain,
+})
+
+export default qiniuE

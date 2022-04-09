@@ -1,13 +1,14 @@
 import React, { Component } from 'react'
 import styles from './Nav.module.less'
-import { Menu, Button, Upload, message } from 'antd'
-import { MailOutlined, SettingOutlined, UploadOutlined } from '@ant-design/icons'
+import { Menu, Button, Upload, message, Select } from 'antd'
+import { FolderOpenOutlined, SettingOutlined, UploadOutlined } from '@ant-design/icons'
 import { NavLink } from 'react-router-dom'
 import copy from 'copy-text-to-clipboard'
 import { generateUploadImgInfo } from '../utils'
 import * as messageCenter from '../utils/messageCenter'
 
 const { SubMenu } = Menu
+const { Option } = Select
 
 export default class Nav extends Component {
   constructor() {
@@ -18,20 +19,26 @@ export default class Nav extends Component {
         imgDomain: '',
         bucket: '',
       },
+      bucketList: [],
+      bucketDomains: [],
+      selectBucketDomain: '',
     }
   }
-  handleClick = () => {
-    console.log('????')
+
+  handleChangeDomain = domain => {
+    console.log('handleChangeDomain', domain)
+    this.setState({ selectBucketDomain: domain })
   }
+
   render() {
     const { children } = this.props
-    const { qiniuConfig } = this.state
+    const { qiniuConfig, bucketList, bucketDomains, selectBucketDomain } = this.state
     const selectFileUploadProps = {
       multiple: true,
       action: 'http://upload.qiniu.com',
       showUploadList: false,
       beforeUpload: () => {
-        requestGenerateQiniuUploadToken()
+        messageCenter.requestGenerateQiniuUploadToken()
         return true
       },
       headers: {},
@@ -45,7 +52,7 @@ export default class Nav extends Component {
         LogR('上传中', info)
         if (info.file.status !== 'uploading') {
           // uploading
-          // console.log(info.file, info.fileList)
+          console.log(info.file, info.fileList)
         }
         if (info.file.status === 'done') {
           // 上传完成
@@ -61,35 +68,30 @@ export default class Nav extends Component {
       },
     }
 
+    console.log('nav state', this.state)
+
     return (
       <div className={styles.wrapper}>
         <div className={styles.sideWrapper}>
           <div className={styles.siteTitle}>云存储管理</div>
           <Menu
-            onClick={this.handleClick}
             style={{ width: 180 }}
             defaultSelectedKeys={['settings']}
-            openKeys={['sub1']}
+            defaultOpenKeys={['sub1']}
             mode="inline"
             theme="dark"
           >
-            <SubMenu key="sub1" icon={<MailOutlined />} title="存储空间">
-              <Menu.Item key="storagemanage-storage">
-                <NavLink
-                  to="/storagemanage?space=storage"
-                  className={({ isActive }) => (isActive ? styles.navLinkActive : undefined)}
-                >
-                  storage
-                </NavLink>
-              </Menu.Item>
-              <Menu.Item key="storagemanage-lxfriday-test">
-                <NavLink
-                  to="/storagemanage?space=lxfriday-test"
-                  className={({ isActive }) => (isActive ? styles.navLinkActive : undefined)}
-                >
-                  lxfriday-test
-                </NavLink>
-              </Menu.Item>
+            <SubMenu key="sub1" icon={<FolderOpenOutlined />} title="存储空间">
+              {bucketList.map(bk => (
+                <Menu.Item key={bk}>
+                  <NavLink
+                    to={`/storagemanage?space=${bk}`}
+                    className={({ isActive }) => (isActive ? styles.navLinkActive : undefined)}
+                  >
+                    {bk}
+                  </NavLink>
+                </Menu.Item>
+              ))}
             </SubMenu>
             <Menu.Item key="settings" icon={<SettingOutlined />}>
               <NavLink
@@ -102,14 +104,29 @@ export default class Nav extends Component {
           </Menu>
         </div>
         <div className={styles.contentWrapper}>
-          <div className={styles.navTools}>
-            <Upload {...selectFileUploadProps}>
-              <Button
-                type="dashed"
-                title="文件上传(支持多选)"
-                icon={<UploadOutlined style={{ fontSize: '20px' }} />}
-              ></Button>
-            </Upload>
+          <div className={styles.nav}>
+            <div className={styles.domainWrapper}>
+              <Select
+                value={selectBucketDomain}
+                style={{ width: 250 }}
+                onChange={this.handleChangeDomain}
+              >
+                {bucketDomains.map(d => (
+                  <Option key={d} value={d}>
+                    {d}
+                  </Option>
+                ))}
+              </Select>
+            </div>
+            <div className={styles.toolsWrapper}>
+              <Upload {...selectFileUploadProps}>
+                <Button
+                  type="dashed"
+                  title="文件上传(支持多选)"
+                  icon={<UploadOutlined style={{ fontSize: '20px' }} />}
+                ></Button>
+              </Upload>
+            </div>
           </div>
           <div className={styles.content}>{children}</div>
         </div>
@@ -146,7 +163,19 @@ export default class Nav extends Component {
   handleReceiveGetQiniuBucketList = event => {
     const message = event.data // The JSON data our extension sent
     if (message.command === 'getQiniuBucketList') {
-      console.log('bucket list in page', message.data)
+      this.setState({
+        bucketList: message.data,
+      })
+    }
+  }
+  // 接收七牛 public config
+  handleReceiveGetBucketDomains = event => {
+    const message = event.data // The JSON data our extension sent
+    if (message.command === 'getBucketDomains') {
+      this.setState({
+        bucketDomains: message.data,
+        selectBucketDomain: message.data[message.data.length - 1],
+      })
     }
   }
 
@@ -154,6 +183,7 @@ export default class Nav extends Component {
     window.addEventListener('message', this.handleReceiveGenerateQiniuUploadToken)
     window.addEventListener('message', this.handleReceiveGetQiniuPublicConfig)
     window.addEventListener('message', this.handleReceiveGetQiniuBucketList)
+    window.addEventListener('message', this.handleReceiveGetBucketDomains)
 
     messageCenter.requestGenerateQiniuUploadToken()
     messageCenter.requestGetQiniuPublicConfig()
@@ -164,5 +194,6 @@ export default class Nav extends Component {
     window.removeEventListener('message', this.handleReceiveGenerateQiniuUploadToken)
     window.removeEventListener('message', this.handleReceiveGetQiniuPublicConfig)
     window.removeEventListener('message', this.handleReceiveGetQiniuBucketList)
+    window.removeEventListener('message', this.handleReceiveGetBucketDomains)
   }
 }

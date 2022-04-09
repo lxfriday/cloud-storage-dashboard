@@ -21,13 +21,3 @@ const routes = [
 ]
 
 export default routes
-
-// '/context'
-export function getPageTitle(pathname) {
-  for (let route of routes) {
-    if (route.path === pathname) {
-      return route.title
-    }
-  }
-  return '无'
-}

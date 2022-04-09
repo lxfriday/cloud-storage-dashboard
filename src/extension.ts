@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 import htmlTpl from './htmlTpl'
-import { qiniuConfig, Qiniu } from './utils/qiniu'
+import qiniu, { qiniuConfig } from './utils/qiniu'
 
 export function activate(context: vscode.ExtensionContext) {
   let disposable = vscode.commands.registerCommand('cloud-storage-dashboard.helloWorld', () => {
@@ -21,12 +21,6 @@ export function activate(context: vscode.ExtensionContext) {
     panel.webview.html = htmlTpl
 
     // ----------------------------------------------------------------------------------------------------------------------
-    const qiniu = new Qiniu({
-      ak: qiniuConfig.ak,
-      sk: qiniuConfig.sk,
-      bucket: qiniuConfig.bucket,
-      imgDomain: qiniuConfig.imgDomain,
-    })
 
     // ----------------------------------------------------------------------------------------------------------------------
 
@@ -58,10 +52,17 @@ export function activate(context: vscode.ExtensionContext) {
             return
           case 'getQiniuResourceList':
             const { list, reachEnd } = await qiniu.getResourceList()
-            console.log('list')
             panel.webview.postMessage({
               command: 'getQiniuResourceList',
               data: { list, reachEnd },
+            })
+            return
+          case 'updateBucket':
+            qiniu.updateBucket(message.data)
+            const domains = await qiniu.getBucketDomains(message.data)
+            panel.webview.postMessage({
+              command: 'getBucketDomains',
+              data: domains,
             })
             return
         }
