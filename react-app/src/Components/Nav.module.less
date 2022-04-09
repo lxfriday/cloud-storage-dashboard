@@ -12,11 +12,11 @@
       height: 60px;
       font-size: 22px;
       font-weight: bold;
-      background-color: #fff;
+      background-color: #000;
       display: flex;
       justify-content: center;
       align-items: center;
-      color: #8552a1;
+      color: #fff;
     }
 
     .listWrapper {
@@ -57,20 +57,29 @@
     overflow: auto;
     flex-direction: column;
 
-    .navTitle {
+    .navTools {
       height: 60px;
-      background-color: #009ad6;
-      padding-left: 18px;
+      background-color: @base-color;
+      padding: 0 18px;
       box-sizing: border-box;
       display: flex;
+      justify-content: flex-end;
       align-items: center;
+      color: #fff;
 
-      span {
-        font-size: 26px;
-        font-weight: bold;
-        padding-right: 20px;
-        border-bottom: 3px solid #fff;
-        font-style: italic;
+      .buttonWrapper {
+        padding: 3px 15px;
+        background-color: transparent;
+        transition: background-color 1s ease;
+        border-radius: 5px;
+
+        &:hover {
+          background-color: #aaa;
+        }
+      }
+
+      span[role='img'] {
+        cursor: pointer;
       }
     }
 
