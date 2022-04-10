@@ -27,10 +27,6 @@ export function activate(context: vscode.ExtensionContext) {
 
     panel.webview.html = htmlTpl
 
-    // ----------------------------------------------------------------------------------------------------------------------
-
-    // ----------------------------------------------------------------------------------------------------------------------
-
     panel.webview.onDidReceiveMessage(
       async message => {
         // console.log('message', message)

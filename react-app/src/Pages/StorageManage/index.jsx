@@ -16,8 +16,10 @@ export default function StorageManage() {
   }
 
   useEffect(() => {
+    // 打开一个 bucket 的时候，更新 localside bucket
     messageCenter.requestUpdateBucket(currentBucket)
     window.addEventListener('message', getResourceList)
+    // 请求 bucket 列表中的数据
     messageCenter.requestGetQiniuResourceList()
 
     return () => {
