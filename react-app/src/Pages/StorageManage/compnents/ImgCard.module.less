@@ -1,0 +1,95 @@
+.wrapper {
+  position: relative;
+  width: 130px;
+  height: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  padding-top: 15px;
+  border: 1px solid #222;
+  border-radius: 5px;
+  justify-self: center;
+  transition: transform 0.2s cubic-bezier(0.075, 0.82, 0.165, 1);
+  &:hover {
+    transform: scale(1.05);
+  }
+
+  &.selected {
+    border: 1px solid #eee;
+  }
+
+  .iconWrapper {
+    width: 85px;
+    height: 85px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .img {
+    width: 85px;
+    height: 85px;
+    // background-repeat: no-repeat;
+    // background-size: cover;
+    // background-position: center;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 3px;
+  }
+
+  .fileFullName {
+    text-align: center;
+    margin-top: 3px;
+    color: #fff;
+    font-size: 11px;
+    width: 100%;
+    padding: 0 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .toolsWrapper {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+
+    &:hover .tools {
+      margin-top: 80px;
+    }
+
+    .tools {
+      height: 40px;
+      margin-top: 130px;
+      background-color: rgba(0,0,0,.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: margin-top 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+
+      .buttonWrapper {
+        width: 30px;
+        height: 30px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #ddd;
+        border-radius: 5px;
+        transition: background-color 1s;
+        cursor: pointer;
+
+        &:hover {
+          background-color: #999;
+        }
+
+        &~.buttonWrapper {
+          margin-left: 3px;
+        }
+      }
+    }
+  }
+}

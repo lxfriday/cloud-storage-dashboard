@@ -2,6 +2,14 @@ import * as qiniu from 'qiniu'
 import * as vscode from 'vscode'
 import * as Request from './request'
 
+// ---------------------------------------------------
+import qiniuKeys from './qiniu.keys'
+// export default {
+//   ak: '',
+//   sk: '',
+// }
+// ---------------------------------------------------
+
 function notiTpl(msg: string) {
   return `七牛：${msg}`
 }
@@ -12,8 +20,8 @@ function notiTpl(msg: string) {
 // }
 
 export const qiniuConfig = {
-  ak: 'hD316vNZRodbr9hC9P4gp8TNRoowpMDK9MAMrCLN',
-  sk: 'qcxOISl8AVs9cDGnO5ai6wRXraIsHY-QSBJ9htkD',
+  ak: qiniuKeys.ak,
+  sk: qiniuKeys.sk,
   bucket: 'storage',
   imgDomain: 'https://qiniu1.lxfriday.xyz/',
 }

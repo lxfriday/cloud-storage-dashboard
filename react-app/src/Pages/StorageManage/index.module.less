@@ -1,10 +1,39 @@
 .nav {
-  height: 60px;
+  height: 64px;
   background-color: @base-color;
-  padding: 0 18px 0 0;
+  padding: 0 18px 0 5px;
   box-sizing: border-box;
   display: flex;
   justify-content: space-between;
   align-items: center;
   color: #fff;
+}
+.imgListWrapper {
+  padding: 12px;
+  background-color: #111;
+  height: calc(100% - 104px);
+  overflow: auto;
+
+  display: grid;
+  grid-gap: 10px;
+  grid-template-rows: repeat(auto-fit, 130px);
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+}
+.bulkWrapper {
+  height: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #333;
+
+  .bulkToolsWrapper {
+    button {
+      margin-left: 5px;
+    }
+  }
+
+  .infoWrapper {
+    margin-right: 20px;
+    color: #ccc;
+  }
 }

@@ -7,53 +7,29 @@
     width: 180px;
     height: 100%;
     background-color: @base-color;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 
-    .siteTitle {
-      height: 60px;
-      font-size: 22px;
-      font-weight: bold;
-      background-color: #000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: #fff;
-    }
-
-    .listWrapper {
-      margin: 0;
-      padding: 0;
-      height: calc(100% - 60px);
-      overflow: auto;
-      list-style-type: none;
-    }
-    .listItem {
-      height: 40px;
-      border-bottom: 1px solid #ccc;
-      cursor: pointer;
-      background-color: transparent;
-
-      a {
+    .sideTopWrapper {
+      .siteTitle {
+        height: 60px;
+        font-size: 22px;
+        font-weight: bold;
+        background-color: #000;
         display: flex;
         justify-content: center;
         align-items: center;
         color: #fff;
-        text-decoration: none;
-        width: 100%;
-        height: 100%;
-        transition: background-color 1s ease;
-
-        &:hover {
-          background-color: #999;
-        }
-        &.navLinkActive {
-          background-color: #999;
-        }
       }
+    }
+    .sideBottomWrapper {
     }
   }
   .contentWrapper {
     height: 100%;
     width: calc(100% - 180px);
     overflow: auto;
+    position: relative;
   }
 }
