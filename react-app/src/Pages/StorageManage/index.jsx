@@ -44,6 +44,7 @@ export default function StorageManage() {
         token: uploadToken, //uploadToken为从后端获得的token
         file,
         folder: uploadFolder,
+        remainFileName: true,
       })
       csp.upload({
         file,

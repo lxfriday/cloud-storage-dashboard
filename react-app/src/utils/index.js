@@ -9,9 +9,14 @@ export const vscodeApi = acquireVsCodeApi()
 /**
  * 生成图片上传需要的信息
  */
-export function generateUploadImgInfo({ file, token, folder }) {
+export function generateUploadImgInfo({ file, token, folder, remainFileName }) {
   const ext = file.type.split('/')[1]
-  const randomKey = `${Date.now()}_${uuidv4()}`
+  const fileName = file.name.split('.')[0]
+  console.log('file', file, fileName)
+  let randomKey = `${Date.now()}_${uuidv4()}`
+  if (remainFileName) {
+    randomKey = fileName + randomKey
+  }
   return {
     token, //uploadToken为从后端获得的token
     key: `${folder}${randomKey}.${ext}`,
