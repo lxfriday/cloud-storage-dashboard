@@ -10,7 +10,8 @@
     "Other"
   ],
   "activationEvents": [
-    "*"
+    "onCommand:cloud-storage-dashboard.helloWorld",
+    "onCommand:cloud-storage-dashboard.start"
   ],
   "main": "./dist/extension.js",
   "contributes": {

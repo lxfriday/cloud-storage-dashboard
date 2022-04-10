@@ -2,10 +2,17 @@ import * as vscode from 'vscode'
 import htmlTpl from './htmlTpl'
 import qiniu, { qiniuConfig } from './utils/qiniu'
 
+let myStatusBarItem: vscode.StatusBarItem
+
 export function activate(context: vscode.ExtensionContext) {
-  let disposable = vscode.commands.registerCommand('cloud-storage-dashboard.helloWorld', () => {
-    vscode.window.showInformationMessage('Hello VSCode!')
-  })
+  // create a new status bar item that we can now manage
+  myStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100)
+  myStatusBarItem.command = 'cloud-storage-dashboard.start'
+  context.subscriptions.push(myStatusBarItem)
+
+  myStatusBarItem.text = '☁️云存储管理'
+  myStatusBarItem.show()
+
   let disposable2 = vscode.commands.registerCommand('cloud-storage-dashboard.start', () => {
     const panel = vscode.window.createWebviewPanel(
       'cloud-storage-dashboard', // Identifies the type of the webview. Used internally
@@ -72,7 +79,6 @@ export function activate(context: vscode.ExtensionContext) {
     )
   })
 
-  context.subscriptions.push(disposable)
   context.subscriptions.push(disposable2)
 }
 
