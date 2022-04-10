@@ -68,7 +68,7 @@ export default class Nav extends Component {
       },
     }
 
-    console.log('nav state', this.state)
+    // console.log('nav state', this.state)
 
     return (
       <div className={styles.wrapper}>
@@ -76,11 +76,19 @@ export default class Nav extends Component {
           <div className={styles.siteTitle}>云存储管理</div>
           <Menu
             style={{ width: 180 }}
-            defaultSelectedKeys={['settings']}
+            defaultSelectedKeys={['home']}
             defaultOpenKeys={['sub1']}
             mode="inline"
             theme="dark"
           >
+            <Menu.Item key="home" icon={<SettingOutlined />}>
+              <NavLink
+                to="/"
+                className={({ isActive }) => (isActive ? styles.navLinkActive : undefined)}
+              >
+                首页
+              </NavLink>
+            </Menu.Item>
             <SubMenu key="sub1" icon={<FolderOpenOutlined />} title="存储空间">
               {bucketList.map(bk => (
                 <Menu.Item key={bk}>
@@ -103,33 +111,7 @@ export default class Nav extends Component {
             </Menu.Item>
           </Menu>
         </div>
-        <div className={styles.contentWrapper}>
-          <div className={styles.nav}>
-            <div className={styles.domainWrapper}>
-              <Select
-                value={selectBucketDomain}
-                style={{ width: 250 }}
-                onChange={this.handleChangeDomain}
-              >
-                {bucketDomains.map(d => (
-                  <Option key={d} value={d}>
-                    {d}
-                  </Option>
-                ))}
-              </Select>
-            </div>
-            <div className={styles.toolsWrapper}>
-              <Upload {...selectFileUploadProps}>
-                <Button
-                  type="dashed"
-                  title="文件上传(支持多选)"
-                  icon={<UploadOutlined style={{ fontSize: '20px' }} />}
-                ></Button>
-              </Upload>
-            </div>
-          </div>
-          <div className={styles.content}>{children}</div>
-        </div>
+        <div className={styles.contentWrapper}>{children}</div>
       </div>
     )
   }
@@ -159,7 +141,7 @@ export default class Nav extends Component {
       }))
     }
   }
-  // 接收七牛 public config
+  // 接收七牛 bucket list
   handleReceiveGetQiniuBucketList = event => {
     const message = event.data // The JSON data our extension sent
     if (message.command === 'getQiniuBucketList') {
@@ -168,7 +150,7 @@ export default class Nav extends Component {
       })
     }
   }
-  // 接收七牛 public config
+  // 接收七牛 bucket domains
   handleReceiveGetBucketDomains = event => {
     const message = event.data // The JSON data our extension sent
     if (message.command === 'getBucketDomains') {

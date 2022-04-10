@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid'
+
 export const vscodeApi = acquireVsCodeApi()
 
 /**
@@ -5,7 +7,7 @@ export const vscodeApi = acquireVsCodeApi()
  */
 export function generateUploadImgInfo({ file, token, folder }) {
   const ext = file.type.split('/')[1]
-  const randomKey = `${Date.now()}_${Math.floor(Math.random() * 10000000)}`
+  const randomKey = `${Date.now()}_${uuidv4()}`
   return {
     token, //uploadToken为从后端获得的token
     key: `${folder}${randomKey}.${ext}`,

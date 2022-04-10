@@ -1,12 +1,5 @@
-import React, { Component } from 'react'
+import React from 'react'
 
-export default class LifeCircle extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {}
-  }
-
-  render() {
-    return <div>Settings</div>
-  }
+export default function Settings() {
+  return <div>Settings</div>
 }

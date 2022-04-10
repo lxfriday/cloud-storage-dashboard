@@ -16,7 +16,7 @@ const routes = [
   {
     path: '*',
     comp: Home,
-    title: '存储空间',
+    title: '首页',
   },
 ]
 

@@ -85,7 +85,8 @@ class Qiniu {
     this.bucket = params.bucket
     this.imgDomain = params.imgDomain
     this.expires = 7200
-    this.returnBody = '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)"}'
+    this.returnBody =
+      '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","etag":"$(etag)","mimeType":"$(mimeType)","ext":"$(ext)"}'
     this.limit = 100
     this.prefix = ''
     this.marker = ''
