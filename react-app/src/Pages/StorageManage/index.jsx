@@ -1,6 +1,6 @@
 import React, { useEffect, useState, Fragment } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Button, Upload, Select, message, Modal, notification } from 'antd'
+import { Button, Upload, Select, message, Modal, notification, Image } from 'antd'
 import {
   UploadOutlined,
   SyncOutlined,
@@ -14,7 +14,7 @@ import ImgCard from './compnents/ImgCard'
 
 import styles from './index.module.less'
 import * as messageCenter from '../../utils/messageCenter'
-import { generateUploadImgInfo, debounce, getFileSize } from '../../utils'
+import { generateUploadImgInfo, debounce, getFileSize, isImage as isImageFunc } from '../../utils'
 import cloudserviceprovider from '../../utils/cloudserviceprovider'
 
 const { Option } = Select
@@ -47,12 +47,15 @@ export default function StorageManage() {
     bucketDomains: [],
     selectBucketDomain: '',
   })
-  let [uploadFolder, setUploadFolder] = useState('testfolder/')
+  let [uploadFolder, setUploadFolder] = useState('')
   let [resourceList, setResourceList] = useState([])
   let [uploadToken, setUploadToken] = useState('')
   // 选中的资源 key
   let [selectedKeys, setSelectedKeys] = useState([])
   let [bucketOverviewInfo, setBucketOverviewInfo] = useState({ count: 0, space: 0 })
+  // 图片预览是否显示
+  let [imgPreviewVisible, setImgPreviewVisible] = useState(false)
+  let [imgPreviewIndex, setImgPreviewIndex] = useState(0)
 
   let [searchParams] = useSearchParams()
   const currentBucket = searchParams.get('space')
@@ -164,6 +167,22 @@ export default function StorageManage() {
     handleGetOverviewInfo()
   }
 
+  function handleGetOverviewInfo() {
+    messageCenter.requestGetOverviewInfo().then(overviewInfo => {
+      // {count: 2457, space: 1373368131}
+      setBucketOverviewInfo({
+        count: overviewInfo.count,
+        space: getFileSize(overviewInfo.space),
+      })
+    })
+  }
+
+  // 双击图片点击了预览，or右键点击了预览
+  function handlePreview(ind) {
+    setImgPreviewVisible(true)
+    setImgPreviewIndex(ind)
+  }
+
   useEffect(() => {
     // 打开一个 bucket 的时候，更新 localside bucket
     messageCenter.requestUpdateBucket(currentBucket).then(data => {
@@ -181,16 +200,6 @@ export default function StorageManage() {
       handleGetOverviewInfo()
     })
   }, [currentBucket])
-
-  function handleGetOverviewInfo() {
-    messageCenter.requestGetOverviewInfo().then(overviewInfo => {
-      // {count: 2457, space: 1373368131}
-      setBucketOverviewInfo({
-        count: overviewInfo.count,
-        space: getFileSize(overviewInfo.space),
-      })
-    })
-  }
 
   // console.log({ currentBucket, resourceList })
 
@@ -281,8 +290,9 @@ export default function StorageManage() {
         </div>
       </div>
       <div className={styles.imgListWrapper}>
-        {resourceList.map(imgInfo => (
+        {resourceList.map((imgInfo, ind) => (
           <ImgCard
+            isImage={isImageFunc(imgInfo.key.split('.')[1])}
             key={imgInfo.key}
             fkey={imgInfo.key}
             fsize={imgInfo.fsize}
@@ -296,8 +306,23 @@ export default function StorageManage() {
             handleSelectAll={handleSelectAll}
             debouncedHttpsErrorNotiWarning={debouncedHttpsErrorNotiWarning}
             debouncedHttpErrorNotiError={debouncedHttpErrorNotiError}
+            handlePreview={() => handlePreview(ind)}
           />
         ))}
+      </div>
+      {/* 注意这里 display 一定要为 none，否则页面底部会出现多余的图片 */}
+      <div style={{ display: 'none' }}>
+        <Image.PreviewGroup
+          preview={{
+            visible: imgPreviewVisible,
+            onVisibleChange: vis => setImgPreviewVisible(vis),
+            current: imgPreviewIndex,
+          }}
+        >
+          {resourceList.map(imgInfo => (
+            <Image src={imgPrefix + imgInfo.key} />
+          ))}
+        </Image.PreviewGroup>
       </div>
     </Fragment>
   )

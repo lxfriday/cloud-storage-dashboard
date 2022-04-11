@@ -15,6 +15,8 @@ import { isImage as isImageFunc, getFullTime, getFileSize } from '../../../utils
 import styles from './ImgCard.module.less'
 
 export default function ImgCard({
+  index,
+  isImage,
   fsize,
   hash,
   url: originalUrl,
@@ -27,12 +29,12 @@ export default function ImgCard({
   handleSelectAll,
   debouncedHttpsErrorNotiWarning,
   debouncedHttpErrorNotiError,
+  handlePreview,
 }) {
   const [url, setUrl] = useState(originalUrl)
   const [isImgLoadError, setIsImgLoadError] = useState(false)
   const keyS = fkey.split('/')
   const fileFullName = keyS[keyS.length - 1]
-  const isImage = isImageFunc(fkey.split('.')[1])
   function handleImgLoadError(e) {
     if (e.target.src.indexOf('https://') === 0) {
       // 尝试使用 http 请求
@@ -147,6 +149,7 @@ export default function ImgCard({
         <div
           className={classnames(styles.wrapper, selected && styles.selected)}
           onClick={() => handleToggleSelectKey(fkey)}
+          onDoubleClick={handlePreview}
         >
           <div className={styles.iconWrapper}>{finalImage}</div>
           <div className={styles.fileFullName}>{fileFullName}</div>
