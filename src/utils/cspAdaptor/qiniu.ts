@@ -1,6 +1,7 @@
 import * as qiniu from 'qiniu'
 import * as vscode from 'vscode'
 import * as Request from '../request'
+import * as dayjs from 'dayjs'
 
 // ---------------------------------------------------
 import qiniuKeys from './qiniu.keys'
@@ -167,6 +168,38 @@ class Qiniu {
           }
         }
       })
+    })
+  }
+
+  // 获取七牛空间的文件数和文件占用空间信息
+  // 用到了非 sdk 地址，官方文档也没有
+  // ref https://github.com/willnewii/qiniuClient/blob/9e7b707dab0978790a754a1ebe17496d67704b03/src/renderer/cos/qiniu.js#L9
+  // ref https://github.com/willnewii/qiniuClient/blob/9e7b707dab/src/renderer/cos/qiniuBucket.js#L73
+  getOverviewInfo() {
+    const formatStr = 'YYYYMMDD000000'
+    let day = dayjs()
+    let param = `?bucket=${this.bucket}&begin=${day
+      .add(-1, 'day')
+      .format(formatStr)}&end=${day.format(formatStr)}&g=day`
+
+    let requests = [urls.count, urls.countLine, urls.space, urls.spaceLine].map(url => {
+      return Request.get({ url: `${url}${param}` })
+    })
+
+    return new Promise((res, rej) => {
+      Promise.all(requests)
+        .then(result => {
+          res({
+            count: result[0].datas[0] || result[1].datas[0],
+            space: result[2].datas[0] || result[3].datas[0],
+          })
+        })
+        .catch(error => {
+          res({
+            count: 0,
+            space: 0,
+          })
+        })
     })
   }
 }

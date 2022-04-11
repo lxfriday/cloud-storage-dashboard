@@ -56,6 +56,13 @@ export default function messageController(
             data: res,
           })
           return
+        case MESSAGE_COMMANDS.getOverviewInfo:
+          const overviewInfo = await csp.getOverviewInfo()
+          postMessage({
+            uniqueId: message.uniqueId,
+            data: overviewInfo,
+          })
+          return
       }
     },
     undefined,

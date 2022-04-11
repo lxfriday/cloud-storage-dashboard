@@ -15,6 +15,7 @@
     "classnames": "^2.3.1",
     "codemirror6-themes": "^0.1.2",
     "copy-text-to-clipboard": "^3.0.1",
+    "dayjs": "^1.11.0",
     "filesize": "^8.0.7",
     "history": "^5.3.0",
     "image-extensions": "^1.1.0",

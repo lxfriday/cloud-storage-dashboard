@@ -53,4 +53,13 @@ export function requestDeleteBucketFiles(keysList) {
   })
 }
 
+export function requestGetOverviewInfo() {
+  return messageAdaptor({
+    serverCommand: MESSAGE_COMMANDS.getOverviewInfo,
+    data: {
+      ...providerInfo,
+    },
+  })
+}
+
 // getBucketDomains

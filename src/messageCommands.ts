@@ -5,4 +5,5 @@ export default {
   updateBucket: 'updateBucket',
   getBucketDomains: 'getBucketDomains',
   deleteBucketFiles: 'deleteBucketFiles',
+  getOverviewInfo: 'getOverviewInfo',
 }

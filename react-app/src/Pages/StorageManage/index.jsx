@@ -14,7 +14,7 @@ import ImgCard from './compnents/ImgCard'
 
 import styles from './index.module.less'
 import * as messageCenter from '../../utils/messageCenter'
-import { generateUploadImgInfo, debounce } from '../../utils'
+import { generateUploadImgInfo, debounce, getFileSize } from '../../utils'
 import cloudserviceprovider from '../../utils/cloudserviceprovider'
 
 const { Option } = Select
@@ -52,6 +52,7 @@ export default function StorageManage() {
   let [uploadToken, setUploadToken] = useState('')
   // 选中的资源 key
   let [selectedKeys, setSelectedKeys] = useState([])
+  let [bucketOverviewInfo, setBucketOverviewInfo] = useState({ count: 0, space: 0 })
 
   let [searchParams] = useSearchParams()
   const currentBucket = searchParams.get('space')
@@ -160,6 +161,7 @@ export default function StorageManage() {
     messageCenter.requestGetResourceList({ fromBegin: true, prefix: uploadFolder }).then(data => {
       setResourceList(data.list)
     })
+    handleGetOverviewInfo()
   }
 
   useEffect(() => {
@@ -176,8 +178,19 @@ export default function StorageManage() {
       messageCenter.requestGetResourceList({ fromBegin: true, prefix: uploadFolder }).then(data => {
         setResourceList(data.list)
       })
+      handleGetOverviewInfo()
     })
   }, [currentBucket])
+
+  function handleGetOverviewInfo() {
+    messageCenter.requestGetOverviewInfo().then(overviewInfo => {
+      // {count: 2457, space: 1373368131}
+      setBucketOverviewInfo({
+        count: overviewInfo.count,
+        space: getFileSize(overviewInfo.space),
+      })
+    })
+  }
 
   // console.log({ currentBucket, resourceList })
 
@@ -263,7 +276,9 @@ export default function StorageManage() {
             </Fragment>
           )}
         </div>
-        <div className={styles.infoWrapper}>10086 个文件 / 50G 存储空间</div>
+        <div className={styles.infoWrapper}>
+          {bucketOverviewInfo.count} 个文件 / {bucketOverviewInfo.space} 存储空间
+        </div>
       </div>
       <div className={styles.imgListWrapper}>
         {resourceList.map(imgInfo => (

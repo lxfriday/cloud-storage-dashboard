@@ -40,7 +40,7 @@ export function getFullTime(t) {
 }
 
 export function getFileSize(size) {
-  return filesize(size)
+  return filesize(size, { base: 2 })
 }
 
 export function debounce(func, wait, immediate) {
