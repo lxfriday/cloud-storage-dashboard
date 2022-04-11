@@ -1,6 +1,6 @@
 import React, { useEffect, useState, Fragment } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Button, Upload, Select, message, Modal } from 'antd'
+import { Button, Upload, Select, message, Modal, notification } from 'antd'
 import {
   UploadOutlined,
   SyncOutlined,
@@ -14,13 +14,31 @@ import ImgCard from './compnents/ImgCard'
 
 import styles from './index.module.less'
 import * as messageCenter from '../../utils/messageCenter'
-import { generateUploadImgInfo } from '../../utils'
+import { generateUploadImgInfo, debounce } from '../../utils'
 import cloudserviceprovider from '../../utils/cloudserviceprovider'
 
 const { Option } = Select
 
 const providerName = 'qiniu'
 const csp = cloudserviceprovider[providerName]
+
+// https 协议加载图片失败，自动切换到 http 协议提醒
+
+function httpsErrorNotiWarning() {
+  notification.warning({
+    message: '提示',
+    description: 'https 协议加载图片失败，自动切换到 http 协议加载资源',
+  })
+}
+function httpErrorNotiError() {
+  notification.error({
+    message: '提示',
+    description: 'http 协议加载图片也失败了',
+  })
+}
+
+const debouncedHttpsErrorNotiWarning = debounce(httpsErrorNotiWarning, 3000, true)
+const debouncedHttpErrorNotiError = debounce(httpErrorNotiError, 3000, true)
 
 export default function StorageManage() {
   const forceHTTPS = true
@@ -261,6 +279,8 @@ export default function StorageManage() {
             handleToggleSelectKey={handleToggleSelectKey}
             handleDeleteFile={handleDeleteFiles}
             handleSelectAll={handleSelectAll}
+            debouncedHttpsErrorNotiWarning={debouncedHttpsErrorNotiWarning}
+            debouncedHttpErrorNotiError={debouncedHttpErrorNotiError}
           />
         ))}
       </div>

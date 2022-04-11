@@ -17,7 +17,7 @@ import styles from './ImgCard.module.less'
 export default function ImgCard({
   fsize,
   hash,
-  url,
+  url: originalUrl,
   mimeType,
   putTime,
   fkey,
@@ -25,13 +25,25 @@ export default function ImgCard({
   handleToggleSelectKey,
   handleDeleteFile,
   handleSelectAll,
+  debouncedHttpsErrorNotiWarning,
+  debouncedHttpErrorNotiError,
 }) {
+  const [url, setUrl] = useState(originalUrl)
   const [isImgLoadError, setIsImgLoadError] = useState(false)
   const keyS = fkey.split('/')
   const fileFullName = keyS[keyS.length - 1]
   const isImage = isImageFunc(fkey.split('.')[1])
-  function handleImgLoadError() {
-    setIsImgLoadError(true)
+  function handleImgLoadError(e) {
+    if (e.target.src.indexOf('https://') === 0) {
+      // 尝试使用 http 请求
+      const httpUrl = `http${e.target.src.substring(5)}`
+      e.target.src = httpUrl
+      setUrl(httpUrl)
+      debouncedHttpsErrorNotiWarning()
+    } else {
+      setIsImgLoadError(true)
+      debouncedHttpErrorNotiError()
+    }
   }
 
   let finalImage = null

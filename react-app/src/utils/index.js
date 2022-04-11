@@ -42,3 +42,22 @@ export function getFullTime(t) {
 export function getFileSize(size) {
   return filesize(size)
 }
+
+export function debounce(func, wait, immediate) {
+  let timeout
+  return function debounced(...args) {
+    const ctx = this
+    if (timeout) clearTimeout(timeout)
+    if (immediate) {
+      const callNow = !timeout
+      timeout = setTimeout(() => {
+        timeout = null
+      }, wait)
+      if (callNow) func.apply(ctx, args)
+    } else {
+      timeout = setTimeout(() => {
+        func.apply(ctx, args)
+      }, wait)
+    }
+  }
+}
