@@ -10,6 +10,8 @@ export function upload({ file, key, token, forceHTTPS, imgDomain }) {
     observable.subscribe({
       next(res) {
         // ...
+        console.log('upload Progress file name', file.name)
+        console.log('upload Progress percent', res.total.percent)
       },
       error(err) {
         // ...

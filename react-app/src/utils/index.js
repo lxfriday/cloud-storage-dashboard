@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid'
 import imageExtensions from 'image-extensions'
+import videoExtensions from 'video-extensions'
 import filesize from 'filesize'
 
-const imageExtensionsSet = new Set(imageExtensions)
 
 export const vscodeApi = acquireVsCodeApi()
 
@@ -25,7 +25,12 @@ export function generateUploadImgInfo({ file, token, folder, remainFileName }) {
 
 // 依据后缀名判断是不是图片
 export function isImage(ext) {
-  return imageExtensionsSet.has(ext)
+  return imageExtensions.includes(ext)
+}
+
+// 依据后缀名判断是不是视频
+export function isVideo(ext) {
+  return videoExtensions.includes(ext)
 }
 
 // t: Date

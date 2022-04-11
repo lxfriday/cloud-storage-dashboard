@@ -24,7 +24,7 @@ const loading = {
   },
   hide() {
     if (this.isvisible) {
-      document.querySelector('#root').removeChild(wrapperEle)
+      ReactDOM.unmountComponentAtNode(wrapperEle)
       this.isvisible = false
     }
   },

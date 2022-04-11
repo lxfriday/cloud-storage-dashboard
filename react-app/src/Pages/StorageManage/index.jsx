@@ -10,11 +10,18 @@ import {
 } from '@ant-design/icons'
 import copy from 'copy-text-to-clipboard'
 
-import ImgCard from './compnents/ImgCard'
+import ResourceCard from './compnents/ResourceCard'
+import videoPlayer from '../../Components/VideoPlayer'
 
 import styles from './index.module.less'
 import * as messageCenter from '../../utils/messageCenter'
-import { generateUploadImgInfo, debounce, getFileSize, isImage as isImageFunc } from '../../utils'
+import {
+  generateUploadImgInfo,
+  debounce,
+  getFileSize,
+  isImage as isImageFunc,
+  isVideo as isVideoFunc,
+} from '../../utils'
 import cloudserviceprovider from '../../utils/cloudserviceprovider'
 
 const { Option } = Select
@@ -47,7 +54,7 @@ export default function StorageManage() {
     bucketDomains: [],
     selectBucketDomain: '',
   })
-  let [uploadFolder, setUploadFolder] = useState('')
+  let [uploadFolder, setUploadFolder] = useState('testfolder/')
   let [resourceList, setResourceList] = useState([])
   let [uploadToken, setUploadToken] = useState('')
   // 选中的资源 key
@@ -178,9 +185,15 @@ export default function StorageManage() {
   }
 
   // 双击图片点击了预览，or右键点击了预览
-  function handlePreview(ind) {
+  function handlePreviewAsImg(ind) {
     setImgPreviewVisible(true)
     setImgPreviewIndex(ind)
+  }
+
+  // 预览视频
+  function handlePreviewAsVideo(url) {
+    console.log('video url', url)
+    videoPlayer.show(url)
   }
 
   useEffect(() => {
@@ -289,24 +302,26 @@ export default function StorageManage() {
           {bucketOverviewInfo.count} 个文件 / {bucketOverviewInfo.space} 存储空间
         </div>
       </div>
-      <div className={styles.imgListWrapper}>
-        {resourceList.map((imgInfo, ind) => (
-          <ImgCard
-            isImage={isImageFunc(imgInfo.key.split('.')[1])}
-            key={imgInfo.key}
-            fkey={imgInfo.key}
-            fsize={imgInfo.fsize}
-            hash={imgInfo.hash}
-            mimeType={imgInfo.mimeType}
-            putTime={imgInfo.putTime}
-            url={imgPrefix + imgInfo.key}
-            selected={selectedKeys.includes(imgInfo.key)}
+      <div className={styles.resourceListWrapper}>
+        {resourceList.map((resourceInfo, ind) => (
+          <ResourceCard
+            isVideo={isVideoFunc(resourceInfo.mimeType.split('/')[1])}
+            isImage={isImageFunc(resourceInfo.mimeType.split('/')[1])}
+            key={resourceInfo.key}
+            fkey={resourceInfo.key}
+            fsize={resourceInfo.fsize}
+            hash={resourceInfo.hash}
+            mimeType={resourceInfo.mimeType}
+            putTime={resourceInfo.putTime}
+            url={imgPrefix + resourceInfo.key}
+            selected={selectedKeys.includes(resourceInfo.key)}
             handleToggleSelectKey={handleToggleSelectKey}
             handleDeleteFile={handleDeleteFiles}
             handleSelectAll={handleSelectAll}
             debouncedHttpsErrorNotiWarning={debouncedHttpsErrorNotiWarning}
             debouncedHttpErrorNotiError={debouncedHttpErrorNotiError}
-            handlePreview={() => handlePreview(ind)}
+            handlePreviewAsImg={() => handlePreviewAsImg(ind)}
+            handlePreviewAsVideo={() => handlePreviewAsVideo(imgPrefix + resourceInfo.key)}
           />
         ))}
       </div>
@@ -319,8 +334,8 @@ export default function StorageManage() {
             current: imgPreviewIndex,
           }}
         >
-          {resourceList.map(imgInfo => (
-            <Image src={imgPrefix + imgInfo.key} />
+          {resourceList.map(resourceInfo => (
+            <Image key={resourceInfo.key} src={imgPrefix + resourceInfo.key} />
           ))}
         </Image.PreviewGroup>
       </div>

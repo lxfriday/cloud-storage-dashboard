@@ -5,17 +5,18 @@ import {
   CopyFilled,
   DeleteFilled,
   ExclamationCircleOutlined,
+  PlayCircleOutlined,
 } from '@ant-design/icons'
 import { message, Menu, Dropdown, Modal, Tooltip } from 'antd'
 import copy from 'copy-text-to-clipboard'
 import classnames from 'classnames'
 
-import { isImage as isImageFunc, getFullTime, getFileSize } from '../../../utils'
+import { getFullTime, getFileSize } from '../../../utils'
 
-import styles from './ImgCard.module.less'
+import styles from './ResourceCard.module.less'
 
-export default function ImgCard({
-  index,
+export default function ResourceCard({
+  isVideo,
   isImage,
   fsize,
   hash,
@@ -29,7 +30,8 @@ export default function ImgCard({
   handleSelectAll,
   debouncedHttpsErrorNotiWarning,
   debouncedHttpErrorNotiError,
-  handlePreview,
+  handlePreviewAsImg,
+  handlePreviewAsVideo,
 }) {
   const [url, setUrl] = useState(originalUrl)
   const [isImgLoadError, setIsImgLoadError] = useState(false)
@@ -50,14 +52,16 @@ export default function ImgCard({
 
   let finalImage = null
 
-  if (!isImage) {
-    finalImage = <FileFilled style={{ color: '#aaa', fontSize: '70px' }} />
-  } else if (isImgLoadError) {
-    finalImage = <BugFilled style={{ color: '#aaa', fontSize: '60px' }} />
-  } else {
+  if (isImage) {
     finalImage = (
       <img src={url} className={styles.img} onError={handleImgLoadError} draggable={false} />
     )
+  } else if (isVideo) {
+    finalImage = <PlayCircleOutlined style={{ color: '#aaa', fontSize: '60px' }} />
+  } else if (isImgLoadError) {
+    finalImage = <BugFilled style={{ color: '#aaa', fontSize: '60px' }} />
+  } else {
+    finalImage = <FileFilled style={{ color: '#aaa', fontSize: '70px' }} />
   }
 
   function handlePressDelete() {
@@ -149,7 +153,15 @@ export default function ImgCard({
         <div
           className={classnames(styles.wrapper, selected && styles.selected)}
           onClick={() => handleToggleSelectKey(fkey)}
-          onDoubleClick={handlePreview}
+          onDoubleClick={() => {
+            if (isImage) {
+              handlePreviewAsImg()
+            } else if (isVideo) {
+              handlePreviewAsVideo()
+            } else {
+              message.error('不支持预览的文件类型')
+            }
+          }}
         >
           <div className={styles.iconWrapper}>{finalImage}</div>
           <div className={styles.fileFullName}>{fileFullName}</div>
