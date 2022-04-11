@@ -46,7 +46,6 @@ class Qiniu {
 
   // img list config
   limit: number // 单页加载条目数
-  prefix: string // folder 用
   marker: string // 分页用
 
   qiniuMac: qiniu.auth.digest.Mac
@@ -80,14 +79,18 @@ class Qiniu {
     return uploadToken
   }
 
-  getResourceList(): Promise<{ list: Array<any>; reachEnd: boolean }> {
+  // fromBegin 是否从头加载， true 则重置 marker
+  getResourceList(
+    fromBegin: boolean,
+    prefix: string
+  ): Promise<{ list: Array<any>; reachEnd: boolean }> {
     // const bucketManager = new qiniu.rs.BucketManager(this.qiniuMac, this.qiniuConfig)
     const bucketManager = new qiniu.rs.BucketManager(this.qiniuMac, new qiniu.conf.Config())
     const options = {
       limit: this.limit,
       // prefix: 'testfolder/',
-      prefix: this.prefix,
-      marker: this.marker,
+      prefix,
+      marker: fromBegin ? '' : this.marker,
       // marker:
       // 'eyJjIjowLCJrIjoiV2F0ZXJNLzU4YTI3M2UyLWVlZWMtNDFjNy1iMTFiLTcyODQ1NDFkOWMxY19RUTIwMTkwNTI1LTIwMTQwMi1yZWZlcmVyLnBuZyJ9',
     }
@@ -113,7 +116,6 @@ class Qiniu {
 
   updateBucket(newBucket: string) {
     this.bucket = newBucket
-    this.prefix = ''
     this.marker = ''
   }
 

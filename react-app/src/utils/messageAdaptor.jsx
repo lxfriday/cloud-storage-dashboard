@@ -2,6 +2,7 @@ import React from 'react'
 import { vscodeApi } from './index'
 import globalConfig from '../../../src/globalConfig'
 import { notification } from 'antd'
+import loading from '../Components/Loading'
 
 // server 监听，page 触发，page 发数据，server 收数据，必须指定
 // serverCommand: 'requestDataFromServer',
@@ -24,6 +25,10 @@ export default function messageAdaptor({ serverCommand, data }) {
       })
       rej('数据获取超时了', { serverCommand, data })
     }, 2500)
+
+    //--------------------加载提示-----------------------
+    loading.show()
+    //--------------------------------------------------
     function listener(ev) {
       const msg = ev.data
       if (msg.uniqueId === uniqueId) {
@@ -31,6 +36,7 @@ export default function messageAdaptor({ serverCommand, data }) {
         clearTimeout(timer)
         globalConfig.showMessageProgress &&
           LogO(`page receive message, time cost: ${Date.now() - timeStart}ms`, { msg })
+        loading.hide()
         res(msg.data)
       }
     }

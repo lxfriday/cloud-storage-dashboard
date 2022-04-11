@@ -1,4 +1,4 @@
-import React, { useState, Fragment } from 'react'
+import React, { useState } from 'react'
 import {
   FileFilled,
   BugFilled,
@@ -6,7 +6,7 @@ import {
   DeleteFilled,
   ExclamationCircleOutlined,
 } from '@ant-design/icons'
-import { message, Menu, Dropdown, Modal, Button } from 'antd'
+import { message, Menu, Dropdown, Modal, Tooltip } from 'antd'
 import copy from 'copy-text-to-clipboard'
 import classnames from 'classnames'
 
@@ -130,7 +130,7 @@ export default function ImgCard({
   )
 
   return (
-    <Fragment>
+    <Tooltip title={fkey}>
       <Dropdown overlay={contextMenu} trigger={['contextMenu']}>
         <div
           className={classnames(styles.wrapper, selected && styles.selected)}
@@ -156,6 +156,6 @@ export default function ImgCard({
           </div>
         </div>
       </Dropdown>
-    </Fragment>
+    </Tooltip>
   )
 }

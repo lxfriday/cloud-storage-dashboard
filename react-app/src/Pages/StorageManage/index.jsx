@@ -1,7 +1,8 @@
 import React, { useEffect, useState, Fragment } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Button, Upload, Select, message } from 'antd'
-import { UploadOutlined } from '@ant-design/icons'
+import { UploadOutlined, SyncOutlined, LinkOutlined, ProfileOutlined } from '@ant-design/icons'
+import copy from 'copy-text-to-clipboard'
 
 import ImgCard from './compnents/ImgCard'
 
@@ -95,6 +96,14 @@ export default function StorageManage() {
     console.log('delete file keys', keys)
   }
 
+  function handleRefresh() {
+    // 刷新列表
+    // 刷新文件数量，存储空间
+    messageCenter.requestGetResourceList({ fromBegin: true, prefix: uploadFolder }).then(data => {
+      setResourceList(data.list)
+    })
+  }
+
   useEffect(() => {
     // 打开一个 bucket 的时候，更新 localside bucket
     messageCenter.requestUpdateBucket(currentBucket).then(data => {
@@ -106,7 +115,7 @@ export default function StorageManage() {
       messageCenter.requestGenerateUploadToken().then(data => {
         setUploadToken(data)
       })
-      messageCenter.requestGetResourceList().then(data => {
+      messageCenter.requestGetResourceList({ fromBegin: true, prefix: uploadFolder }).then(data => {
         setResourceList(data.list)
       })
     })
@@ -130,7 +139,7 @@ export default function StorageManage() {
             </Option>
           ))}
         </Select>
-        <div>
+        <div className={styles.navToolsWrapper}>
           <Upload {...selectFileUploadProps}>
             <Button
               type="dashed"
@@ -138,6 +147,28 @@ export default function StorageManage() {
               icon={<UploadOutlined style={{ fontSize: '20px' }} />}
             ></Button>
           </Upload>
+          <Button
+            type="dashed"
+            title="url 直传文件"
+            icon={<LinkOutlined style={{ fontSize: '20px' }} />}
+          ></Button>
+          <Button
+            type="dashed"
+            title="导出 folder 中所有链接"
+            onClick={() => {
+              let totalStr = ''
+              resourceList.forEach(imgInfo => (totalStr += `${imgPrefix + imgInfo.key}\r\n`))
+              copy(totalStr)
+              message.success('已复制到剪切板')
+            }}
+            icon={<ProfileOutlined style={{ fontSize: '20px' }} />}
+          ></Button>
+          <Button
+            type="dashed"
+            title="刷新"
+            onClick={handleRefresh}
+            icon={<SyncOutlined style={{ fontSize: '20px' }} />}
+          ></Button>
         </div>
       </div>
       <div className={styles.bulkWrapper}>

@@ -14,11 +14,12 @@ export function requestGenerateUploadToken() {
   })
 }
 
-export function requestGetResourceList() {
+export function requestGetResourceList(params = { fromBegin: true, prefix: '' }) {
   return messageAdaptor({
     serverCommand: MESSAGE_COMMANDS.getResourceList,
     data: {
       ...providerInfo,
+      ...params,
     },
   })
 }
