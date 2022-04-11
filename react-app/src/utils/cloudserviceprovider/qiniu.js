@@ -10,7 +10,6 @@ export function upload({ file, key, token, forceHTTPS, imgDomain }) {
     observable.subscribe({
       next(res) {
         // ...
-        resolve(res)
       },
       error(err) {
         // ...

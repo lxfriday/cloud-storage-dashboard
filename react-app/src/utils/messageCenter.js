@@ -42,5 +42,15 @@ export function requestUpdateBucket(newBucket) {
     },
   })
 }
+// 删除一个或多个文件都走这个接口
+export function requestDeleteBucketFiles(keysList) {
+  return messageAdaptor({
+    serverCommand: MESSAGE_COMMANDS.deleteBucketFiles,
+    data: {
+      ...providerInfo,
+      keysList,
+    },
+  })
+}
 
 // getBucketDomains

@@ -49,6 +49,13 @@ export default function messageController(
             data: domains,
           })
           return
+        case MESSAGE_COMMANDS.deleteBucketFiles:
+          const res = await csp.deleteBucketFiles(message.data.keysList)
+          postMessage({
+            uniqueId: message.uniqueId,
+            data: res,
+          })
+          return
       }
     },
     undefined,

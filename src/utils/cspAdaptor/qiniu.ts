@@ -56,11 +56,10 @@ class Qiniu {
     this.sk = params.sk
     this.bucket = params.bucket
     this.imgDomain = params.imgDomain
-    this.expires = 7200
+    this.expires = 604800 // 一周
     this.returnBody =
       '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","etag":"$(etag)","mimeType":"$(mimeType)","ext":"$(ext)"}'
     this.limit = 100
-    this.prefix = ''
     this.marker = ''
 
     this.qiniuMac = new qiniu.auth.digest.Mac(params.ak, params.sk)
@@ -142,6 +141,33 @@ class Qiniu {
 
   generateHTTPAuthorization(url: string) {
     return qiniu.util.generateAccessToken(this.qiniuMac, url)
+  }
+
+  // 删除 bucket 中的文件
+  // 删除单个文件和多个文件都走这个接口
+  // ref https://developer.qiniu.com/kodo/1289/nodejs
+  deleteBucketFiles(keysList: string[]) {
+    const bucketManager = new qiniu.rs.BucketManager(this.qiniuMac, new qiniu.conf.Config())
+
+    const deleteOperations = keysList.map(key => qiniu.rs.deleteOp(this.bucket, key))
+
+    return new Promise((resolve, reject) => {
+      bucketManager.batch(deleteOperations, function (respErr, respBody, respInfo) {
+        console.log('delete result', { respErr, respBody, respInfo })
+
+        if (respBody.error) {
+          vscode.window.showErrorMessage(notiTpl(respBody.error))
+          resolve({ result: 'error' }) // 不成功
+        } else {
+          // // 200 is success, 298 is part success
+          if (respInfo.statusCode === 200) {
+            resolve({ result: 'alldeleted' }) // 不成功
+          } else {
+            resolve({ result: 'partdeleted' }) // 不成功
+          }
+        }
+      })
+    })
   }
 }
 

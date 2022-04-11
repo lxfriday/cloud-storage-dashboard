@@ -1,7 +1,13 @@
 import React, { useEffect, useState, Fragment } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Button, Upload, Select, message } from 'antd'
-import { UploadOutlined, SyncOutlined, LinkOutlined, ProfileOutlined } from '@ant-design/icons'
+import { Button, Upload, Select, message, Modal } from 'antd'
+import {
+  UploadOutlined,
+  SyncOutlined,
+  LinkOutlined,
+  ProfileOutlined,
+  ExclamationCircleOutlined,
+} from '@ant-design/icons'
 import copy from 'copy-text-to-clipboard'
 
 import ImgCard from './compnents/ImgCard'
@@ -47,13 +53,18 @@ export default function StorageManage() {
         folder: uploadFolder,
         remainFileName: true,
       })
-      csp.upload({
-        file,
-        key,
-        token,
-        forceHTTPS,
-        imgDomain: bucketDomainInfo.selectBucketDomain,
-      })
+      csp
+        .upload({
+          file,
+          key,
+          token,
+          forceHTTPS,
+          imgDomain: bucketDomainInfo.selectBucketDomain,
+        })
+        .then(() => {
+          // 上传成功之后自动刷新？
+          handleRefresh()
+        })
     },
   }
 
@@ -93,7 +104,36 @@ export default function StorageManage() {
 
   // 删除一个和删除多个文件都走这个函数
   function handleDeleteFiles(keys) {
-    console.log('delete file keys', keys)
+    messageCenter.requestDeleteBucketFiles(keys).then(data => {
+      console.log('requestDeleteBucketFiles', data)
+      if (data.result === 'alldeleted') {
+        message.success('删除成功')
+        const rList = []
+        resourceList.forEach(r => {
+          if (!keys.includes(r.key)) {
+            rList.push(r)
+          }
+        })
+        const nSelectedKeys = []
+        selectedKeys.forEach(k => {
+          if (!keys.includes(k)) {
+            nSelectedKeys(k)
+          }
+        })
+        setSelectedKeys(nSelectedKeys)
+        setResourceList(rList)
+      } else if (data.result === 'partdeleted') {
+        message.error('部分文件删除成功')
+        handleRefresh()
+      } else {
+        message.error('删除失败')
+      }
+    })
+  }
+
+  // 工具条中点击删除，删除选中的文件
+  function handleDeleteSelectedFiles() {
+    handleDeleteFiles(selectedKeys)
   }
 
   function handleRefresh() {
@@ -183,7 +223,23 @@ export default function StorageManage() {
               </Button>
               <Button size="small">刷新缓存({selectedKeys.length})</Button>
               <Button size="small">下载({selectedKeys.length})</Button>
-              <Button size="small" type="primary" danger>
+              <Button
+                size="small"
+                type="primary"
+                danger
+                onClick={() => {
+                  Modal.confirm({
+                    title: '确定删除选中的文件？',
+                    icon: <ExclamationCircleOutlined />,
+                    okText: '删除',
+                    okType: 'danger',
+                    cancelText: '取消',
+                    onOk() {
+                      handleDeleteSelectedFiles()
+                    },
+                  })
+                }}
+              >
                 删除({selectedKeys.length})
               </Button>
             </Fragment>

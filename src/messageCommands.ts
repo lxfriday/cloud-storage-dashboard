@@ -4,4 +4,5 @@ export default {
   getResourceList: 'getResourceList',
   updateBucket: 'updateBucket',
   getBucketDomains: 'getBucketDomains',
+  deleteBucketFiles: 'deleteBucketFiles',
 }
