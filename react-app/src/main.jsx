@@ -13,6 +13,9 @@ window.LogR = function (...args) {
 window.LogG = function (...args) {
   console.log('%c%s', 'color: green;font-weight:bold;', ...args)
 }
+window.LogO = function (...args) {
+  console.log('%c%s', 'color: orange;font-weight:bold;', ...args)
+}
 
 ReactDOM.render(
   <Provider store={store}>

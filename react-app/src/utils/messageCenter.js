@@ -1,33 +1,44 @@
-import { vscodeApi } from './index'
+import MESSAGE_COMMANDS from '../../../src/messageCommands'
+import messageAdaptor from './messageAdaptor'
 
-export function requestGenerateQiniuUploadToken() {
-  vscodeApi.postMessage({
-    command: 'generateQiniuUploadToken',
+export const providerInfo = {
+  providerName: 'qiniu',
+}
+
+export function requestGenerateUploadToken() {
+  return messageAdaptor({
+    serverCommand: MESSAGE_COMMANDS.generateUploadToken,
+    data: {
+      ...providerInfo,
+    },
   })
 }
 
-export function requestGetQiniuPublicConfig() {
-  vscodeApi.postMessage({
-    command: 'getQiniuPublicConfig',
+export function requestGetResourceList() {
+  return messageAdaptor({
+    serverCommand: MESSAGE_COMMANDS.getResourceList,
+    data: {
+      ...providerInfo,
+    },
   })
 }
 
-export function requestGetQiniuResourceList() {
-  vscodeApi.postMessage({
-    command: 'getQiniuResourceList',
-  })
-}
-
-export function requestGetQiniuBucketList() {
-  vscodeApi.postMessage({
-    command: 'getQiniuBucketList',
+export function requestGetBucketList() {
+  return messageAdaptor({
+    serverCommand: MESSAGE_COMMANDS.getBucketList,
+    data: {
+      ...providerInfo,
+    },
   })
 }
 
 export function requestUpdateBucket(newBucket) {
-  vscodeApi.postMessage({
-    command: 'updateBucket',
-    data: newBucket,
+  return messageAdaptor({
+    serverCommand: MESSAGE_COMMANDS.updateBucket,
+    data: {
+      ...providerInfo,
+      newBucket,
+    },
   })
 }
 

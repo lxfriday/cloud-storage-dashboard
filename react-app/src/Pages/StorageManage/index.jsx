@@ -35,7 +35,7 @@ export default function StorageManage() {
     multiple: true,
     showUploadList: false,
     beforeUpload: () => {
-      messageCenter.requestGenerateQiniuUploadToken()
+      messageCenter.requestGenerateUploadToken()
       return true
     },
     customRequest(uploadInfo) {
@@ -56,37 +56,11 @@ export default function StorageManage() {
     },
   }
 
-  function handleGetResourceList(event) {
-    const message = event.data // The JSON data our extension sent
-    if (message.command === 'getQiniuResourceList') {
-      setResourceList([...resourceList, ...message.data.list])
-    }
-  }
-
   function handleChangeDomain(newDoamin) {
     setBucketDomainInfo({
       ...bucketDomainInfo,
       selectBucketDomain: newDoamin,
     })
-  }
-
-  // 接收七牛上传 token
-  function handleReceiveGenerateQiniuUploadToken(event) {
-    const message = event.data // The JSON data our extension sent
-    if (message.command === 'generateQiniuUploadToken') {
-      setUploadToken(message.data)
-    }
-  }
-  // 接收七牛 bucket domains
-  function handleReceiveGetBucketDomains(event) {
-    const message = event.data // The JSON data our extension sent
-    if (message.command === 'getBucketDomains') {
-      setBucketDomainInfo({
-        bucketDomains: message.data,
-        selectBucketDomain: message.data[message.data.length - 1],
-      })
-      setResourceList([])
-    }
   }
 
   function handleToggleSelectKey(key) {
@@ -122,27 +96,23 @@ export default function StorageManage() {
   }
 
   useEffect(() => {
-    window.addEventListener('message', handleGetResourceList)
-    window.addEventListener('message', handleReceiveGenerateQiniuUploadToken)
-    window.addEventListener('message', handleReceiveGetBucketDomains)
-
-    messageCenter.requestGenerateQiniuUploadToken()
-
-    return () => {
-      window.removeEventListener('message', handleGetResourceList)
-      window.removeEventListener('message', handleReceiveGenerateQiniuUploadToken)
-      window.removeEventListener('message', handleReceiveGetBucketDomains)
-    }
-  }, [handleGetResourceList, handleReceiveGenerateQiniuUploadToken, handleReceiveGetBucketDomains])
-
-  useEffect(() => {
     // 打开一个 bucket 的时候，更新 localside bucket
-    messageCenter.requestUpdateBucket(currentBucket)
-    messageCenter.requestGetQiniuResourceList()
+    messageCenter.requestUpdateBucket(currentBucket).then(data => {
+      setBucketDomainInfo({
+        bucketDomains: data,
+        selectBucketDomain: data[data.length - 1],
+      })
+      setResourceList([])
+      messageCenter.requestGenerateUploadToken().then(data => {
+        setUploadToken(data)
+      })
+      messageCenter.requestGetResourceList().then(data => {
+        setResourceList(data.list)
+      })
+    })
   }, [currentBucket])
 
   // console.log({ currentBucket, resourceList })
-  console.log({ selectedKeys })
 
   const imgPrefix = `${forceHTTPS ? 'https://' : 'http://'}${bucketDomainInfo.selectBucketDomain}/`
 

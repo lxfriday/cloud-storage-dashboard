@@ -1,6 +1,6 @@
 import axios from 'axios'
 import * as qs from 'querystring'
-import qiniu from './qiniu'
+import qiniu from './cspAdaptor/qiniu'
 
 type requestParam = {
   url: string

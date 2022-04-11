@@ -2,7 +2,7 @@
 
 ## before start
 
-在开始开发之前，先添加必备文件到 `src/utils`。
+在开始开发之前，先添加必备文件到 `src/utils/cspAdaptor`。
 
 文件内容：
 

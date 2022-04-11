@@ -1,6 +1,6 @@
 import * as qiniu from 'qiniu'
 import * as vscode from 'vscode'
-import * as Request from './request'
+import * as Request from '../request'
 
 // ---------------------------------------------------
 import qiniuKeys from './qiniu.keys'
@@ -34,41 +34,6 @@ const urls = {
   space: 'https://api.qiniu.com/v6/space', //统计文件空间(低频存储)
   spaceLine: 'https://api.qiniu.com/v6/space_line', //统计文件空间(低频存储)
 }
-
-// export function generateQiniuUploadToken() {
-//   const options = {
-//     scope: baseConfig.bucket,
-//     expires: 7200, // 7200s => 2h
-//     returnBody: '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)"}',
-//   }
-//   const putPolicy = new qiniu.rs.PutPolicy(options)
-//   const uploadToken = putPolicy.uploadToken(mac)
-//   return uploadToken
-// }
-
-// // 拉取资源 https://www.cnblogs.com/kangshuishneg/p/12556287.html
-// export function getResourceList() {
-//   const bucketManager = new qiniu.rs.BucketManager(mac, config)
-//   const options = {
-//     limit: 100,
-//     // prefix: 'testfolder/',
-//     prefix: '',
-//     marker: '',
-//     // marker:
-//     // 'eyJjIjowLCJrIjoiV2F0ZXJNLzU4YTI3M2UyLWVlZWMtNDFjNy1iMTFiLTcyODQ1NDFkOWMxY19RUTIwMTkwNTI1LTIwMTQwMi1yZWZlcmVyLnBuZyJ9',
-//   }
-//   bucketManager.listPrefix(publicConfig.bucket, options, function (respErr, respBody, respInfo) {
-//     console.log('list result', { respBody, respErr, respInfo })
-//     if (respBody.error) {
-//       vscode.window.showErrorMessage(notiTpl(respBody.error))
-//     }
-//     if (respBody) {
-//       console.log('respBody', respBody)
-//     } else {
-//       console.log('respInfo', respInfo)
-//     }
-//   })
-// }
 
 class Qiniu {
   // base config
@@ -104,7 +69,7 @@ class Qiniu {
   }
 
   // 上传用的 token
-  generateQiniuUploadToken() {
+  generateUploadToken() {
     const options = {
       scope: this.bucket,
       expires: this.expires,
