@@ -12,6 +12,10 @@ import copy from 'copy-text-to-clipboard'
 
 import ResourceCard from './compnents/ResourceCard'
 import videoPlayer from '../../Components/VideoPlayer'
+import uploadManager, {
+  renderUploadManager,
+  destroyUploadManager,
+} from '../../Components/UploadManager'
 
 import styles from './index.module.less'
 import * as messageCenter from '../../utils/messageCenter'
@@ -197,7 +201,6 @@ export default function StorageManage() {
 
   // 预览视频
   function handlePreviewAsVideo(url) {
-    console.log('video url', url)
     videoPlayer.show(url)
   }
 
@@ -219,6 +222,64 @@ export default function StorageManage() {
       handleGetOverviewInfo()
     })
   }, [currentBucket])
+
+  useEffect(() => {
+    renderUploadManager()
+
+    // const tplM = [
+    //   {
+    //     id: 'file1.kpg',
+    //     fname: 'file1.kpg',
+    //     percent: 50,
+    //   },
+    //   {
+    //     id: 'file2.kpg',
+    //     fname: 'file2.kpg',
+    //     percent: 30,
+    //   },
+    //   {
+    //     id: 'file3.kpg',
+    //     fname: 'file3.kpg',
+    //     percent: 80,
+    //   },
+    //   {
+    //     id: 'file4.kpg',
+    //     fname: 'file4.kpg',
+    //     percent: 15,
+    //   },
+    //   {
+    //     id: 'file5.kpg',
+    //     fname: 'file5.kpg',
+    //     percent: 70,
+    //   },
+    //   {
+    //     id: 'file6.kpg',
+    //     fname: 'file6.kpg',
+    //     percent: 95.8,
+    //   },
+    // ]
+
+    // setInterval(() => {
+    //   const ind = Math.floor(Math.random() * 20)
+    //   if (tplM[ind]) {
+    //     uploadManager({
+    //       id: tplM[ind].id,
+    //       fname: tplM[ind].fname,
+    //       percent: Math.floor(Math.random() * 100),
+    //     })
+    //   } else {
+    //     uploadManager({
+    //       id: `${Date.now()}`,
+    //       fname: `newImg_${Date.now()}.png`,
+    //       percent: Math.floor(Math.random() * 100),
+    //     })
+    //   }
+    // }, 1000)
+
+    return () => {
+      destroyUploadManager()
+    }
+  }, [])
 
   // console.log({ currentBucket, resourceList })
 
@@ -346,7 +407,6 @@ export default function StorageManage() {
           ))}
         </Image.PreviewGroup>
       </div>
-      {/* <UploadManager manager={} /> */}
     </Fragment>
   )
 }
