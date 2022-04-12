@@ -13,16 +13,25 @@
     margin-bottom: 5px;
   }
   .fListWrapper {
+    cursor: pointer;
     padding-right: 18px;
     max-height: 700px;
     overflow-y: auto;
     .fWrapper {
+      display: flex;
+      align-items: center;
       & ~ .fWrapper {
         margin-top: 5px;
         border-top: 1px dashed #ccc;
       }
-      .fname {
-        .ellipsis();
+      .fLeftWrapper {
+        flex: 1;
+        .fname {
+          .ellipsis();
+        }
+      }
+      button {
+        align-self: flex-end;
       }
     }
   }
