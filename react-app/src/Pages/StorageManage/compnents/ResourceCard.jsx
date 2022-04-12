@@ -20,7 +20,7 @@ export default function ResourceCard({
   isImage,
   fsize,
   hash,
-  url: originalUrl,
+  url,
   mimeType,
   putTime,
   fkey,
@@ -32,17 +32,18 @@ export default function ResourceCard({
   debouncedHttpErrorNotiError,
   handlePreviewAsImg,
   handlePreviewAsVideo,
+  handleDisableableHTTPS,
 }) {
-  const [url, setUrl] = useState(originalUrl)
   const [isImgLoadError, setIsImgLoadError] = useState(false)
   const keyS = fkey.split('/')
   const fileFullName = keyS[keyS.length - 1]
   function handleImgLoadError(e) {
     if (e.target.src.indexOf('https://') === 0) {
       // 尝试使用 http 请求
-      const httpUrl = `http${e.target.src.substring(5)}`
-      e.target.src = httpUrl
-      setUrl(httpUrl)
+      // const httpUrl = `http${e.target.src.substring(5)}`
+      // e.target.src = httpUrl
+      // setUrl(httpUrl)
+      handleDisableableHTTPS()
       debouncedHttpsErrorNotiWarning()
     } else {
       setIsImgLoadError(true)

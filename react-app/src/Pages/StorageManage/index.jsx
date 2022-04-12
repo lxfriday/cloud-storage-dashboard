@@ -48,12 +48,15 @@ const debouncedHttpsErrorNotiWarning = debounce(httpsErrorNotiWarning, 3000, tru
 const debouncedHttpErrorNotiError = debounce(httpErrorNotiError, 3000, true)
 
 export default function StorageManage() {
-  const forceHTTPS = true
-
+  let [forceHTTPS, setForceHTTPS] = useState(true)
   let [bucketDomainInfo, setBucketDomainInfo] = useState({
     bucketDomains: [],
     selectBucketDomain: '',
+    resourcePrefix: '',
   })
+  const resourcePrefix = `${forceHTTPS ? 'https://' : 'http://'}${
+    bucketDomainInfo.selectBucketDomain
+  }/`
   let [uploadFolder, setUploadFolder] = useState('testfolder/')
   let [resourceList, setResourceList] = useState([])
   let [uploadToken, setUploadToken] = useState('')
@@ -87,8 +90,7 @@ export default function StorageManage() {
           file,
           key,
           token,
-          forceHTTPS,
-          imgDomain: bucketDomainInfo.selectBucketDomain,
+          resourcePrefix,
         })
         .then(() => {
           // 上传成功之后自动刷新？
@@ -216,8 +218,6 @@ export default function StorageManage() {
 
   // console.log({ currentBucket, resourceList })
 
-  const imgPrefix = `${forceHTTPS ? 'https://' : 'http://'}${bucketDomainInfo.selectBucketDomain}/`
-
   return (
     <Fragment>
       <div className={styles.nav}>
@@ -250,7 +250,7 @@ export default function StorageManage() {
             title="导出 folder 中所有链接"
             onClick={() => {
               let totalStr = ''
-              resourceList.forEach(imgInfo => (totalStr += `${imgPrefix + imgInfo.key}\r\n`))
+              resourceList.forEach(r => (totalStr += `${resourcePrefix + r.key}\r\n`))
               copy(totalStr)
               message.success('已复制到剪切板')
             }}
@@ -313,7 +313,7 @@ export default function StorageManage() {
             hash={resourceInfo.hash}
             mimeType={resourceInfo.mimeType}
             putTime={resourceInfo.putTime}
-            url={imgPrefix + resourceInfo.key}
+            url={resourcePrefix + resourceInfo.key}
             selected={selectedKeys.includes(resourceInfo.key)}
             handleToggleSelectKey={handleToggleSelectKey}
             handleDeleteFile={handleDeleteFiles}
@@ -321,7 +321,10 @@ export default function StorageManage() {
             debouncedHttpsErrorNotiWarning={debouncedHttpsErrorNotiWarning}
             debouncedHttpErrorNotiError={debouncedHttpErrorNotiError}
             handlePreviewAsImg={() => handlePreviewAsImg(ind)}
-            handlePreviewAsVideo={() => handlePreviewAsVideo(imgPrefix + resourceInfo.key)}
+            handlePreviewAsVideo={() => handlePreviewAsVideo(resourcePrefix + resourceInfo.key)}
+            handleDisableableHTTPS={() => {
+              setForceHTTPS(false)
+            }}
           />
         ))}
       </div>
@@ -335,10 +338,11 @@ export default function StorageManage() {
           }}
         >
           {resourceList.map(resourceInfo => (
-            <Image key={resourceInfo.key} src={imgPrefix + resourceInfo.key} />
+            <Image key={resourceInfo.key} src={resourcePrefix + resourceInfo.key} />
           ))}
         </Image.PreviewGroup>
       </div>
+      {/* <UploadManager manager={} /> */}
     </Fragment>
   )
 }
