@@ -47,8 +47,10 @@ function httpErrorNotiError() {
 const debouncedHttpsErrorNotiWarning = debounce(httpsErrorNotiWarning, 3000, true)
 const debouncedHttpErrorNotiError = debounce(httpErrorNotiError, 3000, true)
 
+const forceHTTPSFromSettings = true
+
 export default function StorageManage() {
-  let [forceHTTPS, setForceHTTPS] = useState(true)
+  let [forceHTTPS, setForceHTTPS] = useState(forceHTTPSFromSettings)
   let [bucketDomainInfo, setBucketDomainInfo] = useState({
     bucketDomains: [],
     selectBucketDomain: '',
@@ -171,6 +173,7 @@ export default function StorageManage() {
     // 刷新列表
     // 刷新文件数量，存储空间
     messageCenter.requestGetResourceList({ fromBegin: true, prefix: uploadFolder }).then(data => {
+      setForceHTTPS(forceHTTPSFromSettings)
       setResourceList(data.list)
     })
     handleGetOverviewInfo()
@@ -211,6 +214,7 @@ export default function StorageManage() {
       })
       messageCenter.requestGetResourceList({ fromBegin: true, prefix: uploadFolder }).then(data => {
         setResourceList(data.list)
+        setForceHTTPS(forceHTTPSFromSettings)
       })
       handleGetOverviewInfo()
     })
