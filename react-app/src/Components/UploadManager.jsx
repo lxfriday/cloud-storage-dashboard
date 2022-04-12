@@ -2,6 +2,7 @@ import React, { useEffect, useState, Fragment } from 'react'
 import ReactDOM from 'react-dom'
 import { Progress, notification, Button } from 'antd'
 import EventEmitter from 'events'
+import Draggable from 'react-draggable'
 
 import styles from './UploadManager.module.less'
 
@@ -96,40 +97,44 @@ function UploadManager() {
   return (
     <Fragment>
       {manager.length > 0 && (
-        <div className={styles.wrapper}>
-          <div className={styles.title}>上传管理</div>
-          <div className={styles.fListWrapper}>
-            {manager.map(fInfo => (
-              <div key={fInfo.id} className={styles.fWrapper}>
-                <div className={styles.fLeftWrapper}>
-                  <div className={styles.fname} title={fInfo.path}>
-                    {fInfo.fname}
+        <Draggable handle={`.${styles.title}`} bounds="body">
+          <div className={styles.wrapper}>
+            <div className={styles.title}>
+              上传管理<span>(长按可拖动)</span>
+            </div>
+            <div className={styles.fListWrapper}>
+              {manager.map(fInfo => (
+                <div key={fInfo.id} className={styles.fWrapper}>
+                  <div className={styles.fLeftWrapper}>
+                    <div className={styles.fname} title={fInfo.path}>
+                      {fInfo.fname}
+                    </div>
+                    <div className={styles.progressWrapper}>
+                      <Progress
+                        strokeColor={{
+                          '0%': '#108ee9',
+                          '100%': '#87d068',
+                        }}
+                        percent={Math.floor(fInfo.percent)}
+                        status="active"
+                      />
+                    </div>
                   </div>
-                  <div className={styles.progressWrapper}>
-                    <Progress
-                      strokeColor={{
-                        '0%': '#108ee9',
-                        '100%': '#87d068',
-                      }}
-                      percent={Math.floor(fInfo.percent)}
-                      status="active"
-                    />
-                  </div>
+                  {fInfo.percent !== 100 && (
+                    <Button
+                      size="small"
+                      type="primary"
+                      danger
+                      onClick={() => handleCancel(fInfo.id, fInfo.fname)}
+                    >
+                      取消
+                    </Button>
+                  )}
                 </div>
-                {fInfo.percent !== 100 && (
-                  <Button
-                    size="small"
-                    type="primary"
-                    danger
-                    onClick={() => handleCancel(fInfo.id, fInfo.fname)}
-                  >
-                    取消
-                  </Button>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        </Draggable>
       )}
     </Fragment>
   )
