@@ -137,3 +137,6 @@ function registerCancel({ id, onCancel }) {
 
 export default uploadManager
 export { renderUploadManager, destroyUploadManager, registerCancel }
+
+// id 统一用的 key
+// testfolder/竖版21649748398063_30879d52-3fd5-421f-ad99-c5d9337ba11d.mp4
