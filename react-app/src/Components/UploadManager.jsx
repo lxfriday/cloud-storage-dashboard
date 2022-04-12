@@ -30,6 +30,16 @@ function UploadManager() {
   function handleCancel(id, fname) {
     const target = cancelManager.find(cm => cm.id === id)
     target.onCancel && target.onCancel()
+    removeFromManager(id)
+    notification.success({
+      message: '提示',
+      description: `${fname} 已取消上传`,
+      placement: 'bottomRight',
+    })
+    removeFromCancelManager(id)
+  }
+
+  function removeFromManager(id) {
     const newM = []
     manager.forEach(m => {
       if (m.id !== id) {
@@ -37,12 +47,6 @@ function UploadManager() {
       }
     })
     setManager(newM)
-    notification.success({
-      message: '提示',
-      description: `${fname} 已取消上传`,
-      placement: 'bottomRight',
-    })
-    removeFromCancelManager(id)
   }
 
   useEffect(() => {
@@ -53,11 +57,7 @@ function UploadManager() {
         if (m.id === info.id) {
           // 进度为 100 的直接删除
           shouldAddNewInfo = false
-          if (info.percent !== 100) {
-            newManager.push(info)
-          } else {
-            removeFromCancelManager(info.id)
-          }
+          newManager.push(info)
         } else {
           // 新加入的进度条
           newManager.push(m)
@@ -69,13 +69,29 @@ function UploadManager() {
       setManager(newManager)
     }
 
+    let timer = setTimeout(() => {
+      if (!manager.length) {
+        return
+      }
+      const nManager = []
+      manager.forEach(m => {
+        if (m.percent !== 100) {
+          nManager.push(m)
+        } else {
+          removeFromCancelManager(m.id)
+        }
+      })
+      setManager(nManager)
+    }, 1000)
+
     ee.on('progress', process)
     return () => {
       ee.off('progress', process)
+      clearTimeout(timer)
     }
-  }, [manager, cancelManager])
+  }, [manager])
 
-  console.log('cancelManager', cancelManager)
+  console.log('cancelManager', { cancelManager, manager })
 
   return (
     <Fragment>
@@ -100,14 +116,16 @@ function UploadManager() {
                     />
                   </div>
                 </div>
-                <Button
-                  size="small"
-                  type="primary"
-                  danger
-                  onClick={() => handleCancel(fInfo.id, fInfo.fname)}
-                >
-                  取消
-                </Button>
+                {fInfo.percent !== 100 && (
+                  <Button
+                    size="small"
+                    type="primary"
+                    danger
+                    onClick={() => handleCancel(fInfo.id, fInfo.fname)}
+                  >
+                    取消
+                  </Button>
+                )}
               </div>
             ))}
           </div>

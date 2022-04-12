@@ -13,20 +13,23 @@
     margin-bottom: 5px;
   }
   .fListWrapper {
-    cursor: pointer;
     padding-right: 18px;
     max-height: 700px;
     overflow-y: auto;
+    overflow-x: hidden;
     .fWrapper {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       & ~ .fWrapper {
         margin-top: 5px;
         border-top: 1px dashed #ccc;
       }
       .fLeftWrapper {
-        flex: 1;
+        flex: 0 0 265px;
+        padding-right: 10px;
         .fname {
+          width: 265px;
           .ellipsis();
         }
       }
