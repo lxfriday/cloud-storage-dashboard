@@ -12,10 +12,7 @@ import copy from 'copy-text-to-clipboard'
 
 import ResourceCard from './compnents/ResourceCard'
 import videoPlayer from '../../Components/VideoPlayer'
-import uploadManager, {
-  renderUploadManager,
-  destroyUploadManager,
-} from '../../Components/UploadManager'
+import { renderUploadManager, destroyUploadManager } from '../../Components/UploadManager'
 
 import styles from './index.module.less'
 import * as messageCenter from '../../utils/messageCenter'
@@ -76,6 +73,18 @@ export default function StorageManage() {
   let [searchParams] = useSearchParams()
   const currentBucket = searchParams.get('space')
 
+  function handleRefresh() {
+    // 刷新列表
+    // 刷新文件数量，存储空间
+    messageCenter.requestGetResourceList({ fromBegin: true, prefix: uploadFolder }).then(data => {
+      setForceHTTPS(forceHTTPSFromSettings)
+      setResourceList(data.list)
+    })
+    handleGetOverviewInfo()
+  }
+
+  const debouncedHandleRefresh = debounce(handleRefresh, 2000, false)
+
   const selectFileUploadProps = {
     multiple: true,
     showUploadList: false,
@@ -100,7 +109,7 @@ export default function StorageManage() {
         })
         .then(() => {
           // 上传成功之后自动刷新？
-          handleRefresh()
+          debouncedHandleRefresh()
         })
     },
   }
@@ -173,16 +182,6 @@ export default function StorageManage() {
     handleDeleteFiles(selectedKeys)
   }
 
-  function handleRefresh() {
-    // 刷新列表
-    // 刷新文件数量，存储空间
-    messageCenter.requestGetResourceList({ fromBegin: true, prefix: uploadFolder }).then(data => {
-      setForceHTTPS(forceHTTPSFromSettings)
-      setResourceList(data.list)
-    })
-    handleGetOverviewInfo()
-  }
-
   function handleGetOverviewInfo() {
     messageCenter.requestGetOverviewInfo().then(overviewInfo => {
       // {count: 2457, space: 1373368131}
@@ -202,6 +201,12 @@ export default function StorageManage() {
   // 预览视频
   function handlePreviewAsVideo(url) {
     videoPlayer.show(url)
+  }
+
+  function handleScroll(e) {
+    if (e.target.scrollHeight - e.target.scrollTop === ContainerHeight) {
+      console.log('load data')
+    }
   }
 
   useEffect(() => {
@@ -225,63 +230,17 @@ export default function StorageManage() {
 
   useEffect(() => {
     renderUploadManager()
-
-    // const tplM = [
-    //   {
-    //     id: 'file1.kpg',
-    //     fname: 'file1.kpg',
-    //     percent: 50,
-    //   },
-    //   {
-    //     id: 'file2.kpg',
-    //     fname: 'file2.kpg',
-    //     percent: 30,
-    //   },
-    //   {
-    //     id: 'file3.kpg',
-    //     fname: 'file3.kpg',
-    //     percent: 80,
-    //   },
-    //   {
-    //     id: 'file4.kpg',
-    //     fname: 'file4.kpg',
-    //     percent: 15,
-    //   },
-    //   {
-    //     id: 'file5.kpg',
-    //     fname: 'file5.kpg',
-    //     percent: 70,
-    //   },
-    //   {
-    //     id: 'file6.kpg',
-    //     fname: 'file6.kpg',
-    //     percent: 95.8,
-    //   },
-    // ]
-
-    // setInterval(() => {
-    //   const ind = Math.floor(Math.random() * 20)
-    //   if (tplM[ind]) {
-    //     uploadManager({
-    //       id: tplM[ind].id,
-    //       fname: tplM[ind].fname,
-    //       percent: Math.floor(Math.random() * 100),
-    //     })
-    //   } else {
-    //     uploadManager({
-    //       id: `${Date.now()}`,
-    //       fname: `newImg_${Date.now()}.png`,
-    //       percent: Math.floor(Math.random() * 100),
-    //     })
-    //   }
-    // }, 1000)
-
     return () => {
       destroyUploadManager()
     }
   }, [])
 
   // console.log({ currentBucket, resourceList })
+
+  useEffect(() => {
+    const winHeight = document.body.getBoundingClientRect().height
+    const listWrapperHeight = winHeight - 104
+  }, [])
 
   return (
     <Fragment>

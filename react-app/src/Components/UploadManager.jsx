@@ -5,6 +5,7 @@ import EventEmitter from 'events'
 import Draggable from 'react-draggable'
 
 import styles from './UploadManager.module.less'
+import { debounce } from '../utils'
 
 const ee = new EventEmitter()
 
@@ -51,46 +52,63 @@ function UploadManager() {
   }
 
   useEffect(() => {
+    let timer = null
+    let innerManager = []
+    // 下面的延迟 2 秒清除已完成的条目比较复杂
+    // 总规则：上传完成过后的2秒才会把已上传的那个条目给删掉
+
+    function clearManager() {
+      if (!innerManager.length) {
+        return
+      }
+      const nManager = []
+      innerManager.forEach(m => {
+        if (m.percent !== 100) {
+          nManager.push(m)
+        }
+      })
+      innerManager = nManager
+      setManager(innerManager)
+    }
+
+    const debouncedClearManager = debounce(clearManager, 2000, false)
+
     const process = info => {
       const newManager = []
       let shouldAddNewInfo = true
-      manager.forEach(m => {
+      innerManager.forEach(m => {
         if (m.id === info.id) {
-          // 进度为 100 的直接删除
           shouldAddNewInfo = false
-          newManager.push(info)
+          if (info.percent === 100) {
+            // 进度为 100 的直接删除
+            removeFromCancelManager(m.id)
+            if (!m.finishedTS) {
+              newManager.push({ ...info, finishedTS: Date.now() })
+            }
+          } else {
+            newManager.push(info)
+          }
         } else {
           // 新加入的进度条
-          newManager.push(m)
+          if (!(m.finishedTS && Date.now() - m.finishedTS >= 2000)) {
+            newManager.push(m)
+          }
         }
       })
       if (shouldAddNewInfo) {
         newManager.push(info)
       }
-      setManager(newManager)
+      innerManager = newManager
+      setManager(innerManager)
+      debouncedClearManager()
     }
-
-    let timer = setTimeout(() => {
-      if (!manager.length) {
-        return
-      }
-      const nManager = []
-      manager.forEach(m => {
-        if (m.percent !== 100) {
-          nManager.push(m)
-        } else {
-          removeFromCancelManager(m.id)
-        }
-      })
-      setManager(nManager)
-    }, 1000)
 
     ee.on('progress', process)
     return () => {
       ee.off('progress', process)
       clearTimeout(timer)
     }
-  }, [manager])
+  }, [])
 
   console.log('cancelManager', { cancelManager, manager })
 
@@ -152,6 +170,7 @@ function destroyUploadManager() {
 
 function uploadManager({ id, fname, percent, path }) {
   ee.emit('progress', { id, fname, percent, path })
+  console.log('uploadManager', { id, fname, percent, path })
 }
 
 function registerCancel({ id, onCancel }) {
