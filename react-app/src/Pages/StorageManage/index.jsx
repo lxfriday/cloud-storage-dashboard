@@ -16,37 +16,13 @@ import { renderUploadManager, destroyUploadManager } from '../../Components/Uplo
 
 import styles from './index.module.less'
 import * as messageCenter from '../../utils/messageCenter'
-import {
-  generateUploadImgInfo,
-  debounce,
-  getFileSize,
-  isImage as isImageFunc,
-  isVideo as isVideoFunc,
-} from '../../utils'
+import { generateUploadImgInfo, debounce, getFileSize } from '../../utils'
 import cloudserviceprovider from '../../utils/cloudserviceprovider'
 
 const { Option } = Select
 
 const providerName = 'qiniu'
 const csp = cloudserviceprovider[providerName]
-
-// https 协议加载图片失败，自动切换到 http 协议提醒
-
-function httpsErrorNotiWarning() {
-  notification.warning({
-    message: '提示',
-    description: 'https 协议加载图片失败，自动切换到 http 协议加载资源',
-  })
-}
-function httpErrorNotiError() {
-  notification.error({
-    message: '提示',
-    description: 'http 协议加载图片也失败了',
-  })
-}
-
-const debouncedHttpsErrorNotiWarning = debounce(httpsErrorNotiWarning, 3000, true)
-const debouncedHttpErrorNotiError = debounce(httpErrorNotiError, 3000, true)
 
 const forceHTTPSFromSettings = true
 let isLoadingResource = false // 是否正在加载资源
@@ -84,7 +60,7 @@ export default function StorageManage() {
       isLoadingResource = true
       messageCenter.requestGetResourceList({ fromBegin: true, prefix: uploadFolder }).then(data => {
         isLoadingResource = false
-        setForceHTTPS(forceHTTPSFromSettings)
+        // setForceHTTPS(forceHTTPSFromSettings)
         setResourceList(data.list)
         setIsResourceListReachEnd(data.reachEnd)
       })
@@ -94,10 +70,6 @@ export default function StorageManage() {
 
   // 加载列表数据，非第一页以后的调用这里
   function handleLoadData() {
-    console.log('StorageManage handleLoadData', {
-      isResourceListReachEnd,
-      isLoadingResource,
-    })
     if (!isResourceListReachEnd && !isLoadingResource) {
       isLoadingResource = true
       messageCenter.requestGetResourceList({ prefix: uploadFolder }).then(data => {
@@ -109,6 +81,12 @@ export default function StorageManage() {
   }
 
   const debouncedHandleRefresh = debounce(handleRefresh, 2000, false)
+
+  function handleDisableHTTPS() {
+    setForceHTTPS(false)
+  }
+
+  const debouncedHandleDisableHTTPS = debounce(handleDisableHTTPS, 2000, true)
 
   const selectFileUploadProps = {
     multiple: true,
@@ -230,12 +208,14 @@ export default function StorageManage() {
 
   useEffect(() => {
     // 打开一个 bucket 的时候，更新 localside bucket
+    setForceHTTPS(forceHTTPSFromSettings)
+    setResourceList([])
+
     messageCenter.requestUpdateBucket(currentBucket).then(data => {
       setBucketDomainInfo({
         bucketDomains: data,
         selectBucketDomain: data[data.length - 1],
       })
-      setResourceList([])
       messageCenter.requestGenerateUploadToken().then(data => {
         setUploadToken(data)
       })
@@ -244,7 +224,7 @@ export default function StorageManage() {
         isLoadingResource = false
         setResourceList(data.list)
         setIsResourceListReachEnd(data.reachEnd)
-        setForceHTTPS(forceHTTPSFromSettings)
+        // setForceHTTPS(forceHTTPSFromSettings)
       })
       handleGetOverviewInfo()
     })
@@ -350,10 +330,13 @@ export default function StorageManage() {
         handleSelectAll={handleSelectAll}
         handlePreviewAsImg={handlePreviewAsImg}
         handlePreviewAsVideo={handlePreviewAsVideo}
-        handleDisableableHTTPS={() => {
-          setForceHTTPS(false)
+        handleDisableableHTTPS={debouncedHandleDisableHTTPS}
+        loadData={() => {
+          // 首次进入页面，空列表的时候自动触发
+          if (resourceList.length) {
+            handleLoadData()
+          }
         }}
-        loadData={handleLoadData}
       />
       {/* <div className={styles.resourceListWrapper}>
         {resourceList.map((resourceInfo, ind) => (

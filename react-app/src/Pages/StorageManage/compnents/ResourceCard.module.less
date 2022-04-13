@@ -12,10 +12,6 @@
   justify-self: center;
   transition: transform 0.2s cubic-bezier(0.075, 0.82, 0.165, 1);
   user-select: none;
-  &:hover {
-    transform: scale(1.05);
-  }
-
   &.selected {
     border: 1px solid #eee;
   }
@@ -58,10 +54,39 @@
     right: 0;
     bottom: 0;
     overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.5s;
+
+    &:hover {
+      opacity: 1;
+    }
+
+    .operateZone {
+      cursor: pointer;
+      height: 85px;
+      .flexCenter();
+      background-color: rgba(0, 0, 0, 0.3);
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+
+      span {
+        font-size: 12px;
+        color: #fff;
+        padding: 0 5px;
+        border: 1px solid #fff;
+        border-radius: 20px;
+        transition: all 0.3s;
+
+        &:hover {
+          color: #999;
+          border: 1px solid #999;
+        }
+      }
+    }
 
     &:hover .tools {
-      margin-top: 80px;
-
       .buttonWrapper {
         opacity: 1;
         margin-right: 3px;
@@ -74,7 +99,6 @@
 
     .tools {
       height: 40px;
-      margin-top: 130px;
       background-color: rgba(0, 0, 0, 0.8);
       display: flex;
       align-items: center;
@@ -89,7 +113,7 @@
         align-items: center;
         background-color: #ddd;
         border-radius: 15px;
-        transition: all .2s;
+        transition: all 0.2s;
 
         cursor: pointer;
 

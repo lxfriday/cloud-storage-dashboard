@@ -6,6 +6,7 @@ import {
   DeleteFilled,
   ExclamationCircleOutlined,
   PlayCircleOutlined,
+  ZoomInOutlined,
 } from '@ant-design/icons'
 import { message, Menu, Dropdown, Modal } from 'antd'
 import copy from 'copy-text-to-clipboard'
@@ -153,20 +154,11 @@ export default function ResourceCard({
       <div
         className={classnames(styles.wrapper, selected && styles.selected)}
         onClick={() => handleToggleSelectKey(fkey)}
-        onDoubleClick={() => {
-          if (isImage) {
-            handlePreviewAsImg()
-          } else if (isVideo) {
-            handlePreviewAsVideo()
-          } else {
-            message.error('不支持预览的文件类型')
-          }
-        }}
-        title="双击放大"
       >
         <div className={styles.iconWrapper}>{finalImage}</div>
         <div className={styles.fileFullName}>{fileFullName}</div>
         <div className={styles.toolsWrapper}>
+          <div className={styles.operateZone}></div>
           <div className={styles.tools}>
             <div
               className={styles.buttonWrapper}
@@ -175,6 +167,7 @@ export default function ResourceCard({
                 copy(url)
                 message.success('已复制到剪切板')
               }}
+              title="复制"
             >
               <CopyFilled style={{ fontSize: '18px', color: 'green' }} />
             </div>
@@ -184,8 +177,26 @@ export default function ResourceCard({
                 e.stopPropagation()
                 handlePressDelete()
               }}
+              title="删除"
             >
               <DeleteFilled style={{ fontSize: '18px', color: 'red' }} />
+            </div>
+            <div
+              className={styles.buttonWrapper}
+              onClick={e => {
+                e.stopPropagation()
+                if (isImage) {
+                  handlePreviewAsImg()
+                } else if (isVideo) {
+                  handlePreviewAsVideo()
+                } else {
+                  message.error('不支持预览的文件类型')
+                }
+              }}
+              title="查看"
+            >
+              {isVideo && <PlayCircleOutlined style={{ fontSize: '18px', color: '#666' }} />}
+              {isImage && <ZoomInOutlined style={{ fontSize: '18px', color: '#666' }} />}
             </div>
           </div>
         </div>
