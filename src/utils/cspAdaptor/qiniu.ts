@@ -48,6 +48,7 @@ class Qiniu {
   // img list config
   limit: number // 单页加载条目数
   marker: string // 分页用
+  resourceListReachEnd: boolean // 资源是否加载完了
 
   qiniuMac: qiniu.auth.digest.Mac
   // qiniuConfig: qiniu.conf.Config
@@ -62,6 +63,7 @@ class Qiniu {
       '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","etag":"$(etag)","mimeType":"$(mimeType)","ext":"$(ext)"}'
     this.limit = 100
     this.marker = ''
+    this.resourceListReachEnd = false
 
     this.qiniuMac = new qiniu.auth.digest.Mac(params.ak, params.sk)
     // this.qiniuConfig = new qiniu.conf.Config()
@@ -84,6 +86,10 @@ class Qiniu {
     fromBegin: boolean,
     prefix: string
   ): Promise<{ list: Array<any>; reachEnd: boolean }> {
+    if (fromBegin) {
+      this.resourceListReachEnd = false
+    }
+
     // const bucketManager = new qiniu.rs.BucketManager(this.qiniuMac, this.qiniuConfig)
     const bucketManager = new qiniu.rs.BucketManager(this.qiniuMac, new qiniu.conf.Config())
     const options = {
@@ -95,28 +101,47 @@ class Qiniu {
       // 'eyJjIjowLCJrIjoiV2F0ZXJNLzU4YTI3M2UyLWVlZWMtNDFjNy1iMTFiLTcyODQ1NDFkOWMxY19RUTIwMTkwNTI1LTIwMTQwMi1yZWZlcmVyLnBuZyJ9',
     }
     return new Promise((resolve, reject) => {
-      bucketManager.listPrefix(this.bucket, options, (respErr, respBody, respInfo) => {
-        if (respBody.error) {
-          vscode.window.showErrorMessage(notiTpl(respBody.error))
-        }
-        if (respBody) {
-          // 加载成之后
-          // 更新标记点
-          this.updateMarker(respBody.marker)
-          resolve({
-            list: respBody.items,
-            reachEnd: false,
-          })
-        } else {
-          console.log('respInfo', respInfo)
-        }
-      })
+      if (this.resourceListReachEnd) {
+        resolve({
+          list: [],
+          reachEnd: true,
+        })
+      } else {
+        bucketManager.listPrefix(this.bucket, options, (respErr, respBody, respInfo) => {
+          if (respBody.error) {
+            vscode.window.showErrorMessage(notiTpl(respBody.error))
+          }
+          if (respBody) {
+            // 加载成之后
+            // 更新标记点
+            console.log('respBody.marker', respBody.marker)
+            if (respBody.marker) {
+              this.updateMarker(respBody.marker)
+              resolve({
+                list: respBody.items,
+                reachEnd: false,
+              })
+            } else {
+              // 如果加载完了 respBody.marker 没有值，服务端不会返回这个字段
+              this.updateMarker('')
+              this.resourceListReachEnd = true
+              resolve({
+                list: respBody.items,
+                reachEnd: true,
+              })
+            }
+          } else {
+            console.log('respInfo', respInfo)
+          }
+        })
+      }
     })
   }
 
   updateBucket(newBucket: string) {
     this.bucket = newBucket
     this.marker = ''
+    this.resourceListReachEnd = false
   }
 
   updateMarker(newMarker: string) {

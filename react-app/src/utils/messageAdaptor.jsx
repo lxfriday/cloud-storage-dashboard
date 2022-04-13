@@ -24,7 +24,7 @@ export default function messageAdaptor({ serverCommand, data }) {
         ),
       })
       rej('数据获取超时了', { serverCommand, data })
-    }, 2500)
+    }, 10000)
 
     //--------------------加载提示-----------------------
     loading.show()

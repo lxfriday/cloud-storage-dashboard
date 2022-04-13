@@ -10,7 +10,7 @@ import {
 } from '@ant-design/icons'
 import copy from 'copy-text-to-clipboard'
 
-import ResourceCard from './compnents/ResourceCard'
+import ResourceList from './compnents/ResourceList'
 import videoPlayer from '../../Components/VideoPlayer'
 import { renderUploadManager, destroyUploadManager } from '../../Components/UploadManager'
 
@@ -49,6 +49,7 @@ const debouncedHttpsErrorNotiWarning = debounce(httpsErrorNotiWarning, 3000, tru
 const debouncedHttpErrorNotiError = debounce(httpErrorNotiError, 3000, true)
 
 const forceHTTPSFromSettings = true
+let isLoadingResource = false // 是否正在加载资源
 
 export default function StorageManage() {
   let [forceHTTPS, setForceHTTPS] = useState(forceHTTPSFromSettings)
@@ -62,6 +63,9 @@ export default function StorageManage() {
   }/`
   let [uploadFolder, setUploadFolder] = useState('testfolder/')
   let [resourceList, setResourceList] = useState([])
+  // 是否已经加载到最后一页了，加载完了没？
+  let [isResourceListReachEnd, setIsResourceListReachEnd] = useState(false)
+
   let [uploadToken, setUploadToken] = useState('')
   // 选中的资源 key
   let [selectedKeys, setSelectedKeys] = useState([])
@@ -76,11 +80,32 @@ export default function StorageManage() {
   function handleRefresh() {
     // 刷新列表
     // 刷新文件数量，存储空间
-    messageCenter.requestGetResourceList({ fromBegin: true, prefix: uploadFolder }).then(data => {
-      setForceHTTPS(forceHTTPSFromSettings)
-      setResourceList(data.list)
+    if (!isLoadingResource) {
+      isLoadingResource = true
+      messageCenter.requestGetResourceList({ fromBegin: true, prefix: uploadFolder }).then(data => {
+        isLoadingResource = false
+        setForceHTTPS(forceHTTPSFromSettings)
+        setResourceList(data.list)
+        setIsResourceListReachEnd(data.reachEnd)
+      })
+      handleGetOverviewInfo()
+    }
+  }
+
+  // 加载列表数据，非第一页以后的调用这里
+  function handleLoadData() {
+    console.log('StorageManage handleLoadData', {
+      isResourceListReachEnd,
+      isLoadingResource,
     })
-    handleGetOverviewInfo()
+    if (!isResourceListReachEnd && !isLoadingResource) {
+      isLoadingResource = true
+      messageCenter.requestGetResourceList({ prefix: uploadFolder }).then(data => {
+        isLoadingResource = false
+        setResourceList([...resourceList, ...data.list])
+        setIsResourceListReachEnd(data.reachEnd)
+      })
+    }
   }
 
   const debouncedHandleRefresh = debounce(handleRefresh, 2000, false)
@@ -203,12 +228,6 @@ export default function StorageManage() {
     videoPlayer.show(url)
   }
 
-  function handleScroll(e) {
-    if (e.target.scrollHeight - e.target.scrollTop === ContainerHeight) {
-      console.log('load data')
-    }
-  }
-
   useEffect(() => {
     // 打开一个 bucket 的时候，更新 localside bucket
     messageCenter.requestUpdateBucket(currentBucket).then(data => {
@@ -220,8 +239,11 @@ export default function StorageManage() {
       messageCenter.requestGenerateUploadToken().then(data => {
         setUploadToken(data)
       })
+      isLoadingResource = true
       messageCenter.requestGetResourceList({ fromBegin: true, prefix: uploadFolder }).then(data => {
+        isLoadingResource = false
         setResourceList(data.list)
+        setIsResourceListReachEnd(data.reachEnd)
         setForceHTTPS(forceHTTPSFromSettings)
       })
       handleGetOverviewInfo()
@@ -233,13 +255,6 @@ export default function StorageManage() {
     return () => {
       destroyUploadManager()
     }
-  }, [])
-
-  // console.log({ currentBucket, resourceList })
-
-  useEffect(() => {
-    const winHeight = document.body.getBoundingClientRect().height
-    const listWrapperHeight = winHeight - 104
   }, [])
 
   return (
@@ -326,7 +341,21 @@ export default function StorageManage() {
           {bucketOverviewInfo.count} 个文件 / {bucketOverviewInfo.space} 存储空间
         </div>
       </div>
-      <div className={styles.resourceListWrapper}>
+      <ResourceList
+        selectedKeys={selectedKeys}
+        resourceList={resourceList}
+        resourcePrefix={resourcePrefix}
+        handleToggleSelectKey={handleToggleSelectKey}
+        handleDeleteFiles={handleDeleteFiles}
+        handleSelectAll={handleSelectAll}
+        handlePreviewAsImg={handlePreviewAsImg}
+        handlePreviewAsVideo={handlePreviewAsVideo}
+        handleDisableableHTTPS={() => {
+          setForceHTTPS(false)
+        }}
+        loadData={handleLoadData}
+      />
+      {/* <div className={styles.resourceListWrapper}>
         {resourceList.map((resourceInfo, ind) => (
           <ResourceCard
             isVideo={isVideoFunc(resourceInfo.mimeType.split('/')[1])}
@@ -351,7 +380,7 @@ export default function StorageManage() {
             }}
           />
         ))}
-      </div>
+      </div> */}
       {/* 注意这里 display 一定要为 none，否则页面底部会出现多余的图片 */}
       <div style={{ display: 'none' }}>
         <Image.PreviewGroup

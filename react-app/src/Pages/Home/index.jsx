@@ -68,12 +68,6 @@ export default function Home() {
       const scrollBarWidth = gridEle.current.offsetWidth - gridEle.current.clientWidth
       // 除去滚动条之后的内容区域宽度
       const contentWidth = containerWidth - scrollBarWidth
-      console.log('Home', {
-        containerWidth,
-        containerheight,
-        body: document.body.getBoundingClientRect(),
-      })
-
       const columnCount = Math.floor(contentWidth / resourceWidth) // 列数
       const cellWrapperWH = +(contentWidth / columnCount).toFixed(3)
 
