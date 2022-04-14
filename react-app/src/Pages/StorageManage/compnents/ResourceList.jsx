@@ -5,7 +5,13 @@ import { VerticalAlignTopOutlined } from '@ant-design/icons'
 
 import ResourceCard from './ResourceCard'
 import FolderCard from './FolderCard'
-import { debounce, isImage as isImageFunc, isVideo as isVideoFunc } from '../../../utils'
+import {
+  debounce,
+  isImage as isImageFunc,
+  isVideo as isVideoFunc,
+  isGif as isGifFunc,
+  isSvg as isSvgFunc,
+} from '../../../utils'
 import styles from './ResourceList.module.less'
 
 function httpsErrorNotiWarning() {
@@ -93,19 +99,22 @@ export default function ResourceList({
       )
     } else {
       // 是资源
+      const ext = resourceInfo.mimeType.split('/')[1]
       return (
         <div className={styles.cellWrapper} style={style}>
           <ResourceCard
             imagePreviewSuffix={imagePreviewSuffix}
-            isVideo={isVideoFunc(resourceInfo.mimeType.split('/')[1])}
-            isImage={isImageFunc(resourceInfo.mimeType.split('/')[1])}
+            isVideo={isVideoFunc(ext)}
+            isImage={isImageFunc(ext)}
+            isGif={isGifFunc(ext)}
+            isSvg={isSvgFunc(ext)}
             key={resourceInfo.key}
             fkey={resourceInfo.key}
             fsize={resourceInfo.fsize}
             hash={resourceInfo.hash}
             mimeType={resourceInfo.mimeType}
             putTime={resourceInfo.putTime}
-            url={resourcePrefix + resourceInfo.key}
+            url={encodeURI(resourcePrefix + resourceInfo.key)}
             selected={selectedKeys.includes(resourceInfo.key)}
             handleToggleSelectKey={handleToggleSelectKey}
             handleDeleteFile={handleDeleteFiles}

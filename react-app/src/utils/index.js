@@ -3,6 +3,8 @@ import imageExtensions from 'image-extensions'
 import videoExtensions from 'video-extensions'
 import filesize from 'filesize'
 
+imageExtensions.push('svg+xml')
+
 export const vscodeApi = acquireVsCodeApi()
 
 /**
@@ -33,8 +35,12 @@ export function isVideo(ext) {
 }
 
 // 依据后缀名判断是不是gif
-export function isGif(key) {
-  return key.split('.')[1] === 'gif'
+export function isGif(ext) {
+  return ext === 'gif'
+}
+
+export function isSvg(ext) {
+  return ['svg', 'svg+xml'].includes(ext)
 }
 
 // t: Date

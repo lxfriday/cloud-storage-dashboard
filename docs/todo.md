@@ -3,6 +3,7 @@
 ## Other
 - 文件搜索
 - ? 多文件上传的时候，需要多次生成 token
+- image gallary 显示index错乱
 
 ## 文件夹
 - 创建文件夹
@@ -19,7 +20,6 @@
 
 - ? 图片列表中只有极少数出现加载失败，也会导致 https 降级到 http
 - 一键返回顶部
-
 
 ## low priority
 - ? vscode webview 无法播放声音

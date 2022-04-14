@@ -11,13 +11,15 @@ import { message, Menu, Dropdown, Modal } from 'antd'
 import copy from 'copy-text-to-clipboard'
 import classnames from 'classnames'
 
-import { getFullTime, getFileSize, isGif } from '../../../utils'
+import { getFullTime, getFileSize } from '../../../utils'
 
 import styles from './ResourceCard.module.less'
 
 export default function ResourceCard({
   isVideo,
   isImage,
+  isGif,
+  isSvg,
   fsize,
   hash,
   url,
@@ -40,11 +42,17 @@ export default function ResourceCard({
   let finalImage = null
 
   if (isImage) {
+    //   <img
+    //     src={isGif(fkey) ? url : url + imagePreviewSuffix}
+    //     className={styles.img}
+    //     draggable={false}
+    //   />
     finalImage = (
-      <img
-        src={isGif(fkey) ? url : url + imagePreviewSuffix}
+      <div
+        style={{
+          backgroundImage: `url("${isGif || isSvg ? url : url + imagePreviewSuffix}")`,
+        }}
         className={styles.img}
-        draggable={false}
       />
     )
   } else if (isVideo) {
