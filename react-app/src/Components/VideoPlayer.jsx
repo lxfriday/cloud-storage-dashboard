@@ -20,7 +20,11 @@ function VideoPlayer({ url, handleClose }) {
   return (
     <div className={styles.wrapper}>
       <div className={styles.overlay} onClick={handleClose}></div>
-      <div ref={videoEl} className={styles.video}></div>
+      <div
+        ref={videoEl}
+        className={styles.video}
+        style={{ width: `${document.body.getBoundingClientRect().width - 200}px` }}
+      ></div>
     </div>
   )
 }
