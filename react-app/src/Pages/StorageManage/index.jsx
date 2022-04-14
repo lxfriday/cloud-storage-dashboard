@@ -393,7 +393,7 @@ export default function StorageManage() {
           }}
         >
           {resourceList.map(resourceInfo => (
-            <Image key={resourceInfo.key} src={resourcePrefix + resourceInfo.key} />
+            <Image key={resourceInfo.key} src={encodeURI(resourcePrefix + resourceInfo.key)} />
           ))}
         </Image.PreviewGroup>
       </div>

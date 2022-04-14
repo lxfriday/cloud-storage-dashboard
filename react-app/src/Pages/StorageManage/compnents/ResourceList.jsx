@@ -74,6 +74,7 @@ export default function ResourceList({
 
   // 当个 item 的渲染组件
   const Cell = ({ columnIndex, rowIndex, style }) => {
+    // 注意 ind 指的是第多少个格子，不是 listData 的第 ind 个
     const ind = gridInfo.columnCount * rowIndex + columnIndex
     if (!isTopFolder && ind === 0) {
       return (
@@ -100,6 +101,9 @@ export default function ResourceList({
     } else {
       // 是资源
       const ext = resourceInfo.mimeType.split('/')[1]
+      // 在打开 image gallary 的时候， ind 在 resourceList 对应的资源可能存在偏移，这个时候需要把偏移摆正
+      const previewInd = ind - ((isTopFolder ? 0 : 1) + commonPrefixList.length)
+
       return (
         <div className={styles.cellWrapper} style={style}>
           <ResourceCard
@@ -121,7 +125,7 @@ export default function ResourceList({
             handleSelectAll={handleSelectAll}
             debouncedHttpsErrorNotiWarning={debouncedHttpsErrorNotiWarning}
             debouncedHttpErrorNotiError={debouncedHttpErrorNotiError}
-            handlePreviewAsImg={() => handlePreviewAsImg(ind)}
+            handlePreviewAsImg={() => handlePreviewAsImg(previewInd)}
             handlePreviewAsVideo={() => handlePreviewAsVideo(resourcePrefix + resourceInfo.key)}
           />
         </div>
