@@ -93,6 +93,7 @@ class Qiniu {
     const options = {
       prefix,
       marker: fromBegin ? '' : this.marker,
+      limit: 100,
       delimiter: '/',
     }
     return new Promise((resolve, reject) => {
