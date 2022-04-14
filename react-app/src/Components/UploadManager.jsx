@@ -110,8 +110,6 @@ function UploadManager() {
     }
   }, [])
 
-  console.log('cancelManager', { cancelManager, manager })
-
   return (
     <Fragment>
       {manager.length > 0 && (
@@ -170,7 +168,6 @@ function destroyUploadManager() {
 
 function uploadManager({ id, fname, percent, path }) {
   ee.emit('progress', { id, fname, percent, path })
-  console.log('uploadManager', { id, fname, percent, path })
 }
 
 function registerCancel({ id, onCancel }) {
