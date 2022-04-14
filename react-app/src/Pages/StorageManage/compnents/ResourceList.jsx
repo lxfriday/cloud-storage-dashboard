@@ -126,7 +126,6 @@ export default function ResourceList({
     const threshhold = 20
     const reachEnd =
       scrollTop + gridInfo.containerheight + threshhold > gridInnerEle.current.clientHeight
-    console.log('handleScroll', scrollTop)
     const shouldShowToTop = scrollTop > gridInfo.containerheight + 200
     if (shouldShowToTop !== isToTopVisible) {
       setIsToTopVisible(shouldShowToTop)
@@ -166,7 +165,7 @@ export default function ResourceList({
   }, [])
 
   return (
-    <Fragment>
+    <div className={styles.wrapper}>
       <Grid
         ref={r => (gridRef.current = r)}
         outerRef={r => (gridOutterEle.current = r)}
@@ -195,6 +194,6 @@ export default function ResourceList({
           <VerticalAlignTopOutlined style={{ color: '#000', fontSize: '25px' }} />
         </div>
       )}
-    </Fragment>
+    </div>
   )
 }

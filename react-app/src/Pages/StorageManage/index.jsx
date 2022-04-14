@@ -62,7 +62,9 @@ export default function StorageManage() {
     // 刷新文件数量，存储空间
     if (!isLoadingResource) {
       isLoadingResource = true
-      console.log('handleRefresh', prefixes)
+      setResourceList([])
+      setUploadFolders([]) // 需要，否则点击返回上次层的时候，返回的图标会保留
+      setCommonPrefixList([])
       messageCenter
         .requestGetResourceList({ fromBegin: true, prefix: prefixes.join('') })
         .then(data => {
@@ -233,6 +235,8 @@ export default function StorageManage() {
     // 打开一个 bucket 的时候，更新 localside bucket
     setForceHTTPS(forceHTTPSFromSettings)
     setResourceList([])
+    setUploadFolders([])
+    setCommonPrefixList([])
 
     messageCenter.requestUpdateBucket(currentBucket).then(data => {
       setBucketDomainInfo({
