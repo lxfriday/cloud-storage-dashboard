@@ -70,7 +70,15 @@ export default function StorageManage() {
           isLoadingResource = false
           setUploadFolders([...prefixes])
           setCommonPrefixList(data.commonPrefixes)
-          setResourceList(data.list)
+          const nRList = []
+
+          data.list.forEach(r => {
+            // 七牛在网页端创建文件夹的时候，会自动创建一个空文件占位，把它删掉
+            if (r.mimeType !== 'application/qiniu-object-manager') {
+              nRList.push(r)
+            }
+          })
+          setResourceList(nRList)
           setIsResourceListReachEnd(data.reachEnd)
         })
       handleGetOverviewInfo()
