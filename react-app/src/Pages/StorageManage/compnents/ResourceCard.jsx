@@ -187,23 +187,25 @@ export default function ResourceCard({
             >
               <DeleteFilled style={{ fontSize: '18px', color: 'red' }} />
             </div>
-            <div
-              className={styles.buttonWrapper}
-              onClick={e => {
-                e.stopPropagation()
-                if (isImage) {
-                  handlePreviewAsImg()
-                } else if (isVideo) {
-                  handlePreviewAsVideo()
-                } else {
-                  message.error('不支持预览的文件类型')
-                }
-              }}
-              title="查看"
-            >
-              {isVideo && <PlayCircleOutlined style={{ fontSize: '18px', color: '#666' }} />}
-              {isImage && <ZoomInOutlined style={{ fontSize: '18px', color: '#666' }} />}
-            </div>
+            {(isVideo || isImage) && (
+              <div
+                className={styles.buttonWrapper}
+                onClick={e => {
+                  e.stopPropagation()
+                  if (isImage) {
+                    handlePreviewAsImg()
+                  } else if (isVideo) {
+                    handlePreviewAsVideo()
+                  } else {
+                    message.error('不支持预览的文件类型')
+                  }
+                }}
+                title="查看"
+              >
+                {isVideo && <PlayCircleOutlined style={{ fontSize: '18px', color: '#666' }} />}
+                {isImage && <ZoomInOutlined style={{ fontSize: '18px', color: '#666' }} />}
+              </div>
+            )}
           </div>
         </div>
       </div>
