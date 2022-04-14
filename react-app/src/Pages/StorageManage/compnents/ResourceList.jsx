@@ -3,6 +3,7 @@ import { FixedSizeGrid as Grid } from 'react-window'
 import { notification } from 'antd'
 
 import ResourceCard from './ResourceCard'
+import FolderCard from './FolderCard'
 import { debounce, isImage as isImageFunc, isVideo as isVideoFunc } from '../../../utils'
 import styles from './ResourceList.module.less'
 
@@ -23,6 +24,8 @@ const debouncedHttpsErrorNotiWarning = debounce(httpsErrorNotiWarning, 3000, tru
 const debouncedHttpErrorNotiError = debounce(httpErrorNotiError, 3000, true)
 
 export default function ResourceList({
+  uploadFolder,
+  commonPrefixList,
   imagePreviewSuffix,
   selectedKeys,
   resourceList,
@@ -33,7 +36,9 @@ export default function ResourceList({
   handlePreviewAsImg,
   handlePreviewAsVideo,
   handleDisableableHTTPS,
-  loadData,
+  handleViewFolder,
+  handleLoadData,
+  handleBackward,
 }) {
   // 资源框实际大小
   const resourceWidth = 130
@@ -52,17 +57,40 @@ export default function ResourceList({
   // 列表 wrapper ref
   const gridInnerEle = useRef(null)
 
-  // 行数由总条目数和列数计算得出
-  const rowCount = Math.ceil(resourceList.length / gridInfo.columnCount)
+  // 行数由总条目数文件夹数和列数计算得出，+1 是因为要加上 第一个返回上一层的按钮
+  const isTopFolder = uploadFolder.length === 0
+  const rowCount = Math.ceil(
+    (resourceList.length + commonPrefixList.length + (isTopFolder ? 0 : 1)) / gridInfo.columnCount
+  )
+  const listData = [...commonPrefixList, ...resourceList]
 
   // 当个 item 的渲染组件
   const Cell = ({ columnIndex, rowIndex, style }) => {
     const ind = gridInfo.columnCount * rowIndex + columnIndex
+    if (!isTopFolder && ind === 0) {
+      return (
+        <div className={styles.cellWrapper} style={style}>
+          <FolderCard isBackward={true} folderName={''} handleClick={handleBackward} />
+        </div>
+      )
+    }
+    const resourceInfo = isTopFolder ? listData[ind] : listData[ind - 1]
     // 注意数组越界， gird 会把网格给布满，所以 ind 可能会超出，需要做判断，超出的不管就ok了
-    const resourceInfo = resourceList[ind]
-    if (ind >= resourceList.length) {
+    if (typeof resourceInfo === 'undefined') {
       return <Fragment></Fragment>
+    } else if (typeof resourceInfo === 'string') {
+      // 是文件夹
+      return (
+        <div className={styles.cellWrapper} style={style}>
+          <FolderCard
+            isBackward={false}
+            folderName={resourceInfo}
+            handleClick={() => handleViewFolder(resourceInfo)}
+          />
+        </div>
+      )
     } else {
+      // 是资源
       return (
         <div className={styles.cellWrapper} style={style}>
           <ResourceCard
@@ -97,7 +125,7 @@ export default function ResourceList({
       scrollTop + gridInfo.containerheight + threshhold > gridInnerEle.current.clientHeight
     if (reachEnd) {
       console.log('Home load data')
-      loadData()
+      handleLoadData()
     }
   }
 
@@ -124,7 +152,7 @@ export default function ResourceList({
     }
     window.addEventListener('resize', calcGridInfo)
     calcGridInfo()
-    loadData()
+    handleLoadData()
     return () => {
       window.removeEventListener('resize', calcGridInfo)
     }

@@ -24,15 +24,12 @@ export default class Nav extends Component {
   }
 
   handleChangeDomain = domain => {
-    console.log('handleChangeDomain', domain)
     this.setState({ selectBucketDomain: domain })
   }
 
   render() {
     const { children } = this.props
     const { bucketList } = this.state
-
-    // console.log('nav state', this.state)
 
     return (
       <div className={styles.wrapper}>

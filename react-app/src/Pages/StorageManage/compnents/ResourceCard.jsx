@@ -45,11 +45,12 @@ export default function ResourceCard({
       // const httpUrl = `http${e.target.src.substring(5)}`
       // e.target.src = httpUrl
       // setUrl(httpUrl)
-      handleDisableableHTTPS()
-      debouncedHttpsErrorNotiWarning()
+      //
+      // handleDisableableHTTPS()
+      // debouncedHttpsErrorNotiWarning()
     } else {
       setIsImgLoadError(true)
-      debouncedHttpErrorNotiError()
+      // debouncedHttpErrorNotiError()
     }
   }
 
@@ -65,11 +66,11 @@ export default function ResourceCard({
       />
     )
   } else if (isVideo) {
-    finalImage = <PlayCircleOutlined style={{ color: '#aaa', fontSize: '60px' }} />
+    finalImage = <PlayCircleOutlined style={{ color: '#aaa', fontSize: '50px' }} />
   } else if (isImgLoadError) {
-    finalImage = <BugFilled style={{ color: '#aaa', fontSize: '60px' }} />
+    finalImage = <BugFilled style={{ color: '#aaa', fontSize: '50px' }} />
   } else {
-    finalImage = <FileFilled style={{ color: '#aaa', fontSize: '70px' }} />
+    finalImage = <FileFilled style={{ color: '#aaa', fontSize: '50px' }} />
   }
 
   function handlePressDelete() {

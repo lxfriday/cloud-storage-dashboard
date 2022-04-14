@@ -32,12 +32,12 @@ export default function messageController(
           })
           return
         case MESSAGE_COMMANDS.getResourceList:
-          const { list, reachEnd } = await csp.getResourceList(
+          const { list, reachEnd, commonPrefixes } = await csp.getResourceList(
             message.data.fromBegin,
             message.data.prefix
           )
           postMessage({
-            data: { list, reachEnd },
+            data: { list, reachEnd, commonPrefixes },
             uniqueId: message.uniqueId,
           })
           return

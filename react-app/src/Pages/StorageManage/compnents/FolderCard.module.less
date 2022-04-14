@@ -1,0 +1,39 @@
+.wrapper {
+  color: #fff;
+  position: relative;
+  width: 130px;
+  height: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  padding-top: 15px;
+  border: 1px solid #222;
+  border-radius: 5px;
+  justify-self: center;
+  user-select: none;
+  cursor: pointer;
+  transition: opacity .2s;
+
+  &:hover {
+    opacity: .6;
+  }
+
+  .iconWrapper {
+    width: 85px;
+    height: 85px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .fileFullName {
+    text-align: center;
+    margin-top: 3px;
+    color: #fff;
+    font-size: 11px;
+    width: 100%;
+    padding: 0 10px;
+    .ellipsis();
+  }
+}

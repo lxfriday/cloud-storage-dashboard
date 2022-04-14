@@ -38,8 +38,11 @@ export default function StorageManage() {
   const resourcePrefix = `${forceHTTPS ? 'https://' : 'http://'}${
     bucketDomainInfo.selectBucketDomain
   }/`
-  let [uploadFolder, setUploadFolder] = useState('testfolder/')
+  let [uploadFolders, setUploadFolders] = useState([]) // ['testfolder/', 'job/'] => 最终路径 'testfolder/job/'
   let [resourceList, setResourceList] = useState([])
+  // 文件夹列表
+  let [commonPrefixList, setCommonPrefixList] = useState([])
+
   // 是否已经加载到最后一页了，加载完了没？
   let [isResourceListReachEnd, setIsResourceListReachEnd] = useState(false)
 
@@ -54,17 +57,22 @@ export default function StorageManage() {
   let [searchParams] = useSearchParams()
   const currentBucket = searchParams.get('space')
 
-  function handleRefresh() {
+  function handleRefresh(prefixes = []) {
     // 刷新列表
     // 刷新文件数量，存储空间
     if (!isLoadingResource) {
       isLoadingResource = true
-      messageCenter.requestGetResourceList({ fromBegin: true, prefix: uploadFolder }).then(data => {
-        isLoadingResource = false
-        // setForceHTTPS(forceHTTPSFromSettings)
-        setResourceList(data.list)
-        setIsResourceListReachEnd(data.reachEnd)
-      })
+      console.log('handleRefresh', prefixes)
+      messageCenter
+        .requestGetResourceList({ fromBegin: true, prefix: prefixes.join('') })
+        .then(data => {
+          isLoadingResource = false
+          // setForceHTTPS(forceHTTPSFromSettings)
+          setUploadFolders([...prefixes])
+          setCommonPrefixList(data.commonPrefixes)
+          setResourceList(data.list)
+          setIsResourceListReachEnd(data.reachEnd)
+        })
       handleGetOverviewInfo()
     }
   }
@@ -73,8 +81,9 @@ export default function StorageManage() {
   function handleLoadData() {
     if (!isResourceListReachEnd && !isLoadingResource) {
       isLoadingResource = true
-      messageCenter.requestGetResourceList({ prefix: uploadFolder }).then(data => {
+      messageCenter.requestGetResourceList({ prefix: uploadFolders.join('') }).then(data => {
         isLoadingResource = false
+        setCommonPrefixList(data.commonPrefixes)
         setResourceList([...resourceList, ...data.list])
         setIsResourceListReachEnd(data.reachEnd)
       })
@@ -101,7 +110,7 @@ export default function StorageManage() {
       const { token, key } = generateUploadImgInfo({
         token: uploadToken, //uploadToken为从后端获得的token
         file,
-        folder: uploadFolder,
+        folder: uploadFolders.join(''),
         remainFileName: true,
       })
       csp
@@ -113,7 +122,7 @@ export default function StorageManage() {
         })
         .then(() => {
           // 上传成功之后自动刷新？
-          debouncedHandleRefresh()
+          debouncedHandleRefresh(uploadFolders)
         })
     },
   }
@@ -155,7 +164,6 @@ export default function StorageManage() {
   // 删除一个和删除多个文件都走这个函数
   function handleDeleteFiles(keys) {
     messageCenter.requestDeleteBucketFiles(keys).then(data => {
-      console.log('requestDeleteBucketFiles', data)
       if (data.result === 'alldeleted') {
         message.success('删除成功')
         const rList = []
@@ -174,7 +182,7 @@ export default function StorageManage() {
         setResourceList(rList)
       } else if (data.result === 'partdeleted') {
         message.error('部分文件删除成功')
-        handleRefresh()
+        handleRefresh(uploadFolders)
       } else {
         message.error('删除失败')
       }
@@ -207,6 +215,20 @@ export default function StorageManage() {
     videoPlayer.show(url)
   }
 
+  // 点击文件夹
+  function handleViewFolder(pfx) {
+    const targetFolders = [...uploadFolders, pfx]
+    console.log('handleViewFolder', targetFolders.join(''))
+    handleRefresh(targetFolders)
+  }
+
+  // 返回上层文件夹
+  function handleBackward() {
+    const beforeFolders = [...uploadFolders]
+    beforeFolders.pop()
+    handleRefresh(beforeFolders)
+  }
+
   useEffect(() => {
     // 打开一个 bucket 的时候，更新 localside bucket
     setForceHTTPS(forceHTTPSFromSettings)
@@ -221,8 +243,10 @@ export default function StorageManage() {
         setUploadToken(data)
       })
       isLoadingResource = true
-      messageCenter.requestGetResourceList({ fromBegin: true, prefix: uploadFolder }).then(data => {
+      // 从根目录加载，prefix 为空
+      messageCenter.requestGetResourceList({ fromBegin: true, prefix: '' }).then(data => {
         isLoadingResource = false
+        setCommonPrefixList(data.commonPrefixes)
         setResourceList(data.list)
         setIsResourceListReachEnd(data.reachEnd)
         // setForceHTTPS(forceHTTPSFromSettings)
@@ -279,7 +303,7 @@ export default function StorageManage() {
           <Button
             type="dashed"
             title="刷新"
-            onClick={handleRefresh}
+            onClick={() => handleRefresh(uploadFolders)}
             icon={<SyncOutlined style={{ fontSize: '20px' }} />}
           ></Button>
         </div>
@@ -323,6 +347,8 @@ export default function StorageManage() {
         </div>
       </div>
       <ResourceList
+        uploadFolder={uploadFolders.join('')}
+        commonPrefixList={commonPrefixList}
         imagePreviewSuffix={imagePreviewSuffix}
         selectedKeys={selectedKeys}
         resourceList={resourceList}
@@ -333,12 +359,14 @@ export default function StorageManage() {
         handlePreviewAsImg={handlePreviewAsImg}
         handlePreviewAsVideo={handlePreviewAsVideo}
         handleDisableableHTTPS={debouncedHandleDisableHTTPS}
-        loadData={() => {
+        handleViewFolder={handleViewFolder}
+        handleLoadData={() => {
           // 首次进入页面，空列表的时候自动触发
           if (resourceList.length) {
             handleLoadData()
           }
         }}
+        handleBackward={handleBackward}
       />
       {/* <div className={styles.resourceListWrapper}>
         {resourceList.map((resourceInfo, ind) => (

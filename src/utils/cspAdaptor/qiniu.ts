@@ -46,7 +46,6 @@ class Qiniu {
   returnBody: string
 
   // img list config
-  limit: number // 单页加载条目数
   marker: string // 分页用
   resourceListReachEnd: boolean // 资源是否加载完了
 
@@ -61,7 +60,6 @@ class Qiniu {
     this.expires = 604800 // 一周
     this.returnBody =
       '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","etag":"$(etag)","mimeType":"$(mimeType)","ext":"$(ext)"}'
-    this.limit = 100
     this.marker = ''
     this.resourceListReachEnd = false
 
@@ -85,7 +83,7 @@ class Qiniu {
   getResourceList(
     fromBegin: boolean,
     prefix: string
-  ): Promise<{ list: Array<any>; reachEnd: boolean }> {
+  ): Promise<{ list: Array<any>; reachEnd: boolean; commonPrefixes: string[] }> {
     if (fromBegin) {
       this.resourceListReachEnd = false
     }
@@ -93,32 +91,37 @@ class Qiniu {
     // const bucketManager = new qiniu.rs.BucketManager(this.qiniuMac, this.qiniuConfig)
     const bucketManager = new qiniu.rs.BucketManager(this.qiniuMac, new qiniu.conf.Config())
     const options = {
-      limit: this.limit,
-      // prefix: 'testfolder/',
       prefix,
       marker: fromBegin ? '' : this.marker,
-      // marker:
-      // 'eyJjIjowLCJrIjoiV2F0ZXJNLzU4YTI3M2UyLWVlZWMtNDFjNy1iMTFiLTcyODQ1NDFkOWMxY19RUTIwMTkwNTI1LTIwMTQwMi1yZWZlcmVyLnBuZyJ9',
+      delimiter: '/',
     }
     return new Promise((resolve, reject) => {
       if (this.resourceListReachEnd) {
         resolve({
           list: [],
+          commonPrefixes: [],
           reachEnd: true,
         })
       } else {
         bucketManager.listPrefix(this.bucket, options, (respErr, respBody, respInfo) => {
           if (respBody.error) {
             vscode.window.showErrorMessage(notiTpl(respBody.error))
+            resolve({
+              list: [],
+              commonPrefixes: [],
+              reachEnd: true,
+            })
           }
           if (respBody) {
             // 加载成之后
             // 更新标记点
-            console.log('respBody.marker', respBody.marker)
             if (respBody.marker) {
               this.updateMarker(respBody.marker)
               resolve({
                 list: respBody.items,
+                // 文件夹，会自动带上尾缀 /
+                // ['testfoler/', '/']
+                commonPrefixes: respBody.commonPrefixes ? respBody.commonPrefixes : [],
                 reachEnd: false,
               })
             } else {
@@ -127,11 +130,13 @@ class Qiniu {
               this.resourceListReachEnd = true
               resolve({
                 list: respBody.items,
+                commonPrefixes: respBody.commonPrefixes ? respBody.commonPrefixes : [],
                 reachEnd: true,
               })
             }
           } else {
             console.log('respInfo', respInfo)
+            vscode.window.showErrorMessage(notiTpl('未知错误，资源列表加载失败'))
           }
         })
       }
