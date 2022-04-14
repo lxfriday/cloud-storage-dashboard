@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef, Fragment } from 'react'
 import { FixedSizeGrid as Grid } from 'react-window'
-import { Button, Upload, Select, message, Modal, notification, Image } from 'antd'
-import classnames from 'classnames'
+import { notification } from 'antd'
 
 import ResourceCard from './ResourceCard'
 import { debounce, isImage as isImageFunc, isVideo as isVideoFunc } from '../../../utils'
@@ -24,6 +23,7 @@ const debouncedHttpsErrorNotiWarning = debounce(httpsErrorNotiWarning, 3000, tru
 const debouncedHttpErrorNotiError = debounce(httpErrorNotiError, 3000, true)
 
 export default function ResourceList({
+  imagePreviewSuffix,
   selectedKeys,
   resourceList,
   resourcePrefix,
@@ -66,6 +66,7 @@ export default function ResourceList({
       return (
         <div className={styles.cellWrapper} style={style}>
           <ResourceCard
+            imagePreviewSuffix={imagePreviewSuffix}
             isVideo={isVideoFunc(resourceInfo.mimeType.split('/')[1])}
             isImage={isImageFunc(resourceInfo.mimeType.split('/')[1])}
             key={resourceInfo.key}
@@ -105,7 +106,8 @@ export default function ResourceList({
       const { width: bodyWidth, height: bodyHeight } = document.body.getBoundingClientRect()
       const containerWidth = bodyWidth - 180
       const containerheight = bodyHeight - 104
-      const scrollBarWidth = gridEle.current.offsetWidth - gridEle.current.clientWidth
+      // const scrollBarWidth = gridEle.current.offsetWidth - gridEle.current.clientWidth // 有问题，页面初次渲染的时候，没有滚动条，scrollBarWidth值是0
+      const scrollBarWidth = 20 // 直接指定成20，别问为什么，问就是懒得弄了，直接指定固定值一锅端了
       // 除去滚动条之后的内容区域宽度
       const contentWidth = containerWidth - scrollBarWidth
       const columnCount = Math.floor(contentWidth / resourceWidth) // 列数

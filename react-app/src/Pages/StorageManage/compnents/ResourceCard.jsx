@@ -26,6 +26,7 @@ export default function ResourceCard({
   putTime,
   fkey,
   selected,
+  imagePreviewSuffix,
   handleToggleSelectKey,
   handleDeleteFile,
   handleSelectAll,
@@ -56,7 +57,12 @@ export default function ResourceCard({
 
   if (isImage) {
     finalImage = (
-      <img src={url} className={styles.img} onError={handleImgLoadError} draggable={false} />
+      <img
+        src={url + imagePreviewSuffix}
+        className={styles.img}
+        onError={handleImgLoadError}
+        draggable={false}
+      />
     )
   } else if (isVideo) {
     finalImage = <PlayCircleOutlined style={{ color: '#aaa', fontSize: '60px' }} />

@@ -26,6 +26,7 @@ const csp = cloudserviceprovider[providerName]
 
 const forceHTTPSFromSettings = true
 let isLoadingResource = false // 是否正在加载资源
+const imagePreviewSuffix = '?imageView2/1/w/85/h/85/format/webp/q/10' // 图片预览时压缩，提升性能
 
 export default function StorageManage() {
   let [forceHTTPS, setForceHTTPS] = useState(forceHTTPSFromSettings)
@@ -322,6 +323,7 @@ export default function StorageManage() {
         </div>
       </div>
       <ResourceList
+        imagePreviewSuffix={imagePreviewSuffix}
         selectedKeys={selectedKeys}
         resourceList={resourceList}
         resourcePrefix={resourcePrefix}
