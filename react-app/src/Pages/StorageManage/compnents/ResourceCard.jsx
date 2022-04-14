@@ -12,7 +12,7 @@ import { message, Menu, Dropdown, Modal } from 'antd'
 import copy from 'copy-text-to-clipboard'
 import classnames from 'classnames'
 
-import { getFullTime, getFileSize } from '../../../utils'
+import { getFullTime, getFileSize, isGif } from '../../../utils'
 
 import styles from './ResourceCard.module.less'
 
@@ -58,7 +58,7 @@ export default function ResourceCard({
   if (isImage) {
     finalImage = (
       <img
-        src={url + imagePreviewSuffix}
+        src={isGif(fkey) ? url : url + imagePreviewSuffix}
         className={styles.img}
         onError={handleImgLoadError}
         draggable={false}

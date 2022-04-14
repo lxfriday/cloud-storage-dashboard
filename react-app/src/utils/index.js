@@ -3,7 +3,6 @@ import imageExtensions from 'image-extensions'
 import videoExtensions from 'video-extensions'
 import filesize from 'filesize'
 
-
 export const vscodeApi = acquireVsCodeApi()
 
 /**
@@ -31,6 +30,11 @@ export function isImage(ext) {
 // 依据后缀名判断是不是视频
 export function isVideo(ext) {
   return videoExtensions.includes(ext)
+}
+
+// 依据后缀名判断是不是gif
+export function isGif(key) {
+  return key.split('.')[1] === 'gif'
 }
 
 // t: Date
