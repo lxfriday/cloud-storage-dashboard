@@ -36,7 +36,6 @@ export default function ResourceList({
   handleSelectAll,
   handlePreviewAsImg,
   handlePreviewAsVideo,
-  handleDisableableHTTPS,
   handleViewFolder,
   handleLoadData,
   handleBackward,
@@ -115,7 +114,6 @@ export default function ResourceList({
             debouncedHttpErrorNotiError={debouncedHttpErrorNotiError}
             handlePreviewAsImg={() => handlePreviewAsImg(ind)}
             handlePreviewAsVideo={() => handlePreviewAsVideo(resourcePrefix + resourceInfo.key)}
-            handleDisableableHTTPS={handleDisableableHTTPS}
           />
         </div>
       )

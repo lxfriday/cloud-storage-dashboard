@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import {
   FileFilled,
-  BugFilled,
   CopyFilled,
   DeleteFilled,
   ExclamationCircleOutlined,
@@ -34,25 +33,9 @@ export default function ResourceCard({
   debouncedHttpErrorNotiError,
   handlePreviewAsImg,
   handlePreviewAsVideo,
-  handleDisableableHTTPS,
 }) {
-  const [isImgLoadError, setIsImgLoadError] = useState(false)
   const keyS = fkey.split('/')
   const fileFullName = keyS[keyS.length - 1]
-  function handleImgLoadError(e) {
-    if (e.target.src.indexOf('https://') === 0) {
-      // 尝试使用 http 请求
-      // const httpUrl = `http${e.target.src.substring(5)}`
-      // e.target.src = httpUrl
-      // setUrl(httpUrl)
-      //
-      // handleDisableableHTTPS()
-      // debouncedHttpsErrorNotiWarning()
-    } else {
-      setIsImgLoadError(true)
-      // debouncedHttpErrorNotiError()
-    }
-  }
 
   let finalImage = null
 
@@ -61,14 +44,11 @@ export default function ResourceCard({
       <img
         src={isGif(fkey) ? url : url + imagePreviewSuffix}
         className={styles.img}
-        onError={handleImgLoadError}
         draggable={false}
       />
     )
   } else if (isVideo) {
     finalImage = <PlayCircleOutlined style={{ color: '#aaa', fontSize: '50px' }} />
-  } else if (isImgLoadError) {
-    finalImage = <BugFilled style={{ color: '#aaa', fontSize: '50px' }} />
   } else {
     finalImage = <FileFilled style={{ color: '#aaa', fontSize: '50px' }} />
   }

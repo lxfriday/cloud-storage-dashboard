@@ -24,18 +24,17 @@ const { Option } = Select
 const providerName = 'qiniu'
 const csp = cloudserviceprovider[providerName]
 
-const forceHTTPSFromSettings = true
+const forceHTTPSFromSettings = false
 let isLoadingResource = false // 是否正在加载资源
 const imagePreviewSuffix = '?imageView2/1/w/85/h/85/format/webp/q/10' // 图片预览时压缩，提升性能
 
 export default function StorageManage() {
-  let [forceHTTPS, setForceHTTPS] = useState(forceHTTPSFromSettings)
   let [bucketDomainInfo, setBucketDomainInfo] = useState({
     bucketDomains: [],
     selectBucketDomain: '',
     resourcePrefix: '',
   })
-  const resourcePrefix = `${forceHTTPS ? 'https://' : 'http://'}${
+  const resourcePrefix = `${forceHTTPSFromSettings ? 'https://' : 'http://'}${
     bucketDomainInfo.selectBucketDomain
   }/`
   let [uploadFolders, setUploadFolders] = useState([]) // ['testfolder/', 'job/'] => 最终路径 'testfolder/job/'
@@ -69,7 +68,6 @@ export default function StorageManage() {
         .requestGetResourceList({ fromBegin: true, prefix: prefixes.join('') })
         .then(data => {
           isLoadingResource = false
-          // setForceHTTPS(forceHTTPSFromSettings)
           setUploadFolders([...prefixes])
           setCommonPrefixList(data.commonPrefixes)
           setResourceList(data.list)
@@ -93,12 +91,6 @@ export default function StorageManage() {
   }
 
   const debouncedHandleRefresh = debounce(handleRefresh, 2000, false)
-
-  function handleDisableHTTPS() {
-    setForceHTTPS(false)
-  }
-
-  const debouncedHandleDisableHTTPS = debounce(handleDisableHTTPS, 2000, true)
 
   const selectFileUploadProps = {
     multiple: true,
@@ -220,7 +212,6 @@ export default function StorageManage() {
   // 点击文件夹
   function handleViewFolder(pfx) {
     const targetFolders = [...uploadFolders, pfx]
-    console.log('handleViewFolder', targetFolders.join(''))
     handleRefresh(targetFolders)
   }
 
@@ -233,7 +224,6 @@ export default function StorageManage() {
 
   useEffect(() => {
     // 打开一个 bucket 的时候，更新 localside bucket
-    setForceHTTPS(forceHTTPSFromSettings)
     setResourceList([])
     setUploadFolders([])
     setCommonPrefixList([])
@@ -253,7 +243,6 @@ export default function StorageManage() {
         setCommonPrefixList(data.commonPrefixes)
         setResourceList(data.list)
         setIsResourceListReachEnd(data.reachEnd)
-        // setForceHTTPS(forceHTTPSFromSettings)
       })
       handleGetOverviewInfo()
     })
@@ -362,7 +351,6 @@ export default function StorageManage() {
         handleSelectAll={handleSelectAll}
         handlePreviewAsImg={handlePreviewAsImg}
         handlePreviewAsVideo={handlePreviewAsVideo}
-        handleDisableableHTTPS={debouncedHandleDisableHTTPS}
         handleViewFolder={handleViewFolder}
         handleLoadData={() => {
           // 首次进入页面，空列表的时候自动触发
@@ -392,9 +380,6 @@ export default function StorageManage() {
             debouncedHttpErrorNotiError={debouncedHttpErrorNotiError}
             handlePreviewAsImg={() => handlePreviewAsImg(ind)}
             handlePreviewAsVideo={() => handlePreviewAsVideo(resourcePrefix + resourceInfo.key)}
-            handleDisableableHTTPS={() => {
-              setForceHTTPS(false)
-            }}
           />
         ))}
       </div> */}

@@ -16,6 +16,35 @@
     border: 1px solid #eee;
   }
 
+  .protocolNotiWrapper {
+    position: absolute;
+    top: 0;
+    right: 2px;
+    width: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+
+    .statusNoti {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background-color: green;
+
+      &.yellow {
+        background-color: yellow;
+      }
+      &.red {
+        background-color: red;
+      }
+    }
+    span {
+      font-size: 8px;
+      color: #888;
+    }
+  }
+
   .iconWrapper {
     width: 85px;
     height: 85px;
