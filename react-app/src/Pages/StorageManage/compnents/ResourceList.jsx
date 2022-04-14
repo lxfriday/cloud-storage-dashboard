@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, Fragment } from 'react'
 import { FixedSizeGrid as Grid } from 'react-window'
 import { notification } from 'antd'
+import { VerticalAlignTopOutlined } from '@ant-design/icons'
 
 import ResourceCard from './ResourceCard'
 import FolderCard from './FolderCard'
@@ -52,10 +53,12 @@ export default function ResourceList({
     cellWrapperWidth: 0,
     cellWrapperheight: 0,
   })
+  const [isToTopVisible, setIsToTopVisible] = useState(false)
   // grid 外层 ref
-  const gridEle = useRef(null)
+  const gridOutterEle = useRef(null)
   // 列表 wrapper ref
   const gridInnerEle = useRef(null)
+  const gridRef = useRef(null)
 
   // 行数由总条目数文件夹数和列数计算得出，+1 是因为要加上 第一个返回上一层的按钮
   const isTopFolder = uploadFolder.length === 0
@@ -123,8 +126,12 @@ export default function ResourceList({
     const threshhold = 20
     const reachEnd =
       scrollTop + gridInfo.containerheight + threshhold > gridInnerEle.current.clientHeight
+    console.log('handleScroll', scrollTop)
+    const shouldShowToTop = scrollTop > gridInfo.containerheight + 200
+    if (shouldShowToTop !== isToTopVisible) {
+      setIsToTopVisible(shouldShowToTop)
+    }
     if (reachEnd) {
-      console.log('Home load data')
       handleLoadData()
     }
   }
@@ -134,7 +141,7 @@ export default function ResourceList({
       const { width: bodyWidth, height: bodyHeight } = document.body.getBoundingClientRect()
       const containerWidth = bodyWidth - 180
       const containerheight = bodyHeight - 104
-      // const scrollBarWidth = gridEle.current.offsetWidth - gridEle.current.clientWidth // 有问题，页面初次渲染的时候，没有滚动条，scrollBarWidth值是0
+      // const scrollBarWidth = gridOutterEle.current.offsetWidth - gridOutterEle.current.clientWidth // 有问题，页面初次渲染的时候，没有滚动条，scrollBarWidth值是0
       const scrollBarWidth = 20 // 直接指定成20，别问为什么，问就是懒得弄了，直接指定固定值一锅端了
       // 除去滚动条之后的内容区域宽度
       const contentWidth = containerWidth - scrollBarWidth
@@ -159,19 +166,35 @@ export default function ResourceList({
   }, [])
 
   return (
-    <Grid
-      outerRef={r => (gridEle.current = r)}
-      innerRef={r => (gridInnerEle.current = r)}
-      className={styles.grid}
-      columnCount={gridInfo.columnCount}
-      columnWidth={gridInfo.cellWrapperWidth}
-      height={gridInfo.containerheight}
-      rowCount={rowCount}
-      rowHeight={gridInfo.cellWrapperheight}
-      width={gridInfo.containerWidth}
-      onScroll={handleScroll}
-    >
-      {Cell}
-    </Grid>
+    <Fragment>
+      <Grid
+        ref={r => (gridRef.current = r)}
+        outerRef={r => (gridOutterEle.current = r)}
+        innerRef={r => (gridInnerEle.current = r)}
+        className={styles.grid}
+        columnCount={gridInfo.columnCount}
+        columnWidth={gridInfo.cellWrapperWidth}
+        height={gridInfo.containerheight}
+        rowCount={rowCount}
+        rowHeight={gridInfo.cellWrapperheight}
+        width={gridInfo.containerWidth}
+        onScroll={handleScroll}
+      >
+        {Cell}
+      </Grid>
+      {isToTopVisible && (
+        <div
+          className={styles.toTopWrapper}
+          title="返回顶部"
+          onClick={() =>
+            gridRef.current.scrollToItem({
+              rowIndex: 0,
+            })
+          }
+        >
+          <VerticalAlignTopOutlined style={{ color: '#000', fontSize: '25px' }} />
+        </div>
+      )}
+    </Fragment>
   )
 }
