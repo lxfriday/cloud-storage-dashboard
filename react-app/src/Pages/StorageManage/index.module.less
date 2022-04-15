@@ -9,37 +9,52 @@
   color: #fff;
 
   .navToolsWrapper {
-    button ~ button, button:nth-child(2) {
+    button ~ button,
+    button:nth-child(2) {
       margin-left: 10px;
     }
   }
 }
-// .resourceListWrapper {
-//   padding: 12px;
-//   background-color: #111;
-//   height: calc(100% - 104px);
-//   overflow: auto;
 
-//   display: grid;
-//   grid-gap: 10px;
-//   grid-template-rows: repeat(auto-fit, 130px);
-//   grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-// }
-.bulkWrapper {
+.navToolsWrapper {
   height: 40px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   background-color: #333;
+  .navigationWrapper {
+    margin-left: 10px;
+    color: #fff;
+    display: flex;
+    align-items: center;
 
-  .bulkToolsWrapper {
-    button {
-      margin-left: 5px;
+    .folder {
+      margin-left: 3px;
+      color: #00BBFF;
+      cursor: pointer;
+      transition: opacity .4s;
+      &:hover {
+        opacity: 0.5;
+      }
+    }
+    .delimiter {
+      margin-left: 3px;
     }
   }
 
-  .infoWrapper {
-    margin-right: 20px;
-    color: #ccc;
+  .bulkWrapper {
+    display: flex;
+    align-items: center;
+    .bulkToolsWrapper {
+      button {
+        margin-left: 5px;
+      }
+    }
+
+    .infoWrapper {
+      margin-left: 12px;
+      margin-right: 20px;
+      color: #ccc;
+    }
   }
 }

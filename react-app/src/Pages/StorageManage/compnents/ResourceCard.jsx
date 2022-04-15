@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import {
   FileFilled,
   CopyFilled,
@@ -146,6 +146,8 @@ export default function ResourceCard({
       </Menu.Item>
     </Menu>
   )
+  const finalExtName = ext && ext.length ? ext : 'unknown'
+  const finalExtIsKnown = !(ext && ext.length)
 
   return (
     <Dropdown overlay={contextMenu} trigger={['contextMenu']}>
@@ -153,7 +155,9 @@ export default function ResourceCard({
         className={classnames(styles.wrapper, selected && styles.selected)}
         onClick={() => handleToggleSelectKey(fkey)}
       >
-        <div className={styles.fileExtWrapper}>{ext}</div>
+        <div className={classnames(styles.fileExtWrapper, finalExtIsKnown && styles.known)}>
+          {finalExtName}
+        </div>
         <div className={styles.iconWrapper}>{finalImage}</div>
         <div className={styles.fileFullName}>{fileFullName}</div>
         <div className={styles.toolsWrapper}>

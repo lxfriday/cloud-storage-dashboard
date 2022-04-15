@@ -229,6 +229,12 @@ export default function StorageManage() {
     handleRefresh(beforeFolders)
   }
 
+  // 点击导航栏，直达某层文件夹
+  function handleGoToTargetFolder(index, folderName) {
+    const targetFolders = uploadFolders.slice(0, index + 1)
+    handleRefresh(targetFolders)
+  }
+
   useEffect(() => {
     // 打开一个 bucket 的时候，更新 localside bucket
     setResourceList([])
@@ -308,42 +314,54 @@ export default function StorageManage() {
           ></Button>
         </div>
       </div>
-      <div className={styles.bulkWrapper}>
-        <div className={styles.bulkToolsWrapper}>
-          {selectedKeys.length > 0 && (
-            <Fragment>
-              <Button size="small" onClick={handleCancelSelectAll}>
-                取消
-              </Button>
-              <Button size="small" onClick={handleSelectAll}>
-                全选
-              </Button>
-              <Button size="small">刷新缓存({selectedKeys.length})</Button>
-              <Button size="small">下载({selectedKeys.length})</Button>
-              <Button
-                size="small"
-                type="primary"
-                danger
-                onClick={() => {
-                  Modal.confirm({
-                    title: '确定删除选中的文件？',
-                    icon: <ExclamationCircleOutlined />,
-                    okText: '删除',
-                    okType: 'danger',
-                    cancelText: '取消',
-                    onOk() {
-                      handleDeleteSelectedFiles()
-                    },
-                  })
-                }}
-              >
-                删除({selectedKeys.length})
-              </Button>
-            </Fragment>
-          )}
+      <div className={styles.navToolsWrapper}>
+        <div className={styles.navigationWrapper}>
+          {uploadFolders.map((_, i) => (
+            <div key={i}>
+              <span className={styles.folder} onClick={() => handleGoToTargetFolder(i, _)}>
+                {_.slice(0, -1)}
+              </span>
+              <span className={styles.delimiter}>/</span>
+            </div>
+          ))}
         </div>
-        <div className={styles.infoWrapper}>
-          {bucketOverviewInfo.count} 个文件 / {bucketOverviewInfo.space} 存储空间
+        <div className={styles.bulkWrapper}>
+          <div className={styles.bulkToolsWrapper}>
+            {selectedKeys.length > 0 && (
+              <Fragment>
+                <Button size="small" onClick={handleCancelSelectAll}>
+                  取消
+                </Button>
+                <Button size="small" onClick={handleSelectAll}>
+                  全选
+                </Button>
+                <Button size="small">刷新缓存({selectedKeys.length})</Button>
+                <Button size="small">下载({selectedKeys.length})</Button>
+                <Button
+                  size="small"
+                  type="primary"
+                  danger
+                  onClick={() => {
+                    Modal.confirm({
+                      title: '确定删除选中的文件？',
+                      icon: <ExclamationCircleOutlined />,
+                      okText: '删除',
+                      okType: 'danger',
+                      cancelText: '取消',
+                      onOk() {
+                        handleDeleteSelectedFiles()
+                      },
+                    })
+                  }}
+                >
+                  删除({selectedKeys.length})
+                </Button>
+              </Fragment>
+            )}
+          </div>
+          <div className={styles.infoWrapper}>
+            {bucketOverviewInfo.count} 个文件 / {bucketOverviewInfo.space} 存储空间
+          </div>
         </div>
       </div>
       <ResourceList

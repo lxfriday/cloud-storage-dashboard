@@ -113,6 +113,19 @@ class Qiniu {
               reachEnd: true,
             })
           }
+
+          // 依据 prefix 从 commonPrefixes 中分离出当前的 folders
+          function extractCurrentFolders(cps: string[]) {
+            if (!cps) {
+              return []
+            } else {
+              const pfxReg = new RegExp(prefix)
+              return cps.map(cp => {
+                return cp.replace(pfxReg, '')
+              })
+            }
+          }
+
           if (respBody) {
             // 加载成之后
             // 更新标记点
@@ -122,7 +135,7 @@ class Qiniu {
                 list: respBody.items,
                 // 文件夹，会自动带上尾缀 /
                 // ['testfoler/', '/']
-                commonPrefixes: respBody.commonPrefixes ? respBody.commonPrefixes : [],
+                commonPrefixes: extractCurrentFolders(respBody.commonPrefixes),
                 reachEnd: false,
               })
             } else {
@@ -131,7 +144,7 @@ class Qiniu {
               this.resourceListReachEnd = true
               resolve({
                 list: respBody.items,
-                commonPrefixes: respBody.commonPrefixes ? respBody.commonPrefixes : [],
+                commonPrefixes: extractCurrentFolders(respBody.commonPrefixes),
                 reachEnd: true,
               })
             }
