@@ -311,7 +311,7 @@ export default function StorageManage() {
     messageCenter.requestUpdateBucket(currentBucket).then(data => {
       setBucketDomainInfo({
         bucketDomains: data,
-        selectBucketDomain: data[data.length - 1],
+        selectBucketDomain: data[0] || '',
       })
       messageCenter.requestGenerateUploadToken().then(data => {
         setUploadToken(data)
