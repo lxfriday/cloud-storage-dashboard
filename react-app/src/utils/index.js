@@ -38,6 +38,16 @@ export function getResourceExtAndName(fileName) {
   }
 }
 
+// 上传时用，生成随机的资源名，不带后缀
+export function generateRandomResourceName(file, useOriginalFileName = false) {
+  const { fname, ext } = getResourceExtAndName(file.name)
+  if (useOriginalFileName) {
+    return `${fname}_${Date.now()}_${uuidv4()}.${ext}`
+  } else {
+    return `${Date.now()}_${uuidv4()}.${ext}`
+  }
+}
+
 /**
  * 生成图片上传需要的信息
  */

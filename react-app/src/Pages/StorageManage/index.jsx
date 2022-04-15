@@ -1,6 +1,6 @@
 import React, { useEffect, useState, Fragment } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Button, Upload, Select, message, Modal, Image } from 'antd'
+import { Button, Upload, Select, message, Modal, Image, Input } from 'antd'
 import {
   UploadOutlined,
   SyncOutlined,
@@ -10,6 +10,7 @@ import {
   HomeFilled,
 } from '@ant-design/icons'
 import copy from 'copy-text-to-clipboard'
+import classnames from 'classnames'
 
 import ResourceList from './compnents/ResourceList'
 // import videoPlayer from '../../Components/VideoPlayer'
@@ -17,7 +18,12 @@ import { renderUploadManager, destroyUploadManager } from '../../Components/Uplo
 
 import styles from './index.module.less'
 import * as messageCenter from '../../utils/messageCenter'
-import { generateUploadImgInfo, debounce, getFileSize } from '../../utils'
+import {
+  generateUploadImgInfo,
+  debounce,
+  getFileSize,
+  generateRandomResourceName,
+} from '../../utils'
 import settings from '../../utils/settings'
 import cloudserviceprovider from '../../utils/cloudserviceprovider'
 
@@ -41,9 +47,21 @@ export default function StorageManage() {
   let [resourceList, setResourceList] = useState([])
   // 文件夹列表
   let [commonPrefixList, setCommonPrefixList] = useState([])
-
   // 是否已经加载到最后一页了，加载完了没？
   let [isResourceListReachEnd, setIsResourceListReachEnd] = useState(false)
+
+  // 等待上传的资源信息
+  // 这个数组存储粘贴上传或者拖动上传
+  let [pendingResourceList, setPendingResourceList] = useState([
+    // {
+    //   fname: '', // 即将在上传时对应的文件名
+    //   file: fileObj, //
+    // }
+  ])
+  // 等待上传的提醒 modal
+  let [pendingResourceNotiModalVisible, setPendingResourceNotiModalVisible] = useState(false)
+  // 粘贴、拖动上传时输入的前缀
+  let [pendingUploadPrefix, setPendingUploadPrefix] = useState('')
 
   let [uploadToken, setUploadToken] = useState('')
   // 选中的资源 key
@@ -69,6 +87,7 @@ export default function StorageManage() {
         .then(data => {
           isLoadingResource = false
           setUploadFolders([...prefixes])
+          setPendingUploadPrefix(prefixes.join(''))
           setCommonPrefixList(data.commonPrefixes)
           const nRList = []
 
@@ -241,11 +260,53 @@ export default function StorageManage() {
     handleRefresh([])
   }
 
+  function handlePaste(e) {
+    const clipboardData = e.clipboardData
+    const newPRList = []
+
+    for (let i = 0; i < clipboardData.items.length; i++) {
+      const item = clipboardData.items[i]
+      // 粘贴的内容会比较复杂：单个文件、多个文件、截图、字符串、带样式的字符串等
+      if (item.kind === 'file') {
+        const file = item.getAsFile()
+        // 截图的 path 为空字符串，name 为 image.png
+        newPRList.push({
+          fname: generateRandomResourceName(file, true),
+          file,
+        })
+      }
+    }
+
+    setPendingResourceNotiModalVisible(true)
+    setPendingResourceList(newPRList)
+  }
+
+  function handleUploadPendingResources() {
+    Promise.all(
+      pendingResourceList.map(pr =>
+        csp.upload({
+          file: pr.file,
+          key: `${pendingUploadPrefix}${pr.fname}`,
+          token: uploadToken,
+          resourcePrefix,
+        })
+      )
+    )
+      .then(res => {
+        console.log('handleUploadPendingResources', res)
+      })
+      .finally(() => {
+        setPendingResourceList([])
+        setPendingUploadPrefix(uploadFolders.join(''))
+      })
+  }
+
   useEffect(() => {
     // 打开一个 bucket 的时候，更新 localside bucket
     setResourceList([])
     setUploadFolders([])
     setCommonPrefixList([])
+    setPendingUploadPrefix('')
 
     messageCenter.requestUpdateBucket(currentBucket).then(data => {
       setBucketDomainInfo({
@@ -265,6 +326,10 @@ export default function StorageManage() {
       })
       handleGetOverviewInfo()
     })
+    window.addEventListener('paste', handlePaste)
+    return () => {
+      window.removeEventListener('paste', handlePaste)
+    }
   }, [currentBucket])
 
   useEffect(() => {
@@ -276,6 +341,38 @@ export default function StorageManage() {
 
   return (
     <Fragment>
+      {/* pendingResourceNotiModal */}
+      <Modal
+        width={1000}
+        title={`上传文件(${pendingResourceList.length})`}
+        visible={pendingResourceNotiModalVisible}
+        onOk={() => {
+          setPendingResourceNotiModalVisible(false)
+          handleUploadPendingResources()
+        }}
+        okText="上传"
+        cancelText="取消"
+        onCancel={() => {
+          setPendingResourceNotiModalVisible(false)
+          setPendingResourceList([])
+          setPendingUploadPrefix(uploadFolders.join(''))
+        }}
+      >
+        <div className={styles.uploadPrefixEditorWrapper}>
+          <Input
+            placeholder="输入 prefix"
+            value={pendingUploadPrefix}
+            onChange={e => setPendingUploadPrefix(e.target.value)}
+          />
+        </div>
+        <div className={styles.pendingResourceListWrapper}>
+          {pendingResourceList.map(pr => (
+            <div key={pr.fname} className={styles.listItem}>
+              路径：{pendingUploadPrefix + pr.fname}
+            </div>
+          ))}
+        </div>
+      </Modal>
       <div className={styles.bucketNavWrapper}>
         <Select
           value={bucketDomainInfo.selectBucketDomain}
@@ -328,7 +425,20 @@ export default function StorageManage() {
           ]}
           {uploadFolders.map((_, i) => (
             <div key={i}>
-              <span className={styles.folder} onClick={() => handleGoToTargetFolder(i, _)}>
+              <span
+                className={classnames(
+                  styles.folder,
+                  i === uploadFolders.length - 1 && styles.isCurrent
+                )}
+                onClick={() => {
+                  // 导航中的最后一个不显示为可点击状态
+                  // 点击之后无效
+                  // 最后一个本身就指向当前的列表
+                  if (i !== uploadFolders.length - 1) {
+                    handleGoToTargetFolder(i, _)
+                  }
+                }}
+              >
                 {_.slice(0, -1)}
               </span>
               <span className={styles.delimiter}>/</span>

@@ -105,11 +105,11 @@ class Qiniu {
         })
       } else {
         bucketManager.listPrefix(this.bucket, options, (respErr, respBody, respInfo) => {
-          console.log('listPrefix', {
-            bucket: this.bucket,
-            options,
-            respBody,
-          })
+          // console.log('listPrefix', {
+          //   bucket: this.bucket,
+          //   options,
+          //   respBody,
+          // })
 
           if (respBody.error) {
             vscode.window.showErrorMessage(notiTpl(respBody.error))

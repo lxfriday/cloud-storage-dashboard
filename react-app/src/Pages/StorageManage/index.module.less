@@ -16,6 +16,13 @@
   }
 }
 
+.pendingResourceListWrapper {
+  margin-top: 10px;
+  .listItem {
+    font-size: 13px;
+  }
+}
+
 .navToolsWrapper {
   height: 40px;
   display: flex;
@@ -43,10 +50,20 @@
       &:hover {
         opacity: 0.5;
       }
+      &.isCurrent {
+        cursor: auto;
+        color: #fff;
+
+        &:hover {
+          opacity: 1;
+        }
+      }
     }
     .delimiter {
       margin-left: 5px;
     }
+
+    
   }
 
   .bulkWrapper {

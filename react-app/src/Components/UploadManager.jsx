@@ -19,6 +19,10 @@ let cancelManager = [
 // 正在上传的文件数量
 let uploadingCount = 0
 
+// hack
+// 防止点击取消之后，那条还触发了 uploadManager，导致进度卡死
+const cancelledIDs = []
+
 function removeFromCancelManager(id) {
   const newCM = []
   cancelManager.forEach(cm => {
@@ -35,14 +39,15 @@ function UploadManager() {
 
   function handleCancel(id, fname) {
     const target = cancelManager.find(cm => cm.id === id)
-    target.onCancel && target.onCancel()
+    target && target.onCancel && target.onCancel()
+    removeFromCancelManager(id)
+    cancelledIDs.push(id)
     removeFromManager(id)
     notification.success({
       message: '提示',
       description: `${fname} 已取消上传`,
       placement: 'bottomRight',
     })
-    removeFromCancelManager(id)
   }
 
   function removeFromManager(id) {
@@ -114,46 +119,57 @@ function UploadManager() {
     }
   }, [])
 
-  console.log('cancelManager', cancelManager, uploadingCount)
+  let readUploadingCount = manager.length
+  manager.forEach(fInfo => {
+    if (cancelledIDs.includes(fInfo.id)) {
+      readUploadingCount--
+    }
+  })
 
   return (
     <Fragment>
-      {manager.length > 0 && (
+      {readUploadingCount > 0 && (
         <Draggable handle={`.${styles.title}`} bounds="body">
           <div className={styles.wrapper}>
             <div className={styles.title}>
               上传管理<span>({uploadingCount})</span>
             </div>
             <div className={styles.fListWrapper}>
-              {manager.map(fInfo => (
-                <div key={fInfo.id} className={styles.fWrapper}>
-                  <div className={styles.fLeftWrapper}>
-                    <div className={styles.fname} title={fInfo.path}>
-                      {fInfo.fname}
+              {manager.map(fInfo => {
+                if (!cancelledIDs.includes(fInfo.id)) {
+                  return (
+                    <div key={fInfo.id} className={styles.fWrapper}>
+                      <div className={styles.fLeftWrapper}>
+                        <div className={styles.fname} title={fInfo.path}>
+                          {fInfo.fname}
+                        </div>
+                        <div className={styles.progressWrapper}>
+                          <Progress
+                            strokeColor={{
+                              '0%': '#108ee9',
+                              '100%': '#87d068',
+                            }}
+                            percent={Math.floor(fInfo.percent)}
+                            status="active"
+                          />
+                        </div>
+                      </div>
+                      {fInfo.percent !== 100 && (
+                        <Button
+                          size="small"
+                          type="primary"
+                          danger
+                          onClick={() => handleCancel(fInfo.id, fInfo.fname)}
+                        >
+                          取消
+                        </Button>
+                      )}
                     </div>
-                    <div className={styles.progressWrapper}>
-                      <Progress
-                        strokeColor={{
-                          '0%': '#108ee9',
-                          '100%': '#87d068',
-                        }}
-                        percent={Math.floor(fInfo.percent)}
-                        status="active"
-                      />
-                    </div>
-                  </div>
-                  {fInfo.percent !== 100 && (
-                    <Button
-                      size="small"
-                      type="primary"
-                      danger
-                      onClick={() => handleCancel(fInfo.id, fInfo.fname)}
-                    >
-                      取消
-                    </Button>
-                  )}
-                </div>
-              ))}
+                  )
+                } else {
+                  return null
+                }
+              })}
             </div>
           </div>
         </Draggable>
@@ -173,7 +189,9 @@ function destroyUploadManager() {
 }
 
 function uploadManager({ id, fname, percent, path }) {
-  ee.emit('progress', { id, fname, percent, path })
+  if (!cancelledIDs.includes(id)) {
+    ee.emit('progress', { id, fname, percent, path })
+  }
 }
 
 function registerCancel({ id, onCancel }) {
