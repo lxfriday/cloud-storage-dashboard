@@ -16,6 +16,9 @@ let cancelManager = [
   // }
 ]
 
+// 正在上传的文件数量
+let uploadingCount = 0
+
 function removeFromCancelManager(id) {
   const newCM = []
   cancelManager.forEach(cm => {
@@ -24,6 +27,7 @@ function removeFromCancelManager(id) {
     }
   })
   cancelManager = newCM
+  uploadingCount--
 }
 
 function UploadManager() {
@@ -80,7 +84,6 @@ function UploadManager() {
         if (m.id === info.id) {
           shouldAddNewInfo = false
           if (info.percent === 100) {
-            // 进度为 100 的直接删除
             removeFromCancelManager(m.id)
             if (!m.finishedTS) {
               newManager.push({ ...info, finishedTS: Date.now() })
@@ -96,6 +99,7 @@ function UploadManager() {
         }
       })
       if (shouldAddNewInfo) {
+        uploadingCount++
         newManager.push(info)
       }
       innerManager = newManager
@@ -110,13 +114,15 @@ function UploadManager() {
     }
   }, [])
 
+  console.log('cancelManager', cancelManager, uploadingCount)
+
   return (
     <Fragment>
       {manager.length > 0 && (
         <Draggable handle={`.${styles.title}`} bounds="body">
           <div className={styles.wrapper}>
             <div className={styles.title}>
-              上传管理<span>(长按可拖动)</span>
+              上传管理<span>({uploadingCount})</span>
             </div>
             <div className={styles.fListWrapper}>
               {manager.map(fInfo => (

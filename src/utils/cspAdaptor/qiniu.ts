@@ -93,7 +93,7 @@ class Qiniu {
     const options = {
       prefix,
       marker: fromBegin ? '' : this.marker,
-      limit: 100,
+      limit: 1000,
       delimiter: '/',
     }
     return new Promise((resolve, reject) => {
@@ -105,6 +105,12 @@ class Qiniu {
         })
       } else {
         bucketManager.listPrefix(this.bucket, options, (respErr, respBody, respInfo) => {
+          console.log('listPrefix', {
+            bucket: this.bucket,
+            options,
+            respBody,
+          })
+
           if (respBody.error) {
             vscode.window.showErrorMessage(notiTpl(respBody.error))
             resolve({
