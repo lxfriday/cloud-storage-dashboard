@@ -1,6 +1,6 @@
 import React, { useEffect, useState, Fragment } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Button, Upload, Select, message, Modal, notification, Image } from 'antd'
+import { Button, Upload, Select, message, Modal, Image } from 'antd'
 import {
   UploadOutlined,
   SyncOutlined,
@@ -17,6 +17,7 @@ import { renderUploadManager, destroyUploadManager } from '../../Components/Uplo
 import styles from './index.module.less'
 import * as messageCenter from '../../utils/messageCenter'
 import { generateUploadImgInfo, debounce, getFileSize } from '../../utils'
+import settings from '../../utils/settings'
 import cloudserviceprovider from '../../utils/cloudserviceprovider'
 
 const { Option } = Select
@@ -24,7 +25,6 @@ const { Option } = Select
 const providerName = 'qiniu'
 const csp = cloudserviceprovider[providerName]
 
-const forceHTTPSFromSettings = false
 let isLoadingResource = false // 是否正在加载资源
 const imagePreviewSuffix = '?imageView2/1/w/85/h/85/format/webp/q/10' // 图片预览时压缩，提升性能
 
@@ -34,7 +34,7 @@ export default function StorageManage() {
     selectBucketDomain: '',
     resourcePrefix: '',
   })
-  const resourcePrefix = `${forceHTTPSFromSettings ? 'https://' : 'http://'}${
+  const resourcePrefix = `${settings.forceHTTPS ? 'https://' : 'http://'}${
     bucketDomainInfo.selectBucketDomain
   }/`
   let [uploadFolders, setUploadFolders] = useState([]) // ['testfolder/', 'job/'] => 最终路径 'testfolder/job/'
@@ -113,7 +113,7 @@ export default function StorageManage() {
         token: uploadToken, //uploadToken为从后端获得的token
         file,
         folder: uploadFolders.join(''),
-        remainFileName: true,
+        remainFileName: settings.upload.useOrignalFileName,
       })
       csp
         .upload({

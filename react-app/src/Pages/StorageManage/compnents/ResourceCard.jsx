@@ -149,6 +149,7 @@ export default function ResourceCard({
       <div
         className={classnames(styles.wrapper, selected && styles.selected)}
         onClick={() => handleToggleSelectKey(fkey)}
+        data-mime={mimeType}
       >
         <div className={styles.iconWrapper}>{finalImage}</div>
         <div className={styles.fileFullName}>{fileFullName}</div>
@@ -189,7 +190,7 @@ export default function ResourceCard({
                     message.error('不支持预览的文件类型')
                   }
                 }}
-                title="查看"
+                title="在浏览器中打开"
               >
                 {isVideo && <PlayCircleOutlined style={{ fontSize: '18px', color: '#666' }} />}
                 {isImage && <ZoomInOutlined style={{ fontSize: '18px', color: '#666' }} />}
