@@ -1,4 +1,4 @@
-.nav {
+.bucketNavWrapper {
   height: 64px;
   background-color: @base-color;
   padding: 0 18px 0 5px;
@@ -8,7 +8,7 @@
   align-items: center;
   color: #fff;
 
-  .navToolsWrapper {
+  .bucketToolsWrapper {
     button ~ button,
     button:nth-child(2) {
       margin-left: 10px;
@@ -28,17 +28,24 @@
     display: flex;
     align-items: center;
 
-    .folder {
-      margin-left: 3px;
-      color: #00BBFF;
+    .homeButton {
       cursor: pointer;
-      transition: opacity .4s;
+      &:hover {
+        opacity: 0.5;
+      }
+    }
+
+    .folder {
+      margin-left: 5px;
+      color: #00bbff;
+      cursor: pointer;
+      transition: opacity 0.4s;
       &:hover {
         opacity: 0.5;
       }
     }
     .delimiter {
-      margin-left: 3px;
+      margin-left: 5px;
     }
   }
 

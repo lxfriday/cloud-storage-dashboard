@@ -7,6 +7,7 @@ import {
   LinkOutlined,
   ProfileOutlined,
   ExclamationCircleOutlined,
+  HomeFilled,
 } from '@ant-design/icons'
 import copy from 'copy-text-to-clipboard'
 
@@ -235,6 +236,11 @@ export default function StorageManage() {
     handleRefresh(targetFolders)
   }
 
+  // 点击回到最顶层文件夹
+  function handleGoToHome() {
+    handleRefresh([])
+  }
+
   useEffect(() => {
     // 打开一个 bucket 的时候，更新 localside bucket
     setResourceList([])
@@ -270,7 +276,7 @@ export default function StorageManage() {
 
   return (
     <Fragment>
-      <div className={styles.nav}>
+      <div className={styles.bucketNavWrapper}>
         <Select
           value={bucketDomainInfo.selectBucketDomain}
           style={{ width: 250 }}
@@ -282,7 +288,7 @@ export default function StorageManage() {
             </Option>
           ))}
         </Select>
-        <div className={styles.navToolsWrapper}>
+        <div className={styles.bucketToolsWrapper}>
           <Upload {...selectFileUploadProps}>
             <Button
               type="dashed"
@@ -316,6 +322,10 @@ export default function StorageManage() {
       </div>
       <div className={styles.navToolsWrapper}>
         <div className={styles.navigationWrapper}>
+          {!!uploadFolders.length && [
+            <HomeFilled onClick={handleGoToHome} className={styles.homeButton} />,
+            <span className={styles.delimiter}>/</span>,
+          ]}
           {uploadFolders.map((_, i) => (
             <div key={i}>
               <span className={styles.folder} onClick={() => handleGoToTargetFolder(i, _)}>
