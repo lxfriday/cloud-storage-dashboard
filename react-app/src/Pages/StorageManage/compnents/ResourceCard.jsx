@@ -6,6 +6,7 @@ import {
   ExclamationCircleOutlined,
   PlayCircleOutlined,
   ZoomInOutlined,
+  CustomerServiceFilled,
 } from '@ant-design/icons'
 import { message, Menu, Dropdown, Modal } from 'antd'
 import copy from 'copy-text-to-clipboard'
@@ -16,6 +17,8 @@ import { getFullTime, getFileSize } from '../../../utils'
 import styles from './ResourceCard.module.less'
 
 export default function ResourceCard({
+  ext,
+  isAudio,
   isVideo,
   isImage,
   isGif,
@@ -31,10 +34,8 @@ export default function ResourceCard({
   handleToggleSelectKey,
   handleDeleteFile,
   handleSelectAll,
-  debouncedHttpsErrorNotiWarning,
-  debouncedHttpErrorNotiError,
   handlePreviewAsImg,
-  handlePreviewAsVideo,
+  handleOpenInBrowser,
 }) {
   const keyS = fkey.split('/')
   const fileFullName = keyS[keyS.length - 1]
@@ -57,6 +58,8 @@ export default function ResourceCard({
     )
   } else if (isVideo) {
     finalImage = <PlayCircleOutlined style={{ color: '#aaa', fontSize: '50px' }} />
+  } else if (isAudio) {
+    finalImage = <CustomerServiceFilled style={{ color: '#aaa', fontSize: '50px' }} />
   } else {
     finalImage = <FileFilled style={{ color: '#aaa', fontSize: '50px' }} />
   }
@@ -149,8 +152,8 @@ export default function ResourceCard({
       <div
         className={classnames(styles.wrapper, selected && styles.selected)}
         onClick={() => handleToggleSelectKey(fkey)}
-        data-mime={mimeType}
       >
+        <div className={styles.fileExtWrapper}>{ext}</div>
         <div className={styles.iconWrapper}>{finalImage}</div>
         <div className={styles.fileFullName}>{fileFullName}</div>
         <div className={styles.toolsWrapper}>
@@ -177,23 +180,28 @@ export default function ResourceCard({
             >
               <DeleteFilled style={{ fontSize: '18px', color: 'red' }} />
             </div>
-            {(isVideo || isImage) && (
+            {isImage && (
               <div
                 className={styles.buttonWrapper}
                 onClick={e => {
                   e.stopPropagation()
-                  if (isImage) {
-                    handlePreviewAsImg()
-                  } else if (isVideo) {
-                    handlePreviewAsVideo()
-                  } else {
-                    message.error('不支持预览的文件类型')
-                  }
+                  handlePreviewAsImg()
+                }}
+                title="预览"
+              >
+                <ZoomInOutlined style={{ fontSize: '18px', color: '#666' }} />
+              </div>
+            )}
+            {(isVideo || isAudio) && (
+              <div
+                className={styles.buttonWrapper}
+                onClick={e => {
+                  e.stopPropagation()
+                  handleOpenInBrowser()
                 }}
                 title="在浏览器中打开"
               >
-                {isVideo && <PlayCircleOutlined style={{ fontSize: '18px', color: '#666' }} />}
-                {isImage && <ZoomInOutlined style={{ fontSize: '18px', color: '#666' }} />}
+                <PlayCircleOutlined style={{ fontSize: '18px', color: '#666' }} />
               </div>
             )}
           </div>

@@ -1,34 +1,18 @@
 import React, { useEffect, useState, useRef, Fragment } from 'react'
 import { FixedSizeGrid as Grid } from 'react-window'
-import { notification } from 'antd'
 import { VerticalAlignTopOutlined } from '@ant-design/icons'
 
 import ResourceCard from './ResourceCard'
 import FolderCard from './FolderCard'
 import {
-  debounce,
   isImage as isImageFunc,
   isVideo as isVideoFunc,
+  isAudio as isAudioFunc,
   isGif as isGifFunc,
   isSvg as isSvgFunc,
+  getResourceExtAndName,
 } from '../../../utils'
 import styles from './ResourceList.module.less'
-
-function httpsErrorNotiWarning() {
-  notification.warning({
-    message: '提示',
-    description: 'https 协议加载图片失败，自动切换到 http 协议加载资源',
-  })
-}
-function httpErrorNotiError() {
-  notification.error({
-    message: '提示',
-    description: 'http 协议加载图片也失败了',
-  })
-}
-
-const debouncedHttpsErrorNotiWarning = debounce(httpsErrorNotiWarning, 3000, true)
-const debouncedHttpErrorNotiError = debounce(httpErrorNotiError, 3000, true)
 
 export default function ResourceList({
   uploadFolder,
@@ -41,10 +25,11 @@ export default function ResourceList({
   handleDeleteFiles,
   handleSelectAll,
   handlePreviewAsImg,
-  handlePreviewAsVideo,
+  // handlePreviewAsVideo,
   handleViewFolder,
   handleLoadData,
   handleBackward,
+  handleOpenInBrowser,
 }) {
   // 资源框实际大小
   const resourceWidth = 130
@@ -100,14 +85,18 @@ export default function ResourceList({
       )
     } else {
       // 是资源
-      const ext = resourceInfo.mimeType.split('/')[1]
+      // const ext = resourceInfo.mimeType.split('/')[1]
+      const { ext } = getResourceExtAndName(resourceInfo.key)
       // 在打开 image gallary 的时候， ind 在 resourceList 对应的资源可能存在偏移，这个时候需要把偏移摆正
       const previewInd = ind - ((isTopFolder ? 0 : 1) + commonPrefixList.length)
+      const url = encodeURI(resourcePrefix + resourceInfo.key)
 
       return (
         <div className={styles.cellWrapper} style={style}>
           <ResourceCard
+            ext={ext}
             imagePreviewSuffix={imagePreviewSuffix}
+            isAudio={isAudioFunc(ext)}
             isVideo={isVideoFunc(ext)}
             isImage={isImageFunc(ext)}
             isGif={isGifFunc(ext)}
@@ -118,15 +107,14 @@ export default function ResourceList({
             hash={resourceInfo.hash}
             mimeType={resourceInfo.mimeType}
             putTime={resourceInfo.putTime}
-            url={encodeURI(resourcePrefix + resourceInfo.key)}
+            url={url}
             selected={selectedKeys.includes(resourceInfo.key)}
             handleToggleSelectKey={handleToggleSelectKey}
             handleDeleteFile={handleDeleteFiles}
             handleSelectAll={handleSelectAll}
-            debouncedHttpsErrorNotiWarning={debouncedHttpsErrorNotiWarning}
-            debouncedHttpErrorNotiError={debouncedHttpErrorNotiError}
             handlePreviewAsImg={() => handlePreviewAsImg(previewInd)}
-            handlePreviewAsVideo={() => handlePreviewAsVideo(resourcePrefix + resourceInfo.key)}
+            // handlePreviewAsVideo={() => handlePreviewAsVideo(resourcePrefix + resourceInfo.key)}
+            handleOpenInBrowser={() => handleOpenInBrowser(url)}
           />
         </div>
       )

@@ -3,6 +3,9 @@ import ReactDOM from 'react-dom'
 import DPlayer from 'dplayer'
 import styles from './VideoPlayer.module.less'
 
+
+// 在 vscode 内播放视频，有视频没有声音
+// 现在已启用，音视频统一用系统的浏览器打开
 function VideoPlayer({ url, handleClose }) {
   const videoEl = useRef(null)
 

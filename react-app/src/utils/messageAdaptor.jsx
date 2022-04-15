@@ -8,7 +8,7 @@ import loading from '../Components/Loading'
 // serverCommand: 'requestDataFromServer',
 
 const randomKey = () => `${Date.now()}_${Math.floor(Math.random() * 10000000)}`
-export default function messageAdaptor({ serverCommand, data }) {
+export default function messageAdaptor({ serverCommand, data }, showLoading = true) {
   const timeStart = Date.now()
   return new Promise((res, rej) => {
     const uniqueId = randomKey()
@@ -27,7 +27,7 @@ export default function messageAdaptor({ serverCommand, data }) {
     }, 10000)
 
     //--------------------加载提示-----------------------
-    loading.show()
+    showLoading && loading.show()
     //--------------------------------------------------
     function listener(ev) {
       const msg = ev.data
@@ -36,7 +36,7 @@ export default function messageAdaptor({ serverCommand, data }) {
         clearTimeout(timer)
         globalConfig.showMessageProgress &&
           LogO(`page receive message, time cost: ${Date.now() - timeStart}ms`, { msg })
-        loading.hide()
+        showLoading && loading.hide()
         res(msg.data)
       }
     }

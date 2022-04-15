@@ -11,7 +11,7 @@ import {
 import copy from 'copy-text-to-clipboard'
 
 import ResourceList from './compnents/ResourceList'
-import videoPlayer from '../../Components/VideoPlayer'
+// import videoPlayer from '../../Components/VideoPlayer'
 import { renderUploadManager, destroyUploadManager } from '../../Components/UploadManager'
 
 import styles from './index.module.less'
@@ -26,7 +26,6 @@ const providerName = 'qiniu'
 const csp = cloudserviceprovider[providerName]
 
 let isLoadingResource = false // 是否正在加载资源
-const imagePreviewSuffix = '?imageView2/1/w/85/h/85/format/webp/q/10' // 图片预览时压缩，提升性能
 
 export default function StorageManage() {
   let [bucketDomainInfo, setBucketDomainInfo] = useState({
@@ -113,7 +112,7 @@ export default function StorageManage() {
         token: uploadToken, //uploadToken为从后端获得的token
         file,
         folder: uploadFolders.join(''),
-        remainFileName: settings.upload.useOrignalFileName,
+        remainFileName: settings.uploadUseOrignalFileName,
       })
       csp
         .upload({
@@ -213,9 +212,9 @@ export default function StorageManage() {
   }
 
   // 预览视频
-  function handlePreviewAsVideo(url) {
-    videoPlayer.show(url)
-  }
+  // function handlePreviewAsVideo(url) {
+  //   videoPlayer.show(url)
+  // }
 
   // 点击文件夹
   function handleViewFolder(pfx) {
@@ -350,15 +349,16 @@ export default function StorageManage() {
       <ResourceList
         uploadFolder={uploadFolders.join('')}
         commonPrefixList={commonPrefixList}
-        imagePreviewSuffix={imagePreviewSuffix}
+        imagePreviewSuffix={settings.imagePreviewSuffix}
         selectedKeys={selectedKeys}
         resourceList={resourceList}
         resourcePrefix={resourcePrefix}
+        handleOpenInBrowser={url => messageCenter.requestOpenInBrowser(url)}
         handleToggleSelectKey={handleToggleSelectKey}
         handleDeleteFiles={handleDeleteFiles}
         handleSelectAll={handleSelectAll}
         handlePreviewAsImg={handlePreviewAsImg}
-        handlePreviewAsVideo={handlePreviewAsVideo}
+        // handlePreviewAsVideo={handlePreviewAsVideo}
         handleViewFolder={handleViewFolder}
         handleLoadData={() => {
           // 首次进入页面，空列表的时候自动触发
