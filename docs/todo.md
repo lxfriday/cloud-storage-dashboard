@@ -1,13 +1,20 @@
 # TODO
 
 ## high priority
-- 创建文件夹
+- 对 async、await 做 catch error 处理（应对 reject 情况）
+- Promise.all 对取消上传的没有resolve 提示？
+- ? 复制普通的 windows 文件链接也会触发 onpaste
+- 文件夹问题
+  - 在滚动 loaddata 的时候，对返回的 commonprefixes 和现有的 commonprefixes 做合并，这样当列举完所有的文件之后，就会得到所有的文件夹
+  - 在 server 端直接加载 1w 条数据，把1w条的 commonprefix 作为文件夹，这样放大了样本数量
+
 - 拖拽上传
 - 文件夹上传
 - 文件搜索
 - 按照 大小、创建时间筛选
 - 更改列表显示模式
   - 由 grid 变更为 list（二维变一维）
+- openinbrowser 打开成功失败的提示
 
 ## new feat
 
@@ -15,8 +22,11 @@
 ## Other
 
 - ? 多文件上传的时候，需要多次生成 token
+- 普通文件上传，上传多个文件会多次提示上传成功已复制到剪切板 => 参考粘贴上传（自实现上传流程）
 
 ## 文件夹
+- 创建文件夹
+- ？ 文件夹内文件数量，文件占用的空间
 
 
 ## 上传
@@ -29,5 +39,9 @@
 - 文件下载
   - 参考 mpeg4 插件
   - https://github.com/microsoft/vscode/pull/108603
+- 让用户选择文件夹，这样把所有文件都放到下载文件夹中
+- 某些特殊文件，可以下载完之后直接打开（用系统默认的方式）
 
 ## low priority
+- 云存储管理打开的时候，页面会灰屏一段时间
+  - 添加首屏渲染 loader
