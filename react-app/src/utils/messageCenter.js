@@ -62,4 +62,14 @@ export function requestGetOverviewInfo() {
   })
 }
 
+export function requestOpenInBrowser(url) {
+  return messageAdaptor({
+    serverCommand: MESSAGE_COMMANDS.openInBrowser,
+    data: {
+      ...providerInfo,
+      url,
+    },
+  })
+}
+
 // getBucketDomains

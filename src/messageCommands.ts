@@ -6,4 +6,5 @@ export default {
   getBucketDomains: 'getBucketDomains',
   deleteBucketFiles: 'deleteBucketFiles',
   getOverviewInfo: 'getOverviewInfo',
+  openInBrowser: 'openInBrowser',
 }

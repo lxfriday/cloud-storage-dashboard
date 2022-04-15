@@ -1,5 +1,8 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
+import styles from './index.module.less'
 
 export default function Settings() {
-  return <div>Settings</div>
+  const playerEle = useRef(null)
+  useEffect(() => {}, [])
+  return <div className={styles.wrapper}>settings</div>
 }
