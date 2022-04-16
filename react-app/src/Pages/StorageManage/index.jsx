@@ -110,7 +110,8 @@ export default function StorageManage() {
       isLoadingResource = true
       messageCenter.requestGetResourceList({ prefix: uploadFolders.join('') }).then(data => {
         isLoadingResource = false
-        setCommonPrefixList(data.commonPrefixes)
+        // 对已有的 commonprefixes 和新传过来的 commonprefixes 做合并，去重
+        setCommonPrefixList([...new Set([...commonPrefixList, ...data.commonPrefixes])])
         setResourceList([...resourceList, ...data.list])
         setIsResourceListReachEnd(data.reachEnd)
       })

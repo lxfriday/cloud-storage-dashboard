@@ -2,7 +2,6 @@
 
 ## high priority
 - 文件夹问题
-  - 在滚动 loaddata 的时候，对返回的 commonprefixes 和现有的 commonprefixes 做合并，这样当列举完所有的文件之后，就会得到所有的文件夹
   - 在 server 端直接加载 1w 条数据，把1w条的 commonprefix 作为文件夹，这样放大了样本数量
 
 - 拖拽上传
