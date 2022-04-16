@@ -141,13 +141,17 @@ export default function StorageManage() {
           key,
           token,
           resourcePrefix,
+          shouldShowMsg: true,
+          shouldCopy: true,
         })
         .then(() => {
           // 上传成功之后自动刷新？
-          debouncedHandleRefresh(uploadFolders)
+          // debouncedHandleRefresh(uploadFolders)
         })
-        .catch(e => {
-          console.log('customRequest error', e)
+        .catch(res => {
+          if (res.hasError) {
+            message.error(`上传失败 ${res.msg}`)
+          }
         })
     },
   }
@@ -301,10 +305,22 @@ export default function StorageManage() {
       )
     )
       .then(res => {
-        console.log('handleUploadPendingResources', res)
+        const uploadedResourceLinks = res.map(resourceInfo =>
+          encodeURI(resourcePrefix + resourceInfo.key)
+        )
+
+        copy(uploadedResourceLinks.join('\r\n'))
+
+        message.success(
+          res.length > 1
+            ? '全部上传成功，所有资源已复制到剪切板，刷新之后在列表可见'
+            : '上传成功，已复制到剪切板，刷新之后在列表可见'
+        )
       })
-      .catch(e => {
-        console.log('paste upload error', e)
+      .catch(res => {
+        if (res.hasError) {
+          message.error(`上传失败 ${res.msg}`)
+        }
       })
       .finally(() => {
         setPendingResourceList([])
