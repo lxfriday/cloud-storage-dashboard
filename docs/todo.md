@@ -1,9 +1,6 @@
 # TODO
 
 ## high priority
-- 对 async、await 做 catch error 处理（应对 reject 情况）
-- Promise.all 对取消上传的没有resolve 提示？
-- ? 复制普通的 windows 文件链接也会触发 onpaste
 - 文件夹问题
   - 在滚动 loaddata 的时候，对返回的 commonprefixes 和现有的 commonprefixes 做合并，这样当列举完所有的文件之后，就会得到所有的文件夹
   - 在 server 端直接加载 1w 条数据，把1w条的 commonprefix 作为文件夹，这样放大了样本数量
@@ -14,7 +11,6 @@
 - 按照 大小、创建时间筛选
 - 更改列表显示模式
   - 由 grid 变更为 list（二维变一维）
-- openinbrowser 打开成功失败的提示
 
 ## new feat
 

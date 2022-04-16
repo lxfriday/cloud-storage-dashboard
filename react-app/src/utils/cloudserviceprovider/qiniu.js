@@ -26,7 +26,6 @@ export function upload({ file, key, token, resourcePrefix }) {
       error(err) {
         // ...
         message.error('上传失败', err)
-        console.log('上传失败', err)
         reject(err)
       },
       complete(res) {
@@ -42,6 +41,7 @@ export function upload({ file, key, token, resourcePrefix }) {
       id: key,
       onCancel: () => {
         subscription.unsubscribe()
+        reject(`${file.name}停止上传`)
       },
     })
   })

@@ -145,6 +145,9 @@ export default function StorageManage() {
           // 上传成功之后自动刷新？
           debouncedHandleRefresh(uploadFolders)
         })
+        .catch(e => {
+          console.log('customRequest error', e)
+        })
     },
   }
 
@@ -263,11 +266,13 @@ export default function StorageManage() {
   function handlePaste(e) {
     const clipboardData = e.clipboardData
     const newPRList = []
+    let hasResource = false
 
     for (let i = 0; i < clipboardData.items.length; i++) {
       const item = clipboardData.items[i]
       // 粘贴的内容会比较复杂：单个文件、多个文件、截图、字符串、带样式的字符串等
       if (item.kind === 'file') {
+        hasResource = true
         const file = item.getAsFile()
         // 截图的 path 为空字符串，name 为 image.png
         newPRList.push({
@@ -277,8 +282,10 @@ export default function StorageManage() {
       }
     }
 
-    setPendingResourceNotiModalVisible(true)
-    setPendingResourceList(newPRList)
+    if (hasResource) {
+      setPendingResourceNotiModalVisible(true)
+      setPendingResourceList(newPRList)
+    }
   }
 
   function handleUploadPendingResources() {
@@ -294,6 +301,9 @@ export default function StorageManage() {
     )
       .then(res => {
         console.log('handleUploadPendingResources', res)
+      })
+      .catch(e => {
+        console.log('paste upload error', e)
       })
       .finally(() => {
         setPendingResourceList([])
@@ -420,8 +430,10 @@ export default function StorageManage() {
       <div className={styles.navToolsWrapper}>
         <div className={styles.navigationWrapper}>
           {!!uploadFolders.length && [
-            <HomeFilled onClick={handleGoToHome} className={styles.homeButton} />,
-            <span className={styles.delimiter}>/</span>,
+            <HomeFilled key="tohome" onClick={handleGoToHome} className={styles.homeButton} />,
+            <span key="tohomedelimiter" className={styles.delimiter}>
+              /
+            </span>,
           ]}
           {uploadFolders.map((_, i) => (
             <div key={i}>
@@ -491,7 +503,13 @@ export default function StorageManage() {
         selectedKeys={selectedKeys}
         resourceList={resourceList}
         resourcePrefix={resourcePrefix}
-        handleOpenInBrowser={url => messageCenter.requestOpenInBrowser(url)}
+        handleOpenInBrowser={url =>
+          messageCenter.requestOpenInBrowser(url).then(data => {
+            if (data.success) {
+              message.success('请在浏览器中查看')
+            }
+          })
+        }
         handleToggleSelectKey={handleToggleSelectKey}
         handleDeleteFiles={handleDeleteFiles}
         handleSelectAll={handleSelectAll}
