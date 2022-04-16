@@ -74,6 +74,18 @@ export default function StorageManage() {
   let [searchParams] = useSearchParams()
   const currentBucket = searchParams.get('space')
 
+  // 上传的时候 token 都从这里拿
+  function ensureTokenAvailable() {
+    messageCenter
+      .requestGenerateUploadToken()
+      .then(data => {
+        setUploadToken(data)
+      })
+      .catch(err => {
+        message.error('token 获取失败')
+      })
+  }
+
   function handleRefresh(prefixes = []) {
     // 刷新列表
     // 刷新文件数量，存储空间
@@ -121,38 +133,48 @@ export default function StorageManage() {
   const debouncedHandleRefresh = debounce(handleRefresh, 2000, false)
 
   const selectFileUploadProps = {
+    currentFileList: null,
     multiple: true,
     showUploadList: false,
-    beforeUpload: () => {
-      messageCenter.requestGenerateUploadToken()
-      return true
-    },
-    customRequest(uploadInfo) {
-      const { file } = uploadInfo
-      const { token, key } = generateUploadImgInfo({
-        token: uploadToken, //uploadToken为从后端获得的token
-        file,
-        folder: uploadFolders.join(''),
-        remainFileName: settings.uploadUseOrignalFileName,
-      })
-      csp
-        .upload({
-          file,
-          key,
-          token,
-          resourcePrefix,
-          shouldShowMsg: true,
-          shouldCopy: true,
-        })
-        .then(() => {
-          // 上传成功之后自动刷新？
-          // debouncedHandleRefresh(uploadFolders)
-        })
-        .catch(res => {
-          if (res.hasError) {
-            message.error(`上传失败 ${res.msg}`)
-          }
-        })
+    beforeUpload: (file, fileList) => {
+      if (fileList !== selectFileUploadProps.currentFileList) {
+        selectFileUploadProps.currentFileList = fileList
+        // upload fileList
+        Promise.all(
+          fileList.map(f =>
+            csp.upload({
+              file: f,
+              key: `${uploadFolders.join('')}${generateRandomResourceName(
+                f,
+                settings.uploadUseOrignalFileName
+              )}`,
+              token: uploadToken,
+              resourcePrefix,
+            })
+          )
+        )
+          .then(res => {
+            const uploadedResourceLinks = res.map(resourceInfo =>
+              encodeURI(resourcePrefix + resourceInfo.key)
+            )
+
+            copy(uploadedResourceLinks.join('\r\n'))
+
+            message.success(
+              res.length > 1
+                ? '全部上传成功，所有资源已复制到剪切板，刷新之后在列表可见'
+                : '上传成功，已复制到剪切板，刷新之后在列表可见'
+            )
+          })
+          .catch(res => {
+            if (res.hasError) {
+              message.error(`上传失败 ${res.msg}`)
+            }
+          })
+          .finally(() => {})
+      }
+
+      return false
     },
   }
 
@@ -281,7 +303,7 @@ export default function StorageManage() {
         const file = item.getAsFile()
         // 截图的 path 为空字符串，name 为 image.png
         newPRList.push({
-          fname: generateRandomResourceName(file, true),
+          fname: generateRandomResourceName(file, settings.uploadUseOrignalFileName),
           file,
         })
       }
@@ -328,31 +350,36 @@ export default function StorageManage() {
       })
   }
 
-  useEffect(() => {
+  useEffect(async () => {
     // 打开一个 bucket 的时候，更新 localside bucket
     setResourceList([])
     setUploadFolders([])
     setCommonPrefixList([])
     setPendingUploadPrefix('')
-
-    messageCenter.requestUpdateBucket(currentBucket).then(data => {
+    try {
+      const bucketDomains = await messageCenter.requestUpdateBucket(currentBucket)
       setBucketDomainInfo({
-        bucketDomains: data,
-        selectBucketDomain: data[0] || '',
+        bucketDomains: bucketDomains,
+        selectBucketDomain: bucketDomains[0] || '',
       })
-      messageCenter.requestGenerateUploadToken().then(data => {
-        setUploadToken(data)
-      })
+      const utoken = await messageCenter.requestGenerateUploadToken()
+      setUploadToken(utoken)
+
       isLoadingResource = true
       // 从根目录加载，prefix 为空
-      messageCenter.requestGetResourceList({ fromBegin: true, prefix: '' }).then(data => {
-        isLoadingResource = false
-        setCommonPrefixList(data.commonPrefixes)
-        setResourceList(data.list)
-        setIsResourceListReachEnd(data.reachEnd)
+
+      const resourceListResponse = await messageCenter.requestGetResourceList({
+        fromBegin: true,
+        prefix: '',
       })
+      isLoadingResource = false
+      setCommonPrefixList(resourceListResponse.commonPrefixes)
+      setResourceList(resourceListResponse.list)
+      setIsResourceListReachEnd(resourceListResponse.reachEnd)
       handleGetOverviewInfo()
-    })
+    } catch (e) {
+      message.error(e)
+    }
     window.addEventListener('paste', handlePaste)
     return () => {
       window.removeEventListener('paste', handlePaste)
@@ -361,8 +388,13 @@ export default function StorageManage() {
 
   useEffect(() => {
     renderUploadManager()
+    // 1天刷新 token
+    let interval = setInterval(() => {
+      ensureTokenAvailable()
+    }, 1000 * 3600 * 24)
     return () => {
       destroyUploadManager()
+      clearInterval(interval)
     }
   }, [])
 

@@ -1,9 +1,11 @@
 # TODO
 
 ## high priority
+- 上传管理，上传中的文件数统计不正常
 - 文件夹问题
   - 在 server 端直接加载 1w 条数据，把1w条的 commonprefix 作为文件夹，这样放大了样本数量
 
+- 重写选择文件上传 => 不使用 customRewuest，参考 handlePaste
 - 拖拽上传
 - 文件夹上传
 - 文件搜索
