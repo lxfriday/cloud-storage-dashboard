@@ -13,7 +13,7 @@ import copy from 'copy-text-to-clipboard'
 import classnames from 'classnames'
 
 import ResourceList from './compnents/ResourceList'
-import DragUpload from './compnents/DragUpload'
+import PasteAndDragUpload from './compnents/PasteAndDragUpload'
 // import videoPlayer from '../../Components/VideoPlayer'
 import { renderUploadManager, destroyUploadManager } from '../../Components/UploadManager'
 
@@ -45,17 +45,6 @@ export default function StorageManage() {
   let [commonPrefixList, setCommonPrefixList] = useState([])
   // 是否已经加载到最后一页了，加载完了没？
   let [isResourceListReachEnd, setIsResourceListReachEnd] = useState(false)
-
-  // 等待上传的资源信息
-  // 这个数组存储粘贴上传或者拖动上传
-  let [pendingResourceList, setPendingResourceList] = useState([
-    // {
-    //   fname: '', // 即将在上传时对应的文件名
-    //   file: fileObj, //
-    // }
-  ])
-  // 等待上传的提醒 modal
-  let [pendingResourceNotiModalVisible, setPendingResourceNotiModalVisible] = useState(false)
   // 粘贴、拖动上传时输入的前缀
   let [pendingUploadPrefix, setPendingUploadPrefix] = useState('')
 
@@ -286,64 +275,64 @@ export default function StorageManage() {
     handleRefresh([])
   }
 
-  function handlePaste(e) {
-    const clipboardData = e.clipboardData
-    const newPRList = []
-    let hasResource = false
+  // function handlePaste(e) {
+  //   const clipboardData = e.clipboardData
+  //   const newPRList = []
+  //   let hasResource = false
 
-    for (let i = 0; i < clipboardData.items.length; i++) {
-      const item = clipboardData.items[i]
-      // 粘贴的内容会比较复杂：单个文件、多个文件、截图、字符串、带样式的字符串等
-      if (item.kind === 'file') {
-        hasResource = true
-        const file = item.getAsFile()
-        // 截图的 path 为空字符串，name 为 image.png
-        newPRList.push({
-          fname: generateRandomResourceName(file.name, settings.uploadUseOrignalFileName),
-          file,
-        })
-      }
-    }
+  //   for (let i = 0; i < clipboardData.items.length; i++) {
+  //     const item = clipboardData.items[i]
+  //     // 粘贴的内容会比较复杂：单个文件、多个文件、截图、字符串、带样式的字符串等
+  //     if (item.kind === 'file') {
+  //       hasResource = true
+  //       const file = item.getAsFile()
+  //       // 截图的 path 为空字符串，name 为 image.png
+  //       newPRList.push({
+  //         fname: generateRandomResourceName(file.name, settings.uploadUseOrignalFileName),
+  //         file,
+  //       })
+  //     }
+  //   }
 
-    if (hasResource) {
-      setPendingResourceNotiModalVisible(true)
-      setPendingResourceList(newPRList)
-    }
-  }
+  //   if (hasResource) {
+  //     setPendingResourceNotiModalVisible(true)
+  //     setPendingResourceList(newPRList)
+  //   }
+  // }
 
-  function handleUploadPendingResources(pfx) {
-    Promise.all(
-      pendingResourceList.map(pr =>
-        csp.upload({
-          file: pr.file,
-          key: `${pfx}${pr.fname}`,
-          token: uploadToken,
-          resourcePrefix,
-        })
-      )
-    )
-      .then(res => {
-        const uploadedResourceLinks = res.map(resourceInfo =>
-          encodeURI(resourcePrefix + resourceInfo.key)
-        )
+  // function handleUploadPendingResources(pfx) {
+  //   Promise.all(
+  //     pendingResourceList.map(pr =>
+  //       csp.upload({
+  //         file: pr.file,
+  //         key: `${pfx}${pr.fname}`,
+  //         token: uploadToken,
+  //         resourcePrefix,
+  //       })
+  //     )
+  //   )
+  //     .then(res => {
+  //       const uploadedResourceLinks = res.map(resourceInfo =>
+  //         encodeURI(resourcePrefix + resourceInfo.key)
+  //       )
 
-        copy(uploadedResourceLinks.join('\r\n'))
+  //       copy(uploadedResourceLinks.join('\r\n'))
 
-        message.success(
-          res.length > 1
-            ? '全部上传成功，所有资源已复制到剪切板，刷新之后在列表可见'
-            : '上传成功，已复制到剪切板，刷新之后在列表可见'
-        )
-      })
-      .catch(res => {
-        if (res.hasError) {
-          message.error(`上传失败 ${res.msg}`)
-        }
-      })
-      .finally(() => {
-        setPendingResourceList([])
-      })
-  }
+  //       message.success(
+  //         res.length > 1
+  //           ? '全部上传成功，所有资源已复制到剪切板，刷新之后在列表可见'
+  //           : '上传成功，已复制到剪切板，刷新之后在列表可见'
+  //       )
+  //     })
+  //     .catch(res => {
+  //       if (res.hasError) {
+  //         message.error(`上传失败 ${res.msg}`)
+  //       }
+  //     })
+  //     .finally(() => {
+  //       setPendingResourceList([])
+  //     })
+  // }
 
   useEffect(async () => {
     // 打开一个 bucket 的时候，更新 localside bucket
@@ -375,9 +364,9 @@ export default function StorageManage() {
     } catch (e) {
       message.error(e)
     }
-    window.addEventListener('paste', handlePaste)
+    // window.addEventListener('paste', handlePaste)
     return () => {
-      window.removeEventListener('paste', handlePaste)
+      // window.removeEventListener('paste', handlePaste)
     }
   }, [currentBucket])
 
@@ -395,7 +384,7 @@ export default function StorageManage() {
 
   return (
     <Fragment>
-      <DragUpload
+      <PasteAndDragUpload
         csp={csp}
         uploadToken={uploadToken}
         resourcePrefix={resourcePrefix}
@@ -404,7 +393,7 @@ export default function StorageManage() {
         resetPendingUploadPrefix={() => setPendingUploadPrefix(uploadFolders.join(''))}
       />
       {/* pendingResourceNotiModal */}
-      <Modal
+      {/* <Modal
         width={1000}
         title={`上传文件(${pendingResourceList.length})`}
         visible={pendingResourceNotiModalVisible}
@@ -435,7 +424,7 @@ export default function StorageManage() {
             </div>
           ))}
         </div>
-      </Modal>
+      </Modal> */}
       <div className={styles.bucketNavWrapper}>
         <Select
           value={bucketDomainInfo.selectBucketDomain}

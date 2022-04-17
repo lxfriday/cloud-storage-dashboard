@@ -1,12 +1,12 @@
 import React, { useEffect, Fragment, useState, useRef } from 'react'
 import { InboxOutlined } from '@ant-design/icons'
 import { Modal, Input, message } from 'antd'
-import styles from './DragUpload.module.less'
+import styles from './PasteAndDragUpload.module.less'
 import copy from 'copy-text-to-clipboard'
 import { generateRandomResourceName } from '../../../utils'
 import settings from '../../../utils/settings'
 
-// 把所有一步读取 promise 化，方便最后合为一个 fileList 统一处理
+// 扫描 entry 对应的文件，或者扫描 entry 对应的文件夹中的所有文件及子文件夹中的所有文件
 function scanEntry(entry) {
   return new Promise(res => {
     if (entry.isDirectory) {
@@ -52,7 +52,7 @@ function scanEntry(entry) {
   })
 }
 
-export default function DragUpload({
+export default function PasteAndDragUpload({
   csp,
   uploadToken,
   resourcePrefix,
@@ -100,6 +100,47 @@ export default function DragUpload({
       })
   }
 
+  function handlePaste(e) {
+    const { items } = e.clipboardData
+    let hasResource = false
+    const fileEntries = []
+    const dirEntries = []
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]
+      console.log('handlePaste item', item)
+      // 粘贴的内容会比较复杂：单个文件、多个文件、截图、字符串、带样式的字符串等
+      if (item.kind === 'file') {
+        hasResource = true
+        // 防止拖入一些非文件的东西
+        const item = items[i]
+        const e = item.webkitGetAsEntry()
+        if (e.isDirectory) {
+          dirEntries.push(e)
+        } else {
+          fileEntries.push(e)
+        }
+      }
+    }
+
+    if (fileEntries.length || dirEntries.length) {
+      Promise.all([...fileEntries, ...dirEntries].map(entry => scanEntry(entry))).then(r => {
+        // 把获得的数组抹平
+        const fileList = r.flat(1000)
+        const newPendingReourceList = fileList.map(f => ({
+          fname: generateRandomResourceName(f.name, settings.uploadUseOrignalFileName),
+          file: f,
+          relativeDir: f.relativeDir,
+        }))
+
+        setPendingResourceList(newPendingReourceList)
+        setPendingResourceNotiModalVisible(true)
+      })
+    } else {
+      message.error('粘贴的内容不支持上传')
+    }
+  }
+
   useEffect(() => {
     function handleDragEnter(e) {
       e.preventDefault()
@@ -131,10 +172,9 @@ export default function DragUpload({
             fileEntries.push(e)
           }
         }
-        console.log('types', types)
         Promise.all([...fileEntries, ...dirEntries].map(entry => scanEntry(entry))).then(r => {
+          // 把获得的数组抹平
           const fileList = r.flat(1000)
-          console.log('fileList', fileList)
           const newPendingReourceList = fileList.map(f => ({
             fname: generateRandomResourceName(f.name, settings.uploadUseOrignalFileName),
             file: f,
@@ -144,6 +184,8 @@ export default function DragUpload({
           setPendingResourceList(newPendingReourceList)
           setPendingResourceNotiModalVisible(true)
         })
+      } else {
+        message.error('拖拽的内容不支持上传')
       }
     }
 
@@ -151,12 +193,14 @@ export default function DragUpload({
     document.addEventListener('dragover', handleDragOver)
     document.addEventListener('dragleave', handleDragLeave)
     document.addEventListener('drop', handleDrop)
+    window.addEventListener('paste', handlePaste)
 
     return () => {
       document.removeEventListener('dragenter', handleDragEnter)
       document.removeEventListener('dragover', handleDragOver)
       document.removeEventListener('dragleave', handleDragLeave)
       document.removeEventListener('drop', handleDrop)
+      window.removeEventListener('paste', handlePaste)
     }
   }, [])
   return (
