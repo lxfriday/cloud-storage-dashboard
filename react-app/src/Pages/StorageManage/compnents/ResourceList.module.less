@@ -1,5 +1,16 @@
 .wrapper {
   background-color: #111;
+  background-image: url(https://gitee.com/lxfriday/vscode-osu-mode2/raw/master/images/Character_Keqing_Portrait.png);
+  background-repeat: no-repeat;
+  background-position: bottom right;
+  background-size: 200px 400px;
+  position: relative;
+
+  .overlay {
+    position: absolute;
+    .positionFull();
+    background-color: rgba(0,0,0,.5);
+  }
   .grid {
     .cellWrapper {
       display: flex;

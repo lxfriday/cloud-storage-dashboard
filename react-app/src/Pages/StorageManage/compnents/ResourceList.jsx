@@ -165,6 +165,7 @@ export default function ResourceList({
 
   return (
     <div className={styles.wrapper}>
+      <div className={styles.overlay}></div>
       <Grid
         ref={r => (gridRef.current = r)}
         outerRef={r => (gridOutterEle.current = r)}

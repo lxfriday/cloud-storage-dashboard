@@ -53,6 +53,7 @@ function scanEntry(entry) {
 }
 
 export default function PasteAndDragUpload({
+  currentBucket,
   csp,
   uploadToken,
   resourcePrefix,
@@ -242,7 +243,14 @@ export default function PasteAndDragUpload({
           <div className={styles.overlay} ref={overlayRef}></div>
           <div className={styles.innerWrapper}>
             <InboxOutlined style={{ fontSize: 150, color: '#ccc' }} />
-            <div className={styles.noti}>拖拽到这里上传</div>
+            <div className={styles.noti}>
+              <div>
+                bucket {'=>'} {currentBucket}
+              </div>
+              <div>
+                目录 {'=>'} {pendingUploadPrefix.length ? pendingUploadPrefix : '根'}
+              </div>
+            </div>
           </div>
         </div>
       )}

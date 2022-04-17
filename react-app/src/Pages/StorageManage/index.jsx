@@ -385,6 +385,7 @@ export default function StorageManage() {
   return (
     <Fragment>
       <PasteAndDragUpload
+        currentBucket={currentBucket}
         csp={csp}
         uploadToken={uploadToken}
         resourcePrefix={resourcePrefix}
