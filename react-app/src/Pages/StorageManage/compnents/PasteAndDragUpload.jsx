@@ -102,16 +102,13 @@ export default function PasteAndDragUpload({
 
   function handlePaste(e) {
     const { items } = e.clipboardData
-    let hasResource = false
     const fileEntries = []
     const dirEntries = []
 
     for (let i = 0; i < items.length; i++) {
       const item = items[i]
-      console.log('handlePaste item', item)
       // 粘贴的内容会比较复杂：单个文件、多个文件、截图、字符串、带样式的字符串等
       if (item.kind === 'file') {
-        hasResource = true
         // 防止拖入一些非文件的东西
         const item = items[i]
         const e = item.webkitGetAsEntry()
@@ -127,6 +124,7 @@ export default function PasteAndDragUpload({
       Promise.all([...fileEntries, ...dirEntries].map(entry => scanEntry(entry))).then(r => {
         // 把获得的数组抹平
         const fileList = r.flat(1000)
+        console.log('fileList', fileList)
         const newPendingReourceList = fileList.map(f => ({
           fname: generateRandomResourceName(f.name, settings.uploadUseOrignalFileName),
           file: f,
