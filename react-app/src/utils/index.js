@@ -39,8 +39,8 @@ export function getResourceExtAndName(fileName) {
 }
 
 // 上传时用，生成随机的资源名，不带后缀
-export function generateRandomResourceName(file, useOriginalFileName = false) {
-  const { fname, ext } = getResourceExtAndName(file.name)
+export function generateRandomResourceName(fileName, useOriginalFileName = false) {
+  const { fname, ext } = getResourceExtAndName(fileName)
   if (useOriginalFileName) {
     return `${fname}_${Date.now()}_${uuidv4()}.${ext}`
   } else {
@@ -51,24 +51,24 @@ export function generateRandomResourceName(file, useOriginalFileName = false) {
 /**
  * 生成图片上传需要的信息
  */
-export function generateUploadImgInfo({ file, token, folder, remainFileName }) {
-  const { ext, fname: fileName } = getResourceExtAndName(file.name)
+// export function generateUploadImgInfo({ file, token, folder, remainFileName }) {
+//   const { ext, fname: fileName } = getResourceExtAndName(file.name)
 
-  let randomKey = `${Date.now()}_${uuidv4()}`
-  if (remainFileName) {
-    randomKey = `${fileName}_${randomKey}`
-  }
-  let key = ''
-  if (ext && ext.length) {
-    key = `${folder}${randomKey}.${ext}`
-  } else {
-    key = `${folder}${randomKey}`
-  }
-  return {
-    token, //uploadToken为从后端获得的token
-    key,
-  }
-}
+//   let randomKey = `${Date.now()}_${uuidv4()}`
+//   if (remainFileName) {
+//     randomKey = `${fileName}_${randomKey}`
+//   }
+//   let key = ''
+//   if (ext && ext.length) {
+//     key = `${folder}${randomKey}.${ext}`
+//   } else {
+//     key = `${folder}${randomKey}`
+//   }
+//   return {
+//     token, //uploadToken为从后端获得的token
+//     key,
+//   }
+// }
 
 // 依据后缀名判断是不是图片
 export function isImage(ext) {

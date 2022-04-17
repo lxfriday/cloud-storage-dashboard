@@ -1,0 +1,32 @@
+.wrapper {
+  position: fixed;
+  .positionFull();
+  .flexCenter();
+  z-index: 9999;
+  background-color: rgba(0,0,0,.65);
+  .overlay {
+    position: absolute;
+    .positionFull();
+  }
+
+  .innerWrapper {
+    width: 90%;
+    height: 90%;
+    border: 7px dotted #ccc;
+    border-radius: 30px;
+    .flexCenter();
+    flex-direction: column;
+
+    .noti {
+      color: #ccc;
+      font-size: 25px;
+    }
+  }
+}
+
+.pendingResourceListWrapper {
+  margin-top: 10px;
+  .listItem {
+    font-size: 13px;
+  }
+}

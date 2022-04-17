@@ -3,6 +3,7 @@ import cspAdaptor from './utils/cspAdaptor'
 import MESSAGE_COMMANDS from './messageCommands'
 import globalConfig from './globalConfig'
 import openInBrowser from './utils/openInBrowser'
+import * as fsManager from './utils/fsManager'
 
 export default function messageController(
   panel: vscode.WebviewPanel,
@@ -20,6 +21,14 @@ export default function messageController(
         const csp = cspAdaptor(message.data.providerName)
 
         switch (message.command) {
+          case MESSAGE_COMMANDS.readPaths:
+            const readPathsResult = await fsManager.readPaths(message.data.paths)
+            postMessage({
+              uniqueId: message.uniqueId,
+              data: { readPathsResult },
+            })
+            return
+
           case MESSAGE_COMMANDS.openInBrowser:
             const openResult = await openInBrowser(message.data.url)
             postMessage({
@@ -72,6 +81,13 @@ export default function messageController(
             postMessage({
               uniqueId: message.uniqueId,
               data: overviewInfo,
+            })
+            return
+          case MESSAGE_COMMANDS.serverUploadFiles:
+            await csp.uploadFiles(message.data.uploadMeta)
+            postMessage({
+              uniqueId: message.uniqueId,
+              // data: domains,
             })
             return
         }

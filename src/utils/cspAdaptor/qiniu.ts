@@ -252,6 +252,12 @@ class Qiniu {
         })
     })
   }
+
+  //uploadMeta => [{key: '', path: ''}]
+  // 在 node 端上传文件
+  uploadFiles(uploadMeta: { key: string; path: string }[]) {
+    console.log('uploadMeta', uploadMeta)
+  }
 }
 
 const qiniuE = new Qiniu({

@@ -13,17 +13,13 @@ import copy from 'copy-text-to-clipboard'
 import classnames from 'classnames'
 
 import ResourceList from './compnents/ResourceList'
+import DragUpload from './compnents/DragUpload'
 // import videoPlayer from '../../Components/VideoPlayer'
 import { renderUploadManager, destroyUploadManager } from '../../Components/UploadManager'
 
 import styles from './index.module.less'
 import * as messageCenter from '../../utils/messageCenter'
-import {
-  generateUploadImgInfo,
-  debounce,
-  getFileSize,
-  generateRandomResourceName,
-} from '../../utils'
+import { debounce, getFileSize, generateRandomResourceName } from '../../utils'
 import settings from '../../utils/settings'
 import cloudserviceprovider from '../../utils/cloudserviceprovider'
 
@@ -145,7 +141,7 @@ export default function StorageManage() {
             csp.upload({
               file: f,
               key: `${uploadFolders.join('')}${generateRandomResourceName(
-                f,
+                f.name,
                 settings.uploadUseOrignalFileName
               )}`,
               token: uploadToken,
@@ -303,7 +299,7 @@ export default function StorageManage() {
         const file = item.getAsFile()
         // 截图的 path 为空字符串，name 为 image.png
         newPRList.push({
-          fname: generateRandomResourceName(file, settings.uploadUseOrignalFileName),
+          fname: generateRandomResourceName(file.name, settings.uploadUseOrignalFileName),
           file,
         })
       }
@@ -315,12 +311,12 @@ export default function StorageManage() {
     }
   }
 
-  function handleUploadPendingResources() {
+  function handleUploadPendingResources(pfx) {
     Promise.all(
       pendingResourceList.map(pr =>
         csp.upload({
           file: pr.file,
-          key: `${pendingUploadPrefix}${pr.fname}`,
+          key: `${pfx}${pr.fname}`,
           token: uploadToken,
           resourcePrefix,
         })
@@ -346,7 +342,6 @@ export default function StorageManage() {
       })
       .finally(() => {
         setPendingResourceList([])
-        setPendingUploadPrefix(uploadFolders.join(''))
       })
   }
 
@@ -400,6 +395,14 @@ export default function StorageManage() {
 
   return (
     <Fragment>
+      <DragUpload
+        csp={csp}
+        uploadToken={uploadToken}
+        resourcePrefix={resourcePrefix}
+        pendingUploadPrefix={pendingUploadPrefix}
+        handleSetPendingUploadPrefix={e => setPendingUploadPrefix(e.target.value)}
+        resetPendingUploadPrefix={() => setPendingUploadPrefix(uploadFolders.join(''))}
+      />
       {/* pendingResourceNotiModal */}
       <Modal
         width={1000}
@@ -407,7 +410,8 @@ export default function StorageManage() {
         visible={pendingResourceNotiModalVisible}
         onOk={() => {
           setPendingResourceNotiModalVisible(false)
-          handleUploadPendingResources()
+          setPendingUploadPrefix(uploadFolders.join(''))
+          handleUploadPendingResources(pendingUploadPrefix)
         }}
         okText="上传"
         cancelText="取消"

@@ -75,4 +75,31 @@ export function requestOpenInBrowser(url) {
   )
 }
 
+// 读取文件or文件夹的信息
+export function requestReadPaths(paths) {
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.readPaths,
+      data: {
+        paths,
+      },
+    },
+    false
+  )
+}
+
+// 让 node 端上传文件
+export function requestServerUploadFiles(params) {
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.serverUploadFiles,
+      data: {
+        ...providerInfo,
+        ...params,
+      },
+    },
+    false
+  )
+}
+
 // getBucketDomains

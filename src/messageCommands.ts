@@ -7,4 +7,6 @@ export default {
   deleteBucketFiles: 'deleteBucketFiles',
   getOverviewInfo: 'getOverviewInfo',
   openInBrowser: 'openInBrowser',
+  readPaths: 'readPaths',
+  serverUploadFiles: 'serverUploadFiles',
 }
