@@ -264,7 +264,6 @@ class Qiniu {
       const bucketManager = new qiniu.rs.BucketManager(this.qiniuMac, new qiniu.conf.Config())
       bucketManager.fetch(url, this.bucket, key, function (err, respBody, respInfo) {
         if (err) {
-          console.log('fetchResourceToBucket error', err)
           res({
             success: false,
             msg: '抓取网络资源出现错误',
@@ -297,8 +296,6 @@ class Qiniu {
 
     return new Promise<{ result: string; msg: string }>((resolve, reject) => {
       bucketManager.batch(moveOperations, function (respErr, respBody, respInfo) {
-        console.log('moveBucketFiles', { respErr, respBody, respInfo })
-
         if (respBody.error) {
           vscode.window.showErrorMessage(notiTpl(respBody.error))
           resolve({ result: 'error', msg: respBody.error }) // 不成功
@@ -345,17 +342,11 @@ class Qiniu {
     const cdnManager = new qiniu.cdn.CdnManager(this.qiniuMac)
     return new Promise((resolve, reject) => {
       cdnManager.refreshDirs(dirUrls, function (err, respBody, respInfo) {
-        console.log('refreshDirs', {
-          err,
-          respBody,
-          respInfo,
-        })
-
         if (respBody.code === 200) {
           resolve({
             success: true,
             msg: '刷新成功',
-            urlSurplusDay: respBody.urlSurplusDay, // 每日剩余的 url 刷新限额（文件）
+            dirSurplusDay: respBody.dirSurplusDay, // 每日剩余的 url 刷新限额（文件）
           })
         } else {
           resolve({

@@ -148,6 +148,9 @@ export default function StorageManage() {
     }
 
     setSelectedKeys(newKeys)
+    if (selectedFolders.length) {
+      setSelectedFolders([])
+    }
   }
 
   function handleToggleSelectFolder(folder) {
@@ -163,11 +166,19 @@ export default function StorageManage() {
     }
 
     setSelectedFolders(newFolder)
+    if (selectedKeys.length) {
+      setSelectedKeys([])
+    }
   }
 
   // 取消全选
   function handleCancelSelectAll() {
     setSelectedKeys([])
+  }
+
+  // 取消选中的目录
+  function handleCancelSelectAllFolders() {
+    setSelectedFolders([])
   }
 
   // 全选
@@ -314,39 +325,72 @@ export default function StorageManage() {
   // 多选的时候
   // 对选中的文件刷新缓存，一次最多只能有100个
   function handleRefreshSelectedResources() {
-    if (selectedKeys.length <= 100) {
-      const fileUrls = selectedKeys.map(k => resourcePrefix + k)
-      messageCenter.requestRefreshFiles(fileUrls).then(data => {
+    const fileUrls = selectedKeys.map(k => resourcePrefix + k)
+    messageCenter
+      .requestRefreshFiles(fileUrls)
+      .then(data => {
         if (data.success) {
-          message.success('CDN 刷新成功，今日文件刷新限额剩余 ' + data.urlSurplusDay)
+          message.success('文件 CDN 刷新成功，今日文件刷新限额剩余 ' + data.urlSurplusDay)
         } else {
-          message.error('CDN 刷新失败：' + data.msg)
+          message.error('文件 CDN 刷新失败：' + data.msg)
         }
       })
-      setSelectedKeys([])
-    } else {
-      message.error('一次最多只能刷新100个文件')
-    }
+      .catch(e => {
+        message.error('文件 CDN 刷新失败')
+      })
+    setSelectedKeys([])
   }
 
   // 直接右键某个文件
   function handleRefreshResource(url) {
-    console.log('handleRefreshResource url', url)
-    messageCenter.requestRefreshFiles([url]).then(data => {
-      console.log('handleRefreshResource data', data)
-      if (data.success) {
-        message.success('CDN 刷新成功，今日文件刷新限额剩余 ' + data.urlSurplusDay)
-      } else {
-        message.error('CDN 刷新失败：' + data.msg)
-      }
-    })
+    messageCenter
+      .requestRefreshFiles([url])
+      .then(data => {
+        if (data.success) {
+          message.success('文件 CDN 刷新成功，今日文件刷新限额剩余 ' + data.urlSurplusDay)
+        } else {
+          message.error('文件 CDN 刷新失败：' + data.msg)
+        }
+      })
+      .catch(e => {
+        message.error('文件 CDN 刷新失败')
+      })
   }
 
   // 直接右键点击刷新文件夹
   function handleRefreshDir(dir) {
     const realDirPath = uploadFolders.join('') + dir
     const dirUrl = resourcePrefix + realDirPath
-    console.log('handleRefreshDir dirUrl', dirUrl)
+    messageCenter
+      .requestRefreshDirs([dirUrl])
+      .then(data => {
+        if (data.success) {
+          message.success('文件夹 CDN 刷新成功，今日文件夹刷新限额剩余 ' + data.dirSurplusDay)
+        } else {
+          message.error('文件夹 CDN 刷新失败：' + data.msg)
+        }
+      })
+      .catch(e => {
+        message.error('文件夹 CDN 刷新失败')
+      })
+  }
+
+  // 刷新选中的文件夹（多选的）
+  function handleRefreshSelectedDir() {
+    const realDirUrls = selectedFolders.map(f => resourcePrefix + uploadFolders.join('') + f)
+    messageCenter
+      .requestRefreshDirs(realDirUrls)
+      .then(data => {
+        if (data.success) {
+          message.success('文件夹 CDN 刷新成功，今日文件夹刷新限额剩余 ' + data.dirSurplusDay)
+        } else {
+          message.error('文件夹 CDN 刷新失败：' + data.msg)
+        }
+      })
+      .catch(e => {
+        message.error('文件夹 CDN 刷新失败')
+      })
+    setSelectedFolders([])
   }
 
   useEffect(async () => {
@@ -551,6 +595,7 @@ export default function StorageManage() {
           <div className={styles.bulkToolsWrapper}>
             {selectedKeys.length > 0 && (
               <Fragment>
+                <span className={styles.bulkTypeNoti}>文件操作 {'=>'}</span>
                 <Button size="small" onClick={handleCancelSelectAll}>
                   取消
                 </Button>
@@ -580,6 +625,40 @@ export default function StorageManage() {
                 >
                   删除({selectedKeys.length})
                 </Button>
+              </Fragment>
+            )}
+            {selectedFolders.length > 0 && (
+              <Fragment>
+                <span className={styles.bulkTypeNoti}>目录操作 {'=>'}</span>
+                <Button size="small" onClick={handleCancelSelectAllFolders}>
+                  取消
+                </Button>
+                {/* <Button size="small" onClick={null}>
+                  全选
+                </Button> */}
+                <Button size="small" onClick={handleRefreshSelectedDir}>
+                  刷新缓存({selectedFolders.length})
+                </Button>
+                {/* <Button size="small">下载({selectedFolders.length})</Button> */}
+                {/* <Button
+                  size="small"
+                  type="primary"
+                  danger
+                  onClick={() => {
+                    Modal.confirm({
+                      title: '确定删除选中的目录？',
+                      icon: <ExclamationCircleOutlined />,
+                      okText: '删除',
+                      okType: 'danger',
+                      cancelText: '取消',
+                      onOk() {
+                        // handleDeleteSelectedFiles()
+                      },
+                    })
+                  }}
+                >
+                  删除({selectedFolders.length})
+                </Button> */}
               </Fragment>
             )}
           </div>
