@@ -268,16 +268,16 @@ export default function StorageManage() {
 
   function handleComfirmFetchFromUrl(url, key) {
     let hasFinished = false
-    setTimeout(() => {
-      if (!hasFinished) {
-        notification.warning({
-          message: '注意',
-          description: '抓取的文件过大，抓取所消耗的时间会比较长',
-          duration: 20,
-        })
-      }
-    }, 5000)
     if (isUrl(url)) {
+      setTimeout(() => {
+        if (!hasFinished) {
+          notification.warning({
+            message: '注意',
+            description: '抓取的文件过大，抓取所消耗的时间会比较长',
+            duration: 20,
+          })
+        }
+      }, 5000)
       messageCenter
         .requestFetchResourceToBucket({
           url,
