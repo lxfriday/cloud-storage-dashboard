@@ -112,7 +112,9 @@ export function requestFetchResourceToBucket(params) {
         ...params,
       },
     },
-    false
+    false,
+    // 等待时间为 1小时
+    1000 * 3600
   )
 }
 

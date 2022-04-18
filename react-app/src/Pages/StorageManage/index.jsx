@@ -1,6 +1,6 @@
 import React, { useEffect, useState, Fragment } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Button, Select, message, Modal, Image, Input } from 'antd'
+import { Button, Select, message, Modal, Image, Input, notification } from 'antd'
 import {
   FileOutlined,
   SyncOutlined,
@@ -234,10 +234,16 @@ export default function StorageManage() {
   }
 
   function handleComfirmFetchFromUrl(url, key) {
-    console.log('handleComfirmFetchFromUrl', {
-      url,
-      key,
-    })
+    let hasFinished = false
+    setTimeout(() => {
+      if (!hasFinished) {
+        notification.warning({
+          message: '注意',
+          description: '抓取的文件过大，抓取所消耗的时间会比较长',
+          duration: 20,
+        })
+      }
+    }, 5000)
     if (isUrl(url)) {
       messageCenter
         .requestFetchResourceToBucket({
@@ -254,6 +260,9 @@ export default function StorageManage() {
         })
         .catch(e => {
           message.error('资源抓取失败')
+        })
+        .finally(() => {
+          hasFinished = true
         })
       setFetchFromUrlTargetUrl('')
       setFetchFromUrlModalVisible(false)
@@ -342,6 +351,7 @@ export default function StorageManage() {
             onChange={e => {
               setFetchFromUrlTargetUrl(e.target.value)
             }}
+            onPaste={e => e.stopPropagation()}
           />
           {isUrl(fetchFromUrlTargetUrl) && (
             <div className={styles.setFetchFromUrlFinalKey}>
