@@ -170,7 +170,6 @@ export default function ResourceList({
       clearInterval(interval)
     }
   }, [])
-  console.log('backImg', backImg);
 
   return (
     <div className={styles.wrapper} style={{ backgroundImage: `url('${backImg}')` }}>
