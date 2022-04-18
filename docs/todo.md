@@ -1,8 +1,6 @@
 # TODO
 
 ## high priority
-- 在 pendingResourceList 中，新增可删除部分文件
-
 - 上传管理，上传中的文件数统计不正常
 - 文件夹问题
   - 在 server 端直接加载 1w 条数据，把1w条的 commonprefix 作为文件夹，这样放大了样本数量

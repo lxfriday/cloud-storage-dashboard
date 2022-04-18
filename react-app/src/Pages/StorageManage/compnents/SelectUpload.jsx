@@ -1,6 +1,10 @@
-import React, { useRef, useState, useEffect, Fragment } from 'react'
+/**
+ * 文件上传和文件夹上传
+ */
+import React, { useRef, useState, Fragment } from 'react'
 import { Modal, Input, message } from 'antd'
 import copy from 'copy-text-to-clipboard'
+import { DeleteOutlined } from '@ant-design/icons'
 
 import settings from '../../../utils/settings'
 import { generateRandomResourceName } from '../../../utils'
@@ -21,7 +25,7 @@ export default function SelectUpload({
   const [pendingResourceList, setPendingResourceList] = useState([])
   const inputEle = useRef(null)
 
-  function handleClick() {
+  function handleShowExplore() {
     // 每次打开文件选择器之前重置 value，防止选择相同的文件无法触发 onChange 事件
     inputEle.current.value = null
     inputEle.current.click()
@@ -84,6 +88,16 @@ export default function SelectUpload({
       })
   }
 
+  function handleDelete(ind) {
+    const finalList = [...pendingResourceList.slice(0, ind), ...pendingResourceList.slice(ind + 1)]
+
+    if (!finalList.length) {
+      setPendingResourceNotiModalVisible(false)
+      resetPendingUploadPrefix()
+    }
+    setPendingResourceList(finalList)
+  }
+
   return (
     <Fragment>
       <Modal
@@ -114,14 +128,20 @@ export default function SelectUpload({
           />
         </div>
         <div className={styles.pendingResourceListWrapper}>
-          {pendingResourceList.map(pr => (
+          {pendingResourceList.map((pr, ind) => (
             <div key={pr.fname} className={styles.listItem}>
-              路径：{`${pendingUploadPrefix}${pr.relativeDir}${pr.fname}`}
+              <DeleteOutlined
+                onClick={() => handleDelete(ind)}
+                title="删除"
+                style={{ color: 'red', fontSize: 14 }}
+                className={styles.delete}
+              />
+              <span>路径：{`${pendingUploadPrefix}${pr.relativeDir}${pr.fname}`}</span>
             </div>
           ))}
         </div>
       </Modal>
-      <span onClick={handleClick}>
+      <span onClick={handleShowExplore}>
         <input
           ref={inputEle}
           type="file"

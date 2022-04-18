@@ -28,6 +28,18 @@
 .pendingResourceListWrapper {
   margin-top: 10px;
   .listItem {
+    display: flex;
+    align-items: center;
     font-size: 13px;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: #eee;
+    }
+
+    .delete {
+      cursor: pointer;
+      margin-right: 6px;
+    }
   }
 }

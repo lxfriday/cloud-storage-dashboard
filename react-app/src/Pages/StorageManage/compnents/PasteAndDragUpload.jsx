@@ -1,5 +1,8 @@
+/**
+ * 粘贴上传和拖拽上传
+ */
 import React, { useEffect, Fragment, useState, useRef } from 'react'
-import { InboxOutlined } from '@ant-design/icons'
+import { InboxOutlined, DeleteOutlined } from '@ant-design/icons'
 import { Modal, Input, message } from 'antd'
 import copy from 'copy-text-to-clipboard'
 
@@ -140,6 +143,16 @@ export default function PasteAndDragUpload({
     }
   }
 
+  function handleDelete(ind) {
+    const finalList = [...pendingResourceList.slice(0, ind), ...pendingResourceList.slice(ind + 1)]
+
+    if (!finalList.length) {
+      setPendingResourceNotiModalVisible(false)
+      resetPendingUploadPrefix()
+    }
+    setPendingResourceList(finalList)
+  }
+
   useEffect(() => {
     function handleDragEnter(e) {
       e.preventDefault()
@@ -230,9 +243,15 @@ export default function PasteAndDragUpload({
           />
         </div>
         <div className={styles.pendingResourceListWrapper}>
-          {pendingResourceList.map(pr => (
+          {pendingResourceList.map((pr, ind) => (
             <div key={pr.fname} className={styles.listItem}>
-              路径：{`${pendingUploadPrefix}${pr.relativeDir}${pr.fname}`}
+              <DeleteOutlined
+                onClick={() => handleDelete(ind)}
+                title="删除"
+                style={{ color: 'red', fontSize: 14 }}
+                className={styles.delete}
+              />
+              <span>路径：{`${pendingUploadPrefix}${pr.relativeDir}${pr.fname}`}</span>
             </div>
           ))}
         </div>
