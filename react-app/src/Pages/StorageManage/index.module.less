@@ -9,9 +9,11 @@
   color: #fff;
 
   .bucketToolsWrapper {
-    button ~ button,
-    button:nth-child(2) {
+    button ~ button {
       margin-left: 10px;
+    }
+    & > span {
+      margin-right: 10px;
     }
   }
 }
@@ -62,8 +64,6 @@
     .delimiter {
       margin-left: 5px;
     }
-
-    
   }
 
   .bulkWrapper {

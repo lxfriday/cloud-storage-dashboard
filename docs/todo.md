@@ -1,8 +1,7 @@
 # TODO
 
 ## high priority
-- 重写文件上传，自己控制上传流程
-- 文件夹上传
+- 在 pendingResourceList 中，新增可删除部分文件
 
 - 上传管理，上传中的文件数统计不正常
 - 文件夹问题

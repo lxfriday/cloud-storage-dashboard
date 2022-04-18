@@ -1,8 +1,9 @@
 import React, { useEffect, Fragment, useState, useRef } from 'react'
 import { InboxOutlined } from '@ant-design/icons'
 import { Modal, Input, message } from 'antd'
-import styles from './PasteAndDragUpload.module.less'
 import copy from 'copy-text-to-clipboard'
+
+import styles from './PasteAndDragUpload.module.less'
 import { generateRandomResourceName } from '../../../utils'
 import settings from '../../../utils/settings'
 
@@ -125,7 +126,6 @@ export default function PasteAndDragUpload({
       Promise.all([...fileEntries, ...dirEntries].map(entry => scanEntry(entry))).then(r => {
         // 把获得的数组抹平
         const fileList = r.flat(1000)
-        console.log('fileList', fileList)
         const newPendingReourceList = fileList.map(f => ({
           fname: generateRandomResourceName(f.name, settings.uploadUseOrignalFileName),
           file: f,

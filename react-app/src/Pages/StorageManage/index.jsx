@@ -1,6 +1,6 @@
 import React, { useEffect, useState, Fragment } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Button, Upload, Select, message, Modal, Image, Input } from 'antd'
+import { Button, Select, message, Modal, Image } from 'antd'
 import {
   UploadOutlined,
   SyncOutlined,
@@ -8,10 +8,12 @@ import {
   ProfileOutlined,
   ExclamationCircleOutlined,
   HomeFilled,
+  FolderOpenOutlined,
 } from '@ant-design/icons'
 import copy from 'copy-text-to-clipboard'
 import classnames from 'classnames'
 
+import SelectUpload from './compnents/SelectUpload'
 import ResourceList from './compnents/ResourceList'
 import PasteAndDragUpload from './compnents/PasteAndDragUpload'
 // import videoPlayer from '../../Components/VideoPlayer'
@@ -19,7 +21,7 @@ import { renderUploadManager, destroyUploadManager } from '../../Components/Uplo
 
 import styles from './index.module.less'
 import * as messageCenter from '../../utils/messageCenter'
-import { debounce, getFileSize, generateRandomResourceName } from '../../utils'
+import { debounce, getFileSize } from '../../utils'
 import settings from '../../utils/settings'
 import cloudserviceprovider from '../../utils/cloudserviceprovider'
 
@@ -116,52 +118,6 @@ export default function StorageManage() {
   }
 
   const debouncedHandleRefresh = debounce(handleRefresh, 2000, false)
-
-  const selectFileUploadProps = {
-    currentFileList: null,
-    multiple: true,
-    showUploadList: false,
-    beforeUpload: (file, fileList) => {
-      if (fileList !== selectFileUploadProps.currentFileList) {
-        selectFileUploadProps.currentFileList = fileList
-        // upload fileList
-        Promise.all(
-          fileList.map(f =>
-            csp.upload({
-              file: f,
-              key: `${uploadFolders.join('')}${generateRandomResourceName(
-                f.name,
-                settings.uploadUseOrignalFileName
-              )}`,
-              token: uploadToken,
-              resourcePrefix,
-            })
-          )
-        )
-          .then(res => {
-            const uploadedResourceLinks = res.map(resourceInfo =>
-              encodeURI(resourcePrefix + resourceInfo.key)
-            )
-
-            copy(uploadedResourceLinks.join('\r\n'))
-
-            message.success(
-              res.length > 1
-                ? '全部上传成功，所有资源已复制到剪切板，刷新之后在列表可见'
-                : '上传成功，已复制到剪切板，刷新之后在列表可见'
-            )
-          })
-          .catch(res => {
-            if (res.hasError) {
-              message.error(`上传失败 ${res.msg}`)
-            }
-          })
-          .finally(() => {})
-      }
-
-      return false
-    },
-  }
 
   function handleChangeDomain(newDoamin) {
     setBucketDomainInfo({
@@ -439,13 +395,37 @@ export default function StorageManage() {
           ))}
         </Select>
         <div className={styles.bucketToolsWrapper}>
-          <Upload {...selectFileUploadProps}>
+          <SelectUpload
+            isDirectory={false}
+            multiple={true}
+            csp={csp}
+            uploadToken={uploadToken}
+            resourcePrefix={resourcePrefix}
+            pendingUploadPrefix={pendingUploadPrefix}
+            handleSetPendingUploadPrefix={e => setPendingUploadPrefix(e.target.value)}
+            resetPendingUploadPrefix={() => setPendingUploadPrefix(uploadFolders.join(''))}
+          >
             <Button
               type="dashed"
               title="文件上传(支持多选)"
               icon={<UploadOutlined style={{ fontSize: '20px' }} />}
             ></Button>
-          </Upload>
+          </SelectUpload>
+          <SelectUpload
+            isDirectory={true}
+            csp={csp}
+            uploadToken={uploadToken}
+            resourcePrefix={resourcePrefix}
+            pendingUploadPrefix={pendingUploadPrefix}
+            handleSetPendingUploadPrefix={e => setPendingUploadPrefix(e.target.value)}
+            resetPendingUploadPrefix={() => setPendingUploadPrefix(uploadFolders.join(''))}
+          >
+            <Button
+              type="dashed"
+              title="文件夹上传"
+              icon={<FolderOpenOutlined style={{ fontSize: '20px' }} />}
+            ></Button>
+          </SelectUpload>
           <Button
             type="dashed"
             title="url 直传文件"
