@@ -147,4 +147,31 @@ export function requestFetchResourceToBucket(params) {
   )
 }
 
+// CDN 操作 => 刷新文件
+export function requestRefreshFiles(fileUrls) {
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.refreshFiles,
+      data: {
+        ...providerInfo,
+        fileUrls,
+      },
+    },
+    false
+  )
+}
+
+// CDN 操作 => 刷新文件夹
+export function requestRefreshDirs(dirUrls) {
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.refreshDirs,
+      data: {
+        ...providerInfo,
+        dirUrls,
+      },
+    },
+    false
+  )
+}
 // getBucketDomains

@@ -11,4 +11,6 @@ export default {
   serverUploadFiles: 'serverUploadFiles',
   fetchResourceToBucket: 'fetchResourceToBucket',
   moveBucketFiles: 'moveBucketFiles',
+  refreshFiles: 'refreshFiles',
+  refreshDirs: 'refreshDirs',
 }

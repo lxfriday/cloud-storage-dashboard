@@ -55,6 +55,11 @@ export default function StorageManage() {
   let [uploadToken, setUploadToken] = useState('')
   // 选中的资源 key
   let [selectedKeys, setSelectedKeys] = useState([])
+
+  // 选中的文件夹，todo 刷新的时候要重置
+  // 带尾 /
+  let [selectedFolders, setSelectedFolders] = useState([])
+
   let [bucketOverviewInfo, setBucketOverviewInfo] = useState({ count: 0, space: 0 })
   // 图片预览是否显示
   let [imgPreviewVisible, setImgPreviewVisible] = useState(false)
@@ -83,6 +88,8 @@ export default function StorageManage() {
       setResourceList([])
       setUploadFolders([]) // 需要，否则点击返回上次层的时候，返回的图标会保留
       setCommonPrefixList([])
+      setSelectedKeys([])
+      setSelectedFolders([])
       messageCenter
         .requestGetResourceList({ fromBegin: true, prefix: prefixes.join('') })
         .then(data => {
@@ -141,6 +148,21 @@ export default function StorageManage() {
     }
 
     setSelectedKeys(newKeys)
+  }
+
+  function handleToggleSelectFolder(folder) {
+    let newFolder = []
+    if (selectedFolders.includes(folder)) {
+      for (let f of selectedFolders) {
+        if (f !== folder) {
+          newFolder.push(f)
+        }
+      }
+    } else {
+      newFolder = [...selectedFolders, folder]
+    }
+
+    setSelectedFolders(newFolder)
   }
 
   // 取消全选
@@ -287,6 +309,44 @@ export default function StorageManage() {
       .catch(e => {
         message.error((op === 'move' ? '移动' : '重命名') + '文件失败')
       })
+  }
+
+  // 多选的时候
+  // 对选中的文件刷新缓存，一次最多只能有100个
+  function handleRefreshSelectedResources() {
+    if (selectedKeys.length <= 100) {
+      const fileUrls = selectedKeys.map(k => resourcePrefix + k)
+      messageCenter.requestRefreshFiles(fileUrls).then(data => {
+        if (data.success) {
+          message.success('CDN 刷新成功，今日文件刷新限额剩余 ' + data.urlSurplusDay)
+        } else {
+          message.error('CDN 刷新失败：' + data.msg)
+        }
+      })
+      setSelectedKeys([])
+    } else {
+      message.error('一次最多只能刷新100个文件')
+    }
+  }
+
+  // 直接右键某个文件
+  function handleRefreshResource(url) {
+    console.log('handleRefreshResource url', url)
+    messageCenter.requestRefreshFiles([url]).then(data => {
+      console.log('handleRefreshResource data', data)
+      if (data.success) {
+        message.success('CDN 刷新成功，今日文件刷新限额剩余 ' + data.urlSurplusDay)
+      } else {
+        message.error('CDN 刷新失败：' + data.msg)
+      }
+    })
+  }
+
+  // 直接右键点击刷新文件夹
+  function handleRefreshDir(dir) {
+    const realDirPath = uploadFolders.join('') + dir
+    const dirUrl = resourcePrefix + realDirPath
+    console.log('handleRefreshDir dirUrl', dirUrl)
   }
 
   useEffect(async () => {
@@ -497,7 +557,9 @@ export default function StorageManage() {
                 <Button size="small" onClick={handleSelectAll}>
                   全选
                 </Button>
-                <Button size="small">刷新缓存({selectedKeys.length})</Button>
+                <Button size="small" onClick={handleRefreshSelectedResources}>
+                  刷新缓存({selectedKeys.length})
+                </Button>
                 <Button size="small">下载({selectedKeys.length})</Button>
                 <Button
                   size="small"
@@ -531,6 +593,7 @@ export default function StorageManage() {
         commonPrefixList={commonPrefixList}
         imagePreviewSuffix={settings.imagePreviewSuffix}
         selectedKeys={selectedKeys}
+        selectedFolders={selectedFolders}
         resourceList={resourceList}
         resourcePrefix={resourcePrefix}
         handleOpenInBrowser={url =>
@@ -541,6 +604,7 @@ export default function StorageManage() {
           })
         }
         handleToggleSelectKey={handleToggleSelectKey}
+        handleToggleSelectFolder={handleToggleSelectFolder}
         handleDeleteFiles={handleDeleteFiles}
         handleSelectAll={handleSelectAll}
         handlePreviewAsImg={handlePreviewAsImg}
@@ -554,6 +618,8 @@ export default function StorageManage() {
         }}
         handleBackward={handleBackward}
         handleRenameResource={handleRenameResource}
+        handleRefreshResource={handleRefreshResource}
+        handleRefreshDir={handleRefreshDir}
       />
       {/* 注意这里 display 一定要为 none，否则页面底部会出现多余的图片 */}
       <div style={{ display: 'none' }}>

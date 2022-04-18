@@ -20,9 +20,11 @@ export default function ResourceList({
   commonPrefixList,
   imagePreviewSuffix,
   selectedKeys,
+  selectedFolders,
   resourceList,
   resourcePrefix,
   handleToggleSelectKey,
+  handleToggleSelectFolder,
   handleDeleteFiles,
   handleSelectAll,
   handlePreviewAsImg,
@@ -32,6 +34,8 @@ export default function ResourceList({
   handleBackward,
   handleOpenInBrowser,
   handleRenameResource,
+  handleRefreshResource,
+  handleRefreshDir,
 }) {
   // 资源框实际大小
   const resourceWidth = 130
@@ -59,71 +63,6 @@ export default function ResourceList({
     (resourceList.length + commonPrefixList.length + (isTopFolder ? 0 : 1)) / gridInfo.columnCount
   )
   const listData = [...commonPrefixList, ...resourceList]
-
-  // 当个 item 的渲染组件
-  const Cell = ({ columnIndex, rowIndex, style }) => {
-    // 注意 ind 指的是第多少个格子，不是 listData 的第 ind 个
-    const ind = gridInfo.columnCount * rowIndex + columnIndex
-    if (!isTopFolder && ind === 0) {
-      return (
-        <div className={styles.cellWrapper} style={style}>
-          <FolderCard isBackward={true} folderName={''} handleClick={handleBackward} />
-        </div>
-      )
-    }
-    const resourceInfo = isTopFolder ? listData[ind] : listData[ind - 1]
-    // 注意数组越界， gird 会把网格给布满，所以 ind 可能会超出，需要做判断，超出的不管就ok了
-    if (typeof resourceInfo === 'undefined') {
-      return <Fragment></Fragment>
-    } else if (typeof resourceInfo === 'string') {
-      // 是文件夹
-      return (
-        <div className={styles.cellWrapper} style={style}>
-          <FolderCard
-            isBackward={false}
-            folderName={resourceInfo}
-            handleClick={() => handleViewFolder(resourceInfo)}
-          />
-        </div>
-      )
-    } else {
-      // 是资源
-      // const ext = resourceInfo.mimeType.split('/')[1]
-      const { ext } = getResourceExtAndName(resourceInfo.key)
-      // 在打开 image gallary 的时候， ind 在 resourceList 对应的资源可能存在偏移，这个时候需要把偏移摆正
-      const previewInd = ind - ((isTopFolder ? 0 : 1) + commonPrefixList.length)
-      const url = encodeURI(resourcePrefix + resourceInfo.key)
-
-      return (
-        <div className={styles.cellWrapper} style={style}>
-          <ResourceCard
-            ext={ext}
-            imagePreviewSuffix={imagePreviewSuffix}
-            isAudio={isAudioFunc(ext)}
-            isVideo={isVideoFunc(ext)}
-            isImage={isImageFunc(ext)}
-            isGif={isGifFunc(ext)}
-            isSvg={isSvgFunc(ext)}
-            key={resourceInfo.key}
-            fkey={resourceInfo.key}
-            fsize={resourceInfo.fsize}
-            hash={resourceInfo.hash}
-            mimeType={resourceInfo.mimeType}
-            putTime={resourceInfo.putTime}
-            url={url}
-            selected={selectedKeys.includes(resourceInfo.key)}
-            handleToggleSelectKey={handleToggleSelectKey}
-            handleDeleteFile={handleDeleteFiles}
-            handleSelectAll={handleSelectAll}
-            handlePreviewAsImg={() => handlePreviewAsImg(previewInd)}
-            // handlePreviewAsVideo={() => handlePreviewAsVideo(resourcePrefix + resourceInfo.key)}
-            handleOpenInBrowser={() => handleOpenInBrowser(url)}
-            handleRenameResource={handleRenameResource}
-          />
-        </div>
-      )
-    }
-  }
 
   function handleScroll({ scrollTop }) {
     const threshhold = 20
@@ -188,6 +127,27 @@ export default function ResourceList({
         rowHeight={gridInfo.cellWrapperheight}
         width={gridInfo.containerWidth}
         onScroll={handleScroll}
+        itemData={{
+          data: listData,
+          columnCount: gridInfo.columnCount,
+          isTopFolder,
+          handleBackward,
+          selectedFolders,
+          handleViewFolder,
+          handleRefreshDir,
+          handleToggleSelectFolder,
+          commonPrefixList,
+          resourcePrefix,
+          imagePreviewSuffix,
+          selectedKeys,
+          handleToggleSelectKey,
+          handleDeleteFiles,
+          handleSelectAll,
+          handlePreviewAsImg,
+          handleOpenInBrowser,
+          handleRenameResource,
+          handleRefreshResource,
+        }}
       >
         {Cell}
       </Grid>
@@ -206,4 +166,97 @@ export default function ResourceList({
       )}
     </div>
   )
+}
+
+// 当个 item 的渲染组件
+const Cell = ({
+  columnIndex,
+  rowIndex,
+  style,
+  data: {
+    data,
+    columnCount,
+    isTopFolder,
+    handleBackward,
+    selectedFolders,
+    handleViewFolder,
+    handleRefreshDir,
+    handleToggleSelectFolder,
+    commonPrefixList,
+    resourcePrefix,
+    imagePreviewSuffix,
+    selectedKeys,
+    handleToggleSelectKey,
+    handleDeleteFiles,
+    handleSelectAll,
+    handlePreviewAsImg,
+    handleOpenInBrowser,
+    handleRenameResource,
+    handleRefreshResource,
+  },
+}) => {
+  // 注意 ind 指的是第多少个格子，不是 listData 的第 ind 个
+  const ind = columnCount * rowIndex + columnIndex
+  if (!isTopFolder && ind === 0) {
+    return (
+      <div className={styles.cellWrapper} style={style}>
+        <FolderCard isBackward={true} folderName={''} handleClick={handleBackward} />
+      </div>
+    )
+  }
+  const resourceInfo = isTopFolder ? data[ind] : data[ind - 1]
+  // 注意数组越界， gird 会把网格给布满，所以 ind 可能会超出，需要做判断，超出的不管就ok了
+  if (typeof resourceInfo === 'undefined') {
+    return <Fragment></Fragment>
+  } else if (typeof resourceInfo === 'string') {
+    // 是文件夹
+    return (
+      <div className={styles.cellWrapper} style={style}>
+        <FolderCard
+          selected={selectedFolders.includes(resourceInfo)}
+          isBackward={false}
+          folderName={resourceInfo}
+          handleClick={() => handleViewFolder(resourceInfo)}
+          handleRefreshDir={() => handleRefreshDir(resourceInfo)}
+          handleToggleSelectFolder={() => handleToggleSelectFolder(resourceInfo)}
+        />
+      </div>
+    )
+  } else {
+    // 是资源
+    // const ext = resourceInfo.mimeType.split('/')[1]
+    const { ext } = getResourceExtAndName(resourceInfo.key)
+    // 在打开 image gallary 的时候， ind 在 resourceList 对应的资源可能存在偏移，这个时候需要把偏移摆正
+    const previewInd = ind - ((isTopFolder ? 0 : 1) + commonPrefixList.length)
+    const url = encodeURI(resourcePrefix + resourceInfo.key)
+
+    return (
+      <div className={styles.cellWrapper} style={style} key={resourceInfo.key}>
+        <ResourceCard
+          ext={ext}
+          imagePreviewSuffix={imagePreviewSuffix}
+          isAudio={isAudioFunc(ext)}
+          isVideo={isVideoFunc(ext)}
+          isImage={isImageFunc(ext)}
+          isGif={isGifFunc(ext)}
+          isSvg={isSvgFunc(ext)}
+          // key={resourceInfo.key}
+          fkey={resourceInfo.key}
+          fsize={resourceInfo.fsize}
+          hash={resourceInfo.hash}
+          mimeType={resourceInfo.mimeType}
+          putTime={resourceInfo.putTime}
+          url={url}
+          selected={selectedKeys.includes(resourceInfo.key)}
+          handleToggleSelectKey={handleToggleSelectKey}
+          handleDeleteFile={handleDeleteFiles}
+          handleSelectAll={handleSelectAll}
+          handlePreviewAsImg={() => handlePreviewAsImg(previewInd)}
+          handleOpenInBrowser={() => handleOpenInBrowser(url)}
+          handleRenameResource={handleRenameResource}
+          handleRefreshResource={() => handleRefreshResource(resourcePrefix + resourceInfo.key)}
+        />
+      </div>
+    )
+  }
 }

@@ -39,7 +39,7 @@ export default function Home() {
 
   function loadData() {
     const nResourceList = new Array(100).fill(1).map((_, ind) => ({
-      id: `${ind + resourceList.length}__${Math.floor(Math.random() * 500000000)}`,
+      id: `${ind + resourceList.length}__${Math.floor(Math.random() * 40)}`,
     }))
     setResourceList([...resourceList, ...nResourceList])
   }

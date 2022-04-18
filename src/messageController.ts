@@ -109,6 +109,20 @@ export default function messageController(
               },
             })
             return
+          case MESSAGE_COMMANDS.refreshFiles:
+            const refreshFilesRes = await csp.refreshFiles(message.data.fileUrls)
+            postMessage({
+              uniqueId: message.uniqueId,
+              data: refreshFilesRes,
+            })
+            return
+          case MESSAGE_COMMANDS.refreshDirs:
+            const refreshDirsRes = await csp.refreshDirs(message.data.dirUrls)
+            postMessage({
+              uniqueId: message.uniqueId,
+              data: refreshDirsRes,
+            })
+            return
         }
       } catch (e) {
         vscode.window.showErrorMessage(`extension 出现了错误 ${String(e)}`)

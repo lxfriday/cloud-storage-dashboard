@@ -1,7 +1,8 @@
 import * as qiniu from 'qiniu'
 import * as vscode from 'vscode'
-import * as Request from '../request'
 import * as dayjs from 'dayjs'
+
+import * as Request from '../request'
 
 // ---------------------------------------------------
 import qiniuKeys from './qiniu.keys'
@@ -204,8 +205,6 @@ class Qiniu {
 
     return new Promise((resolve, reject) => {
       bucketManager.batch(deleteOperations, function (respErr, respBody, respInfo) {
-        console.log('delete result', { respErr, respBody, respInfo })
-
         if (respBody.error) {
           vscode.window.showErrorMessage(notiTpl(respBody.error))
           resolve({ result: 'error' }) // 不成功
@@ -298,7 +297,7 @@ class Qiniu {
 
     return new Promise<{ result: string; msg: string }>((resolve, reject) => {
       bucketManager.batch(moveOperations, function (respErr, respBody, respInfo) {
-        console.log('move result', { respErr, respBody, respInfo })
+        console.log('moveBucketFiles', { respErr, respBody, respInfo })
 
         if (respBody.error) {
           vscode.window.showErrorMessage(notiTpl(respBody.error))
@@ -310,6 +309,59 @@ class Qiniu {
           } else {
             resolve({ result: 'partmoved', msg: '' }) // 部分成功
           }
+        }
+      })
+    })
+  }
+
+  // 按照链接刷新文件，一次最多100个 ['http://if-pbl.qiniudn.com/examples/',]，一天最多刷500个
+  // ref https://developer.qiniu.com/kodo/1289/nodejs#fusion-refresh-urls
+  // https://developer.qiniu.com/dcdn/10755/dcdn-cache-refresh-with-the-query
+
+  refreshFiles(fileUrls: string[]) {
+    const cdnManager = new qiniu.cdn.CdnManager(this.qiniuMac)
+    return new Promise((resolve, reject) => {
+      cdnManager.refreshUrls(fileUrls, function (err, respBody, respInfo) {
+        if (respBody.code === 200) {
+          resolve({
+            success: true,
+            msg: '刷新成功',
+            urlSurplusDay: respBody.urlSurplusDay, // 每日剩余的 url 刷新限额（文件）
+          })
+        } else {
+          resolve({
+            success: false,
+            msg: respBody.error,
+          })
+        }
+      })
+    })
+  }
+
+  // 按照链接刷新文件夹，最多10个
+  // ref https://developer.qiniu.com/kodo/1289/nodejs#fusion-refresh-dirs
+  refreshDirs(dirUrls: string[]) {
+    console.log('refreshDirs', dirUrls)
+    const cdnManager = new qiniu.cdn.CdnManager(this.qiniuMac)
+    return new Promise((resolve, reject) => {
+      cdnManager.refreshDirs(dirUrls, function (err, respBody, respInfo) {
+        console.log('refreshDirs', {
+          err,
+          respBody,
+          respInfo,
+        })
+
+        if (respBody.code === 200) {
+          resolve({
+            success: true,
+            msg: '刷新成功',
+            urlSurplusDay: respBody.urlSurplusDay, // 每日剩余的 url 刷新限额（文件）
+          })
+        } else {
+          resolve({
+            success: false,
+            msg: respBody.error,
+          })
         }
       })
     })

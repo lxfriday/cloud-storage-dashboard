@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from 'react'
+import React, { Fragment, useState, useEffect } from 'react'
 import {
   FileFilled,
   CopyFilled,
@@ -13,8 +13,10 @@ import copy from 'copy-text-to-clipboard'
 import classnames from 'classnames'
 
 import { getFullTime, getFileSize } from '../../../utils'
-
 import styles from './ResourceCard.module.less'
+
+// 用来解决双击和单机事件冲突
+let clickCount = 0
 
 export default function ResourceCard({
   ext,
@@ -30,13 +32,14 @@ export default function ResourceCard({
   putTime,
   fkey,
   selected,
-  imagePreviewSuffix,
+  imagePreviewSuffix, // 用来预览的尾缀，压缩图像提升显示性能，但是和 刷新 CDN 有冲突，暂时禁用
   handleToggleSelectKey,
   handleDeleteFile,
   handleSelectAll,
   handlePreviewAsImg,
   handleOpenInBrowser,
   handleRenameResource,
+  handleRefreshResource,
 }) {
   const [renameOpModalVisible, setRenameOpModalVisible] = useState(false)
   const [moveOpModalVisible, setMoveOpModalVisible] = useState(false)
@@ -56,7 +59,8 @@ export default function ResourceCard({
     finalImage = (
       <div
         style={{
-          backgroundImage: `url("${isGif || isSvg ? url : url + imagePreviewSuffix}")`,
+          // backgroundImage: `url("${isGif || isSvg ? url : url + imagePreviewSuffix}")`,
+          backgroundImage: `url("${url}")`,
         }}
         className={styles.img}
       />
@@ -110,7 +114,9 @@ export default function ResourceCard({
         详情
       </Menu.Item>
       <Menu.Divider />
-      <Menu.Item key="1">刷新CDN</Menu.Item>
+      <Menu.Item key="1" onClick={handleRefreshResource}>
+        刷新CDN
+      </Menu.Item>
       <Menu.Divider />
       <Menu.Item key="2" onClick={() => setRenameOpModalVisible(true)}>
         重命名
@@ -178,7 +184,12 @@ export default function ResourceCard({
         okText="确定"
         cancelText="取消"
       >
-        <Input type="text" value={newKey} onChange={e => setNewKey(e.target.value)} />
+        <Input
+          type="text"
+          value={newKey}
+          onChange={e => setNewKey(e.target.value)}
+          onPaste={e => e.stopPropagation()}
+        />
       </Modal>
       <Modal
         title="移动"
@@ -195,12 +206,27 @@ export default function ResourceCard({
         okText="确定"
         cancelText="取消"
       >
-        <Input type="text" value={newKey} onChange={e => setNewKey(e.target.value)} />
+        <Input
+          type="text"
+          value={newKey}
+          onChange={e => setNewKey(e.target.value)}
+          onPaste={e => e.stopPropagation()}
+        />
       </Modal>
       <Dropdown overlay={contextMenu} trigger={['contextMenu']}>
         <div
           className={classnames(styles.wrapper, selected && styles.selected)}
-          onClick={() => handleToggleSelectKey(fkey)}
+          onClick={e => {
+            clickCount += 1
+            setTimeout(() => {
+              if (clickCount === 1) {
+                handleToggleSelectKey(fkey)
+              } else if (clickCount === 2) {
+                isImage && handlePreviewAsImg()
+              }
+              clickCount = 0
+            }, 200)
+          }}
         >
           <div className={classnames(styles.fileExtWrapper, finalExtIsKnown && styles.known)}>
             {finalExtName}
