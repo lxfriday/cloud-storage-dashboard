@@ -258,6 +258,35 @@ class Qiniu {
   uploadFiles(uploadMeta: { key: string; path: string }[]) {
     console.log('uploadMeta', uploadMeta)
   }
+
+  // 抓取网络资源到空间
+  fetchResourceToBucket(url: string, key: string) {
+    return new Promise<{ success: boolean; msg: string }>((res, rej) => {
+      const bucketManager = new qiniu.rs.BucketManager(this.qiniuMac, new qiniu.conf.Config())
+      bucketManager.fetch(url, this.bucket, key, function (err, respBody, respInfo) {
+        if (err) {
+          console.log('fetchResourceToBucket error', err)
+          res({
+            success: false,
+            msg: '抓取网络资源出现错误',
+          })
+        } else {
+          if (respInfo.statusCode === 200) {
+            res({
+              success: true,
+              msg: '',
+            })
+          } else {
+            console.log('fetchResourceToBucket !== 200', respInfo)
+            res({
+              success: false,
+              msg: respBody.error,
+            })
+          }
+        }
+      })
+    })
+  }
 }
 
 const qiniuE = new Qiniu({

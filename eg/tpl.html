@@ -1,7 +1,3 @@
-const serverHost = 'http://localhost'
-const serverPort = 3001
-
-export default `
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -17,9 +13,17 @@ export default `
     <link rel="icon" type="image/svg+xml" href="/src/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>云存储管理</title>
+    <style>
+      .firstscreen-loading {
+        width: 100%;
+        height: 100%;
+        background-color: #fff;
+      }
+    </style>
   </head>
   <body>
     <div id="root">
+      <div class="firstscreen-loading"></div>
     </div>
     <script
       type="module"
@@ -27,4 +31,4 @@ export default `
       nonce="15645643165464"
     ></script>
   </body>
-</html>`
+</html>

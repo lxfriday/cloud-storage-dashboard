@@ -1,8 +1,8 @@
 import React, { useEffect, useState, Fragment } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Button, Select, message, Modal, Image } from 'antd'
+import { Button, Select, message, Modal, Image, Input } from 'antd'
 import {
-  UploadOutlined,
+  FileOutlined,
   SyncOutlined,
   LinkOutlined,
   ProfileOutlined,
@@ -16,12 +16,11 @@ import classnames from 'classnames'
 import SelectUpload from './compnents/SelectUpload'
 import ResourceList from './compnents/ResourceList'
 import PasteAndDragUpload from './compnents/PasteAndDragUpload'
-// import videoPlayer from '../../Components/VideoPlayer'
 import { renderUploadManager, destroyUploadManager } from '../../Components/UploadManager'
 
 import styles from './index.module.less'
 import * as messageCenter from '../../utils/messageCenter'
-import { debounce, getFileSize } from '../../utils'
+import { debounce, getFileSize, isUrl, generateRandomResourceName } from '../../utils'
 import settings from '../../utils/settings'
 import cloudserviceprovider from '../../utils/cloudserviceprovider'
 
@@ -49,6 +48,9 @@ export default function StorageManage() {
   let [isResourceListReachEnd, setIsResourceListReachEnd] = useState(false)
   // 粘贴、拖动上传时输入的前缀
   let [pendingUploadPrefix, setPendingUploadPrefix] = useState('')
+  // 从网络上直接拉取资源到 bucket，目标 url
+  let [fetchFromUrlTargetUrl, setFetchFromUrlTargetUrl] = useState('')
+  let [fetchFromUrlModalVisible, setFetchFromUrlModalVisible] = useState(false)
 
   let [uploadToken, setUploadToken] = useState('')
   // 选中的资源 key
@@ -231,64 +233,34 @@ export default function StorageManage() {
     handleRefresh([])
   }
 
-  // function handlePaste(e) {
-  //   const clipboardData = e.clipboardData
-  //   const newPRList = []
-  //   let hasResource = false
-
-  //   for (let i = 0; i < clipboardData.items.length; i++) {
-  //     const item = clipboardData.items[i]
-  //     // 粘贴的内容会比较复杂：单个文件、多个文件、截图、字符串、带样式的字符串等
-  //     if (item.kind === 'file') {
-  //       hasResource = true
-  //       const file = item.getAsFile()
-  //       // 截图的 path 为空字符串，name 为 image.png
-  //       newPRList.push({
-  //         fname: generateRandomResourceName(file.name, settings.uploadUseOrignalFileName),
-  //         file,
-  //       })
-  //     }
-  //   }
-
-  //   if (hasResource) {
-  //     setPendingResourceNotiModalVisible(true)
-  //     setPendingResourceList(newPRList)
-  //   }
-  // }
-
-  // function handleUploadPendingResources(pfx) {
-  //   Promise.all(
-  //     pendingResourceList.map(pr =>
-  //       csp.upload({
-  //         file: pr.file,
-  //         key: `${pfx}${pr.fname}`,
-  //         token: uploadToken,
-  //         resourcePrefix,
-  //       })
-  //     )
-  //   )
-  //     .then(res => {
-  //       const uploadedResourceLinks = res.map(resourceInfo =>
-  //         encodeURI(resourcePrefix + resourceInfo.key)
-  //       )
-
-  //       copy(uploadedResourceLinks.join('\r\n'))
-
-  //       message.success(
-  //         res.length > 1
-  //           ? '全部上传成功，所有资源已复制到剪切板，刷新之后在列表可见'
-  //           : '上传成功，已复制到剪切板，刷新之后在列表可见'
-  //       )
-  //     })
-  //     .catch(res => {
-  //       if (res.hasError) {
-  //         message.error(`上传失败 ${res.msg}`)
-  //       }
-  //     })
-  //     .finally(() => {
-  //       setPendingResourceList([])
-  //     })
-  // }
+  function handleComfirmFetchFromUrl(url, key) {
+    console.log('handleComfirmFetchFromUrl', {
+      url,
+      key,
+    })
+    if (isUrl(url)) {
+      messageCenter
+        .requestFetchResourceToBucket({
+          url,
+          key,
+        })
+        .then(data => {
+          if (data.success) {
+            copy(encodeURI(`${resourcePrefix}${key}`))
+            message.success('资源抓取成功，已复制到剪切板')
+          } else {
+            message.error('资源抓取失败 ' + data.msg)
+          }
+        })
+        .catch(e => {
+          message.error('资源抓取失败')
+        })
+      setFetchFromUrlTargetUrl('')
+      setFetchFromUrlModalVisible(false)
+    } else {
+      message.error('url 格式不正确')
+    }
+  }
 
   useEffect(async () => {
     // 打开一个 bucket 的时候，更新 localside bucket
@@ -338,8 +310,47 @@ export default function StorageManage() {
     }
   }, [])
 
+  const fetchFromUrlGeneratedKey = isUrl(fetchFromUrlTargetUrl)
+    ? `${pendingUploadPrefix}${encodeURIComponent(
+        generateRandomResourceName(
+          fetchFromUrlTargetUrl.split('/').slice(-1)[0],
+          settings.uploadUseOrignalFileName
+        )
+      )}`
+    : ''
+
   return (
     <Fragment>
+      <Modal
+        visible={fetchFromUrlModalVisible}
+        title="输入资源 url"
+        width={700}
+        okText="确认"
+        cancelText="取消"
+        onOk={() => handleComfirmFetchFromUrl(fetchFromUrlTargetUrl, fetchFromUrlGeneratedKey)}
+        onCancel={() => {
+          setFetchFromUrlModalVisible(false)
+          setFetchFromUrlTargetUrl('')
+        }}
+      >
+        <div>
+          <Input
+            type="text"
+            placeholder="资源地址，必须带上协议 http 或者 https"
+            value={fetchFromUrlTargetUrl}
+            onPressEnter={handleComfirmFetchFromUrl}
+            onChange={e => {
+              setFetchFromUrlTargetUrl(e.target.value)
+            }}
+          />
+          {isUrl(fetchFromUrlTargetUrl) && (
+            <div className={styles.setFetchFromUrlFinalKey}>
+              最终路径：
+              {fetchFromUrlGeneratedKey}
+            </div>
+          )}
+        </div>
+      </Modal>
       <PasteAndDragUpload
         currentBucket={currentBucket}
         csp={csp}
@@ -349,39 +360,6 @@ export default function StorageManage() {
         handleSetPendingUploadPrefix={e => setPendingUploadPrefix(e.target.value)}
         resetPendingUploadPrefix={() => setPendingUploadPrefix(uploadFolders.join(''))}
       />
-      {/* pendingResourceNotiModal */}
-      {/* <Modal
-        width={1000}
-        title={`上传文件(${pendingResourceList.length})`}
-        visible={pendingResourceNotiModalVisible}
-        onOk={() => {
-          setPendingResourceNotiModalVisible(false)
-          setPendingUploadPrefix(uploadFolders.join(''))
-          handleUploadPendingResources(pendingUploadPrefix)
-        }}
-        okText="上传"
-        cancelText="取消"
-        onCancel={() => {
-          setPendingResourceNotiModalVisible(false)
-          setPendingResourceList([])
-          setPendingUploadPrefix(uploadFolders.join(''))
-        }}
-      >
-        <div className={styles.uploadPrefixEditorWrapper}>
-          <Input
-            placeholder="输入 prefix"
-            value={pendingUploadPrefix}
-            onChange={e => setPendingUploadPrefix(e.target.value)}
-          />
-        </div>
-        <div className={styles.pendingResourceListWrapper}>
-          {pendingResourceList.map(pr => (
-            <div key={pr.fname} className={styles.listItem}>
-              路径：{pendingUploadPrefix + pr.fname}
-            </div>
-          ))}
-        </div>
-      </Modal> */}
       <div className={styles.bucketNavWrapper}>
         <Select
           value={bucketDomainInfo.selectBucketDomain}
@@ -408,7 +386,7 @@ export default function StorageManage() {
             <Button
               type="dashed"
               title="文件上传(支持多选)"
-              icon={<UploadOutlined style={{ fontSize: '20px' }} />}
+              icon={<FileOutlined style={{ fontSize: '20px' }} />}
             ></Button>
           </SelectUpload>
           <SelectUpload
@@ -427,6 +405,7 @@ export default function StorageManage() {
             ></Button>
           </SelectUpload>
           <Button
+            onClick={() => setFetchFromUrlModalVisible(true)}
             type="dashed"
             title="url 直传文件"
             icon={<LinkOutlined style={{ fontSize: '20px' }} />}
@@ -547,29 +526,6 @@ export default function StorageManage() {
         }}
         handleBackward={handleBackward}
       />
-      {/* <div className={styles.resourceListWrapper}>
-        {resourceList.map((resourceInfo, ind) => (
-          <ResourceCard
-            isVideo={isVideoFunc(resourceInfo.mimeType.split('/')[1])}
-            isImage={isImageFunc(resourceInfo.mimeType.split('/')[1])}
-            key={resourceInfo.key}
-            fkey={resourceInfo.key}
-            fsize={resourceInfo.fsize}
-            hash={resourceInfo.hash}
-            mimeType={resourceInfo.mimeType}
-            putTime={resourceInfo.putTime}
-            url={resourcePrefix + resourceInfo.key}
-            selected={selectedKeys.includes(resourceInfo.key)}
-            handleToggleSelectKey={handleToggleSelectKey}
-            handleDeleteFile={handleDeleteFiles}
-            handleSelectAll={handleSelectAll}
-            debouncedHttpsErrorNotiWarning={debouncedHttpsErrorNotiWarning}
-            debouncedHttpErrorNotiError={debouncedHttpErrorNotiError}
-            handlePreviewAsImg={() => handlePreviewAsImg(ind)}
-            handlePreviewAsVideo={() => handlePreviewAsVideo(resourcePrefix + resourceInfo.key)}
-          />
-        ))}
-      </div> */}
       {/* 注意这里 display 一定要为 none，否则页面底部会出现多余的图片 */}
       <div style={{ display: 'none' }}>
         <Image.PreviewGroup

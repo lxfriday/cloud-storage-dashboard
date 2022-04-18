@@ -41,10 +41,23 @@ export function getResourceExtAndName(fileName) {
 // 上传时用，生成随机的资源名，不带后缀
 export function generateRandomResourceName(fileName, useOriginalFileName = false) {
   const { fname, ext } = getResourceExtAndName(fileName)
-  if (useOriginalFileName) {
-    return `${fname}_${Date.now()}_${uuidv4()}.${ext}`
+  let finalName = '' // 名字，不包含后缀
+  // if (useOriginalFileName) {
+  //   return fname.length > 0
+  //     ? `${fname}_${Date.now()}_${uuidv4()}.${ext}`
+  //     : `${Date.now()}_${uuidv4()}.${ext}`
+  // } else {
+  //   return `${Date.now()}_${uuidv4()}.${ext}`
+  // }
+  if (useOriginalFileName && fname.length > 0) {
+    finalName = `${fname}_${Date.now()}_${uuidv4()}`
   } else {
-    return `${Date.now()}_${uuidv4()}.${ext}`
+    finalName = `${Date.now()}_${uuidv4()}`
+  }
+  if (ext.length) {
+    return `${finalName}.${ext}`
+  } else {
+    return finalName
   }
 }
 
@@ -127,4 +140,42 @@ export function debounce(func, wait, immediate) {
       }, wait)
     }
   }
+}
+
+// ref https://github.com/segmentio/is-url/blob/master/index.js
+/**
+ * Loosely validate a URL `string`.
+ *
+ * @param {String} string
+ * @return {Boolean}
+ */
+
+export function isUrl(string) {
+  const protocolAndDomainRE = /^(?:\w+:)?\/\/(\S+)$/
+
+  const localhostDomainRE = /^localhost[\:?\d]*(?:[^\:?\d]\S*)?$/
+  const nonLocalhostDomainRE = /^[^\s\.]+\.\S{2,}$/
+
+  if (typeof string !== 'string') {
+    return false
+  }
+
+  const match = string.match(protocolAndDomainRE)
+  if (!match) {
+    return false
+  }
+
+  const everythingAfterProtocol = match[1]
+  if (!everythingAfterProtocol) {
+    return false
+  }
+
+  if (
+    localhostDomainRE.test(everythingAfterProtocol) ||
+    nonLocalhostDomainRE.test(everythingAfterProtocol)
+  ) {
+    return true
+  }
+
+  return false
 }

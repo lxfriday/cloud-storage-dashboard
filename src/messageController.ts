@@ -90,6 +90,18 @@ export default function messageController(
               // data: domains,
             })
             return
+          case MESSAGE_COMMANDS.fetchResourceToBucket:
+            const fetchResourceRsult = await csp.fetchResourceToBucket(
+              message.data.url,
+              message.data.key
+            )
+            postMessage({
+              uniqueId: message.uniqueId,
+              data: {
+                ...fetchResourceRsult,
+              },
+            })
+            return
         }
       } catch (e) {
         vscode.window.showErrorMessage(`extension 出现了错误 ${String(e)}`)

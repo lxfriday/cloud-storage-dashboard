@@ -9,4 +9,5 @@ export default {
   openInBrowser: 'openInBrowser',
   readPaths: 'readPaths',
   serverUploadFiles: 'serverUploadFiles',
+  fetchResourceToBucket: 'fetchResourceToBucket',
 }

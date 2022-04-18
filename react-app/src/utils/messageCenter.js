@@ -102,4 +102,18 @@ export function requestServerUploadFiles(params) {
   )
 }
 
+// 从网络中拉取资源到 bucket
+export function requestFetchResourceToBucket(params) {
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.fetchResourceToBucket,
+      data: {
+        ...providerInfo,
+        ...params,
+      },
+    },
+    false
+  )
+}
+
 // getBucketDomains
