@@ -31,6 +31,7 @@ export default function ResourceList({
   handleLoadData,
   handleBackward,
   handleOpenInBrowser,
+  handleRenameResource,
 }) {
   // 资源框实际大小
   const resourceWidth = 130
@@ -117,6 +118,7 @@ export default function ResourceList({
             handlePreviewAsImg={() => handlePreviewAsImg(previewInd)}
             // handlePreviewAsVideo={() => handlePreviewAsVideo(resourcePrefix + resourceInfo.key)}
             handleOpenInBrowser={() => handleOpenInBrowser(url)}
+            handleRenameResource={handleRenameResource}
           />
         </div>
       )

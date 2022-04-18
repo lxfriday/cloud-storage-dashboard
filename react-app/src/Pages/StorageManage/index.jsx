@@ -271,6 +271,24 @@ export default function StorageManage() {
     }
   }
 
+  function handleRenameResource({ originalKey, newKey, op }) {
+    console.log({ originalKey, newKey, op })
+    messageCenter
+      .requestMoveBucketFiles([{ originalKey, newKey }])
+      .then(data => {
+        console.log('handleRenameResource data', data)
+        if (data.result === 'allmoved') {
+          message.success((op === 'move' ? '移动' : '重命名') + '文件成功')
+          handleRefresh(uploadFolders)
+        } else {
+          message.error((op === 'move' ? '移动' : '重命名') + '文件失败')
+        }
+      })
+      .catch(e => {
+        message.error((op === 'move' ? '移动' : '重命名') + '文件失败')
+      })
+  }
+
   useEffect(async () => {
     // 打开一个 bucket 的时候，更新 localside bucket
     setResourceList([])
@@ -535,6 +553,7 @@ export default function StorageManage() {
           }
         }}
         handleBackward={handleBackward}
+        handleRenameResource={handleRenameResource}
       />
       {/* 注意这里 display 一定要为 none，否则页面底部会出现多余的图片 */}
       <div style={{ display: 'none' }}>

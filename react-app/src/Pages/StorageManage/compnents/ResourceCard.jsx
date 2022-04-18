@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Fragment, useState } from 'react'
 import {
   FileFilled,
   CopyFilled,
@@ -8,7 +8,7 @@ import {
   ZoomInOutlined,
   CustomerServiceFilled,
 } from '@ant-design/icons'
-import { message, Menu, Dropdown, Modal } from 'antd'
+import { message, Menu, Dropdown, Modal, Input } from 'antd'
 import copy from 'copy-text-to-clipboard'
 import classnames from 'classnames'
 
@@ -36,7 +36,12 @@ export default function ResourceCard({
   handleSelectAll,
   handlePreviewAsImg,
   handleOpenInBrowser,
+  handleRenameResource,
 }) {
+  const [renameOpModalVisible, setRenameOpModalVisible] = useState(false)
+  const [moveOpModalVisible, setMoveOpModalVisible] = useState(false)
+  const [newKey, setNewKey] = useState(fkey)
+
   const keyS = fkey.split('/')
   const fileFullName = keyS[keyS.length - 1]
 
@@ -107,7 +112,13 @@ export default function ResourceCard({
       <Menu.Divider />
       <Menu.Item key="1">刷新CDN</Menu.Item>
       <Menu.Divider />
-      <Menu.Item key="2">重命名</Menu.Item>
+      <Menu.Item key="2" onClick={() => setRenameOpModalVisible(true)}>
+        重命名
+      </Menu.Item>
+      <Menu.Divider />
+      <Menu.Item key="8" onClick={() => setRenameOpModalVisible(true)}>
+        移动
+      </Menu.Item>
       <Menu.Divider />
       <Menu.Item key="3" onClick={() => handleToggleSelectKey(fkey)}>
         选择
@@ -150,67 +161,104 @@ export default function ResourceCard({
   const finalExtIsKnown = !(ext && ext.length)
 
   return (
-    <Dropdown overlay={contextMenu} trigger={['contextMenu']}>
-      <div
-        className={classnames(styles.wrapper, selected && styles.selected)}
-        onClick={() => handleToggleSelectKey(fkey)}
+    <Fragment>
+      {/* 移动和重命名实际上是一样的 */}
+      <Modal
+        title="重命名"
+        width={700}
+        visible={renameOpModalVisible}
+        onOk={() => {
+          handleRenameResource({ originalKey: fkey, newKey, op: 'rename' })
+          setRenameOpModalVisible(false)
+        }}
+        onCancel={() => {
+          setRenameOpModalVisible(false)
+          setNewKey(fkey)
+        }}
+        okText="确定"
+        cancelText="取消"
       >
-        <div className={classnames(styles.fileExtWrapper, finalExtIsKnown && styles.known)}>
-          {finalExtName}
-        </div>
-        <div className={styles.iconWrapper}>{finalImage}</div>
-        <div className={styles.fileFullName}>{fileFullName}</div>
-        <div className={styles.toolsWrapper}>
-          <div className={styles.operateZone}></div>
-          <div className={styles.tools}>
-            <div
-              className={styles.buttonWrapper}
-              onClick={e => {
-                e.stopPropagation()
-                copy(url)
-                message.success('已复制到剪切板')
-              }}
-              title="复制"
-            >
-              <CopyFilled style={{ fontSize: '18px', color: 'green' }} />
-            </div>
-            <div
-              className={styles.buttonWrapper}
-              onClick={e => {
-                e.stopPropagation()
-                handlePressDelete()
-              }}
-              title="删除"
-            >
-              <DeleteFilled style={{ fontSize: '18px', color: 'red' }} />
-            </div>
-            {isImage && (
+        <Input type="text" value={newKey} onChange={e => setNewKey(e.target.value)} />
+      </Modal>
+      <Modal
+        title="移动"
+        width={700}
+        visible={moveOpModalVisible}
+        onOk={() => {
+          handleRenameResource({ originalKey: fkey, newKey, op: 'move' })
+          setMoveOpModalVisible(false)
+        }}
+        onCancel={() => {
+          setMoveOpModalVisible(false)
+          setNewKey(fkey)
+        }}
+        okText="确定"
+        cancelText="取消"
+      >
+        <Input type="text" value={newKey} onChange={e => setNewKey(e.target.value)} />
+      </Modal>
+      <Dropdown overlay={contextMenu} trigger={['contextMenu']}>
+        <div
+          className={classnames(styles.wrapper, selected && styles.selected)}
+          onClick={() => handleToggleSelectKey(fkey)}
+        >
+          <div className={classnames(styles.fileExtWrapper, finalExtIsKnown && styles.known)}>
+            {finalExtName}
+          </div>
+          <div className={styles.iconWrapper}>{finalImage}</div>
+          <div className={styles.fileFullName}>{fileFullName}</div>
+          <div className={styles.toolsWrapper}>
+            <div className={styles.operateZone}></div>
+            <div className={styles.tools}>
               <div
                 className={styles.buttonWrapper}
                 onClick={e => {
                   e.stopPropagation()
-                  handlePreviewAsImg()
+                  copy(url)
+                  message.success('已复制到剪切板')
                 }}
-                title="预览"
+                title="复制"
               >
-                <ZoomInOutlined style={{ fontSize: '18px', color: '#666' }} />
+                <CopyFilled style={{ fontSize: '18px', color: 'green' }} />
               </div>
-            )}
-            {(isVideo || isAudio) && (
               <div
                 className={styles.buttonWrapper}
                 onClick={e => {
                   e.stopPropagation()
-                  handleOpenInBrowser()
+                  handlePressDelete()
                 }}
-                title="在浏览器中打开"
+                title="删除"
               >
-                <PlayCircleOutlined style={{ fontSize: '18px', color: '#666' }} />
+                <DeleteFilled style={{ fontSize: '18px', color: 'red' }} />
               </div>
-            )}
+              {isImage && (
+                <div
+                  className={styles.buttonWrapper}
+                  onClick={e => {
+                    e.stopPropagation()
+                    handlePreviewAsImg()
+                  }}
+                  title="预览"
+                >
+                  <ZoomInOutlined style={{ fontSize: '18px', color: '#666' }} />
+                </div>
+              )}
+              {(isVideo || isAudio) && (
+                <div
+                  className={styles.buttonWrapper}
+                  onClick={e => {
+                    e.stopPropagation()
+                    handleOpenInBrowser()
+                  }}
+                  title="在浏览器中打开"
+                >
+                  <PlayCircleOutlined style={{ fontSize: '18px', color: '#666' }} />
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </Dropdown>
+      </Dropdown>
+    </Fragment>
   )
 }

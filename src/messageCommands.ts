@@ -10,4 +10,5 @@ export default {
   readPaths: 'readPaths',
   serverUploadFiles: 'serverUploadFiles',
   fetchResourceToBucket: 'fetchResourceToBucket',
+  moveBucketFiles: 'moveBucketFiles',
 }

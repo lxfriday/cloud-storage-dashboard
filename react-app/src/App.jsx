@@ -5,7 +5,12 @@ import Nav from '@/Components/Nav'
 
 function App() {
   return (
-    <div className={styles.container}>
+    <div
+      className={styles.container}
+      onContextMenu={e => {
+        e.stopPropagation()
+      }}
+    >
       <Nav>
         <Routes>
           {routesConfig.map(route => (

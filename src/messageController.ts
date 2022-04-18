@@ -76,6 +76,13 @@ export default function messageController(
               data: res,
             })
             return
+          case MESSAGE_COMMANDS.moveBucketFiles:
+            const moveBucketFilesRes = await csp.moveBucketFiles(message.data.keysInfoList)
+            postMessage({
+              uniqueId: message.uniqueId,
+              data: moveBucketFilesRes,
+            })
+            return
           case MESSAGE_COMMANDS.getOverviewInfo:
             const overviewInfo = await csp.getOverviewInfo()
             postMessage({

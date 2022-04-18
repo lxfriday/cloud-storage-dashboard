@@ -287,6 +287,33 @@ class Qiniu {
       })
     })
   }
+
+  // 批量移动或者重命名，移动和重命名是同一个操作，只是对 key 做重命名而已
+  moveBucketFiles(keysInfoList: { originalKey: string; newKey: string }[]) {
+    const bucketManager = new qiniu.rs.BucketManager(this.qiniuMac, new qiniu.conf.Config())
+
+    const moveOperations = keysInfoList.map(({ originalKey, newKey }) =>
+      qiniu.rs.moveOp(this.bucket, originalKey, this.bucket, newKey)
+    )
+
+    return new Promise<{ result: string; msg: string }>((resolve, reject) => {
+      bucketManager.batch(moveOperations, function (respErr, respBody, respInfo) {
+        console.log('move result', { respErr, respBody, respInfo })
+
+        if (respBody.error) {
+          vscode.window.showErrorMessage(notiTpl(respBody.error))
+          resolve({ result: 'error', msg: respBody.error }) // 不成功
+        } else {
+          // // 200 is success, 298 is part success
+          if (respInfo.statusCode === 200) {
+            resolve({ result: 'allmoved', msg: '' }) // 全部成功
+          } else {
+            resolve({ result: 'partmoved', msg: '' }) // 部分成功
+          }
+        }
+      })
+    })
+  }
 }
 
 const qiniuE = new Qiniu({

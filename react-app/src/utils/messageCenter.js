@@ -6,12 +6,15 @@ export const providerInfo = {
 }
 
 export function requestGenerateUploadToken() {
-  return messageAdaptor({
-    serverCommand: MESSAGE_COMMANDS.generateUploadToken,
-    data: {
-      ...providerInfo,
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.generateUploadToken,
+      data: {
+        ...providerInfo,
+      },
     },
-  })
+    false
+  )
 }
 
 export function requestGetResourceList(params = { fromBegin: true, prefix: '' }) {
@@ -25,41 +28,67 @@ export function requestGetResourceList(params = { fromBegin: true, prefix: '' })
 }
 
 export function requestGetBucketList() {
-  return messageAdaptor({
-    serverCommand: MESSAGE_COMMANDS.getBucketList,
-    data: {
-      ...providerInfo,
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.getBucketList,
+      data: {
+        ...providerInfo,
+      },
     },
-  })
+    false
+  )
 }
 
 export function requestUpdateBucket(newBucket) {
-  return messageAdaptor({
-    serverCommand: MESSAGE_COMMANDS.updateBucket,
-    data: {
-      ...providerInfo,
-      newBucket,
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.updateBucket,
+      data: {
+        ...providerInfo,
+        newBucket,
+      },
     },
-  })
+    false
+  )
 }
 // 删除一个或多个文件都走这个接口
 export function requestDeleteBucketFiles(keysList) {
-  return messageAdaptor({
-    serverCommand: MESSAGE_COMMANDS.deleteBucketFiles,
-    data: {
-      ...providerInfo,
-      keysList,
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.deleteBucketFiles,
+      data: {
+        ...providerInfo,
+        keysList,
+      },
     },
-  })
+    false
+  )
+}
+
+// 移动或者重命名资源，都走这个接口
+export function requestMoveBucketFiles(keysInfoList) {
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.moveBucketFiles,
+      data: {
+        ...providerInfo,
+        keysInfoList,
+      },
+    },
+    false
+  )
 }
 
 export function requestGetOverviewInfo() {
-  return messageAdaptor({
-    serverCommand: MESSAGE_COMMANDS.getOverviewInfo,
-    data: {
-      ...providerInfo,
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.getOverviewInfo,
+      data: {
+        ...providerInfo,
+      },
     },
-  })
+    false
+  )
 }
 
 export function requestOpenInBrowser(url) {
