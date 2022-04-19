@@ -33,14 +33,28 @@
     position: relative;
     background-color: #111;
 
-    background-repeat: no-repeat;
-    background-position: bottom right;
-    background-size: 200px auto;
+    .backImg {
+      background-repeat: no-repeat;
+      background-position: bottom right;
+      background-size: 200px auto;
+      position: absolute;
+      .positionFull();
+      z-index: 1;
+    }
 
     .backImgOverlay {
       position: absolute;
       .positionFull();
       background-color: rgba(0, 0, 0, 0.5);
+      z-index: 2;
+    }
+
+    .content {
+      height: 100%;
+      width: 100%;
+      overflow: auto;
+      position: relative;
+      z-index: 3;
     }
   }
 }

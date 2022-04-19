@@ -181,7 +181,7 @@ export function isUrl(string) {
 }
 
 // 随机显示一个元神妹子
-export function getYuanshenBackImg() {
+export function getYuanshenBackImg(returnAll = false) {
   const imgs = [
     'https://gitee.com/lxfriday/vscode-osu-mode2/raw/master/images/Character_Diona_Portrait.png',
     'https://gitee.com/lxfriday/vscode-osu-mode2/raw/master/images/Character_Fischl_Portrait.png',
@@ -191,5 +191,9 @@ export function getYuanshenBackImg() {
     'https://gitee.com/lxfriday/vscode-osu-mode2/raw/master/images/Character_Klee_Portrait.png',
     'https://gitee.com/lxfriday/vscode-osu-mode2/raw/master/images/Character_Qiqi_Portrait.png',
   ]
-  return imgs[Math.floor(Math.random() * imgs.length)]
+  if (returnAll) {
+    return imgs
+  } else {
+    return imgs[Math.floor(Math.random() * imgs.length)]
+  }
 }

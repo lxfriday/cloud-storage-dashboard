@@ -13,4 +13,7 @@ export default {
   moveBucketFiles: 'moveBucketFiles',
   refreshFiles: 'refreshFiles',
   refreshDirs: 'refreshDirs',
+  showOpenDialog: 'showOpenDialog',
+  getSettings: 'getSettings',
+  upadteSettings: 'upadteSettings',
 }

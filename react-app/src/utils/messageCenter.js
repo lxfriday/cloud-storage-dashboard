@@ -174,4 +174,45 @@ export function requestRefreshDirs(dirUrls) {
     false
   )
 }
-// getBucketDomains
+
+// 文件、文件夹选择器
+// ref https://code.visualstudio.com/api/references/vscode-api#OpenDialogOptions
+// ref https://code.visualstudio.com/api/references/vscode-api#vscode.window.showOpenDialog
+export function requestShowOpenDialog(params = {}) {
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.showOpenDialog,
+      data: {
+        ...providerInfo,
+        ...params,
+      },
+    },
+    false,
+    1000 * 3600
+  )
+}
+
+export function requestGetSettings() {
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.getSettings,
+      data: {
+        ...providerInfo,
+      },
+    },
+    false
+  )
+}
+
+export function requestUpadteSettings(newSettings) {
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.upadteSettings,
+      data: {
+        ...providerInfo,
+        newSettings,
+      },
+    },
+    false
+  )
+}

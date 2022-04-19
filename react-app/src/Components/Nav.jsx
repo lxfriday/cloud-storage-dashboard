@@ -89,9 +89,10 @@ export default class Nav extends Component {
             </Menu>
           </div>
         </div>
-        <div className={styles.contentWrapper} style={{ backgroundImage: `url('${backImg}')` }}>
+        <div className={styles.contentWrapper}>
+          <div className={styles.backImg} style={{ backgroundImage: `url('${backImg}')` }}></div>
           <div className={styles.backImgOverlay}></div>
-          {children}
+          <div className={styles.content}>{children}</div>
         </div>
       </div>
     )

@@ -4,6 +4,8 @@ import MESSAGE_COMMANDS from './messageCommands'
 import globalConfig from './globalConfig'
 import openInBrowser from './utils/openInBrowser'
 import * as fsManager from './utils/fsManager'
+import * as utils from './utils'
+import * as boot from './utils/boot'
 
 export default function messageController(
   panel: vscode.WebviewPanel,
@@ -21,6 +23,20 @@ export default function messageController(
         const csp = cspAdaptor(message.data.providerName)
 
         switch (message.command) {
+          case MESSAGE_COMMANDS.getSettings:
+            const settings = boot.getSettings()
+            postMessage({
+              uniqueId: message.uniqueId,
+              data: settings,
+            })
+            return
+          case MESSAGE_COMMANDS.upadteSettings:
+            const updateSettingsRes = boot.updateSettings(message.data.newSettings)
+            postMessage({
+              uniqueId: message.uniqueId,
+              data: updateSettingsRes,
+            })
+            return
           case MESSAGE_COMMANDS.readPaths:
             const readPathsResult = await fsManager.readPaths(message.data.paths)
             postMessage({
@@ -123,6 +139,13 @@ export default function messageController(
               data: refreshDirsRes,
             })
             return
+          case MESSAGE_COMMANDS.showOpenDialog:
+            const showOpenDialogRes = await utils.showOpenDialog(message.data)
+            postMessage({
+              uniqueId: message.uniqueId,
+              data: showOpenDialogRes,
+            })
+          // return
         }
       } catch (e) {
         vscode.window.showErrorMessage(`extension 出现了错误 ${String(e)}`)
