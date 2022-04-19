@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import styles from './Nav.module.less'
-import { Menu, Select } from 'antd'
+import { Menu, Select, message } from 'antd'
 import {
   FolderOpenOutlined,
   SettingOutlined,
@@ -8,6 +8,8 @@ import {
   HomeOutlined,
 } from '@ant-design/icons'
 import { NavLink } from 'react-router-dom'
+
+import { getYuanshenBackImg } from '../utils'
 import * as messageCenter from '../utils/messageCenter'
 
 const { SubMenu } = Menu
@@ -20,6 +22,7 @@ export default class Nav extends Component {
       bucketList: [],
       bucketDomains: [],
       selectBucketDomain: '',
+      backImg: getYuanshenBackImg(),
     }
   }
 
@@ -29,7 +32,7 @@ export default class Nav extends Component {
 
   render() {
     const { children } = this.props
-    const { bucketList } = this.state
+    const { bucketList, backImg } = this.state
 
     return (
       <div className={styles.wrapper}>
@@ -86,15 +89,31 @@ export default class Nav extends Component {
             </Menu>
           </div>
         </div>
-        <div className={styles.contentWrapper}>{children}</div>
+        <div className={styles.contentWrapper} style={{ backgroundImage: `url('${backImg}')` }}>
+          <div className={styles.backImgOverlay}></div>
+          {children}
+        </div>
       </div>
     )
   }
   componentDidMount() {
-    messageCenter.requestGetBucketList().then(data => {
+    this.interval = setInterval(() => {
       this.setState({
-        bucketList: data,
+        backImg: getYuanshenBackImg(),
       })
-    })
+    }, 1000 * 300)
+    messageCenter
+      .requestGetBucketList()
+      .then(data => {
+        this.setState({
+          bucketList: data,
+        })
+      })
+      .catch(() => {
+        message.error('bucket 列表获取失败')
+      })
+  }
+  componentWillUnmount() {
+    clearInterval(this.interval)
   }
 }

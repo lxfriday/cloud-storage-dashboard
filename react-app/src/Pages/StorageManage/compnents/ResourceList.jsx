@@ -11,7 +11,6 @@ import {
   isGif as isGifFunc,
   isSvg as isSvgFunc,
   getResourceExtAndName,
-  getYuanshenBackImg,
 } from '../../../utils'
 import styles from './ResourceList.module.less'
 
@@ -50,7 +49,6 @@ export default function ResourceList({
     cellWrapperheight: 0,
   })
   const [isToTopVisible, setIsToTopVisible] = useState(false)
-  const [backImg, setBackImg] = useState(getYuanshenBackImg())
   // grid 外层 ref
   const gridOutterEle = useRef(null)
   // 列表 wrapper ref
@@ -101,20 +99,13 @@ export default function ResourceList({
     window.addEventListener('resize', calcGridInfo)
     calcGridInfo()
     handleLoadData()
-
-    const interval = setInterval(() => {
-      setBackImg(getYuanshenBackImg())
-    }, 1000 * 300)
-
     return () => {
       window.removeEventListener('resize', calcGridInfo)
-      clearInterval(interval)
     }
   }, [])
 
   return (
-    <div className={styles.wrapper} style={{ backgroundImage: `url('${backImg}')` }}>
-      <div className={styles.overlay}></div>
+    <div className={styles.wrapper}>
       <Grid
         ref={r => (gridRef.current = r)}
         outerRef={r => (gridOutterEle.current = r)}
