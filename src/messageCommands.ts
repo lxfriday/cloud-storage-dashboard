@@ -15,5 +15,6 @@ export default {
   refreshDirs: 'refreshDirs',
   showOpenDialog: 'showOpenDialog',
   getSettings: 'getSettings',
-  upadteSettings: 'upadteSettings',
+  updateSettings: 'updateSettings',
+  resetSettings: 'ResetSettings',
 }

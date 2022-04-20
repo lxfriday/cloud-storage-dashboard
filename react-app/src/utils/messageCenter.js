@@ -204,10 +204,10 @@ export function requestGetSettings() {
   )
 }
 
-export function requestUpadteSettings(newSettings) {
+export function requestUpdateSettings(newSettings) {
   return messageAdaptor(
     {
-      serverCommand: MESSAGE_COMMANDS.upadteSettings,
+      serverCommand: MESSAGE_COMMANDS.updateSettings,
       data: {
         ...providerInfo,
         newSettings,

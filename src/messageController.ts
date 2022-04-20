@@ -30,7 +30,7 @@ export default function messageController(
               data: settings,
             })
             return
-          case MESSAGE_COMMANDS.upadteSettings:
+          case MESSAGE_COMMANDS.updateSettings:
             const updateSettingsRes = boot.updateSettings(message.data.newSettings)
             postMessage({
               uniqueId: message.uniqueId,

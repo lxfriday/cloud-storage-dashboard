@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import { Switch, Input, Button, Radio, message } from 'antd'
+import { Switch, Input, Button, Radio, message, Modal } from 'antd'
 import { useSelector, useDispatch } from 'react-redux'
+import { WarningFilled } from '@ant-design/icons'
 
 import * as messageCenter from '../../utils/messageCenter'
 import { updateSettings } from '../../store/settings'
@@ -25,7 +26,7 @@ export default function Settings() {
   // 所有的设置都会走这个函数
   function handleSave({ k, v }) {
     messageCenter
-      .requestUpadteSettings({ [k]: v })
+      .requestUpdateSettings({ [k]: v })
       .then(data => {
         if (data.success) {
           handleUpdateSettings({
@@ -71,6 +72,9 @@ export default function Settings() {
     })
     setTmpBackImgs(backImgs)
   }
+
+  // 一键重置所有设置
+  function handleResetSettings() {}
 
   return (
     <div className={styles.wrapper}>
@@ -209,6 +213,29 @@ export default function Settings() {
             保存
           </Button>
         </div>
+      </div>
+      <div className={styles.itemWrapper}>
+        <span className={styles.noti}>
+          <WarningFilled style={{ color: 'red' }} />
+          一键重置所有设置信息
+        </span>
+        <Button
+          type="primary"
+          danger
+          size="small"
+          onClick={() => {
+            Modal.confirm({
+              title: '请谨慎操作',
+              content: '确定要重置所有设置？',
+              okText: '确定',
+              cancelText: '取消',
+              onOk: handleResetSettings,
+              okType: 'danger',
+            })
+          }}
+        >
+          重置
+        </Button>
       </div>
     </div>
   )
