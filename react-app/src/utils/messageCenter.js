@@ -216,3 +216,15 @@ export function requestUpdateSettings(newSettings) {
     false
   )
 }
+
+export function requestResetSettings() {
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.resetSettings,
+      data: {
+        ...providerInfo,
+      },
+    },
+    false
+  )
+}

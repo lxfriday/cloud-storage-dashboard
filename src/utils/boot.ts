@@ -20,7 +20,7 @@ const extSettingFileName = 'settings.json' // 配置文件
 const extPath = path.join(homePath, extFolderName) // 扩展文件夹绝对路径
 const settingsPath = path.join(extPath, extSettingFileName) // 配置文件绝对路径
 
-const baseSettings = {
+const resetNeededBaseSettings = {
   forceHTTPS: false, // 使用 https
   uploadUseOrignalFileName: false, // 上传时使用原文件名
   deleteWithoutConfirm: false, // 删除时不需要确认
@@ -28,6 +28,10 @@ const baseSettings = {
   imagePreviewSuffix: '?imageView2/1/w/85/h/85/format/webp/q/10', // 文件预览后缀
   downloadDir: '', // 文件下载的目录
   customBackImgs: utils.getYuanshenBackImg(true), // 自定义右下角背景图
+}
+
+const baseSettings = {
+  ...resetNeededBaseSettings,
   csp: '', // 供应商
   ak: '', // ak
   sk: '', // sk
@@ -75,6 +79,25 @@ export function updateSettings(newSettings: typeof baseSettings) {
     }
     fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2))
     return { success: true, settings }
+  } catch (e) {
+    return {
+      success: false,
+      msg: String(e),
+    }
+  }
+}
+
+// 重置配置信息，覆盖成初始状态，有几项不能重置
+// ak sk csp 不重置
+export function resetSettings() {
+  try {
+    const oldSettings = JSON.parse(fs.readFileSync(settingsPath).toString())
+    const newSettings = {
+      ...oldSettings,
+      ...resetNeededBaseSettings,
+    }
+    fs.writeFileSync(settingsPath, JSON.stringify(newSettings, null, 2))
+    return { success: true, settings: newSettings }
   } catch (e) {
     return {
       success: false,

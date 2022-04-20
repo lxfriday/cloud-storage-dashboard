@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { WarningFilled } from '@ant-design/icons'
 
 import * as messageCenter from '../../utils/messageCenter'
-import { updateSettings } from '../../store/settings'
+import { updateSettings, initSettings } from '../../store/settings'
 import styles from './index.module.less'
 
 export default function Settings() {
@@ -12,12 +12,6 @@ export default function Settings() {
   const [tmpImagePreviewSuffix, setTmpImagePreviewSuffix] = useState(settings.imagePreviewSuffix)
   const [tmpBackImgs, setTmpBackImgs] = useState(settings.customBackImgs)
   const dispatch = useDispatch()
-
-  console.log({
-    tmpImagePreviewSuffix,
-    tmpBackImgs,
-    equal: tmpImagePreviewSuffix === settings.imagePreviewSuffix,
-  })
 
   function handleUpdateSettings({ k, v }) {
     dispatch(updateSettings({ k, v }))
@@ -74,7 +68,23 @@ export default function Settings() {
   }
 
   // 一键重置所有设置
-  function handleResetSettings() {}
+  function handleResetSettings() {
+    messageCenter
+      .requestResetSettings()
+      .then(data => {
+        if (data.success) {
+          message.success('重置成功')
+          dispatch(initSettings(data.settings))
+          setTmpBackImgs(data.settings.customBackImgs)
+          setTmpImagePreviewSuffix(data.settings.imagePreviewSuffix)
+        } else {
+          message.error('重置失败：' + data.msg)
+        }
+      })
+      .catch(e => {
+        message.error('重置失败：' + String(e))
+      })
+  }
 
   return (
     <div className={styles.wrapper}>

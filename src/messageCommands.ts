@@ -16,5 +16,5 @@ export default {
   showOpenDialog: 'showOpenDialog',
   getSettings: 'getSettings',
   updateSettings: 'updateSettings',
-  resetSettings: 'ResetSettings',
+  resetSettings: 'resetSettings',
 }

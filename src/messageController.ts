@@ -37,6 +37,13 @@ export default function messageController(
               data: updateSettingsRes,
             })
             return
+          case MESSAGE_COMMANDS.resetSettings:
+            const resetSettingsRes = boot.resetSettings()
+            postMessage({
+              uniqueId: message.uniqueId,
+              data: resetSettingsRes,
+            })
+            return
           case MESSAGE_COMMANDS.readPaths:
             const readPathsResult = await fsManager.readPaths(message.data.paths)
             postMessage({
