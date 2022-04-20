@@ -30,11 +30,27 @@ const resetNeededBaseSettings = {
   customBackImgs: utils.getYuanshenBackImg(true), // 自定义右下角背景图
 }
 
+const cspSettings = {
+  // 当前正在使用的供应商
+  // currentCSP: {
+  //   csp: '',
+  //   ak: '',
+  //   sk: '',
+  // },
+  currentCSP: null,
+  // 已经登录了的 CSP 信息，可以供用户直接一键切换
+  usedCSPs: [
+    // {
+    //   csp: '',
+    //   ak: '',
+    //   sk: '',
+    // }, // ...
+  ],
+}
+
 const baseSettings = {
   ...resetNeededBaseSettings,
-  csp: '', // 供应商
-  ak: '', // ak
-  sk: '', // sk
+  ...cspSettings,
 }
 
 export default function boot() {
@@ -87,17 +103,18 @@ export function updateSettings(newSettings: typeof baseSettings) {
   }
 }
 
+// 重置通用设置
 // 重置配置信息，覆盖成初始状态，有几项不能重置
 // ak sk csp 不重置
 export function resetSettings() {
   try {
     const oldSettings = JSON.parse(fs.readFileSync(settingsPath).toString())
-    const newSettings = {
+    const settings = {
       ...oldSettings,
       ...resetNeededBaseSettings,
     }
-    fs.writeFileSync(settingsPath, JSON.stringify(newSettings, null, 2))
-    return { success: true, settings: newSettings }
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2))
+    return { success: true, settings }
   } catch (e) {
     return {
       success: false,

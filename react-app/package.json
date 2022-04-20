@@ -21,6 +21,7 @@
     "filesize": "^8.0.7",
     "history": "^5.3.0",
     "qiniu-js": "^3.4.0",
+    "rc-queue-anim": "^2.0.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-draggable": "^4.4.4",

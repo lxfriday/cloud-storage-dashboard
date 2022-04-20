@@ -10,9 +10,21 @@ const settingsSlice = createSlice({
     imagePreviewSuffix: '', // 文件预览后缀
     downloadDir: '', // 文件下载的目录
     customBackImgs: [], // 自定义右下角背景图
-    csp: '',
-    ak: '',
-    sk: '',
+    // 当前正在使用的供应商
+    // currentCSP: {
+    //   csp: '',
+    //   ak: '',
+    //   sk: '',
+    // },
+    currentCSP: null, // 为 null 表示没有登录过，要进行登录
+    // 已经登录了的 CSP 信息，可以供用户直接一键切换
+    usedCSPs: [
+      // {
+      //   csp: '',
+      //   ak: '',
+      //   sk: '',
+      // }, // ...
+    ],
   },
   reducers: {
     // 更新某一个设置
