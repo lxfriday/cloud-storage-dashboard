@@ -681,7 +681,6 @@ export default function StorageManage() {
       <ResourceList
         uploadFolder={uploadFolders.join('')}
         commonPrefixList={commonPrefixList}
-        imagePreviewSuffix={settings.imagePreviewSuffix}
         selectedKeys={selectedKeys}
         selectedFolders={selectedFolders}
         resourceList={resourceList}

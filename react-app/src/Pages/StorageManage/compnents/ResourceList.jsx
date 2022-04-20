@@ -17,7 +17,6 @@ import styles from './ResourceList.module.less'
 export default function ResourceList({
   uploadFolder,
   commonPrefixList,
-  imagePreviewSuffix,
   selectedKeys,
   selectedFolders,
   resourceList,
@@ -129,7 +128,6 @@ export default function ResourceList({
           handleToggleSelectFolder,
           commonPrefixList,
           resourcePrefix,
-          imagePreviewSuffix,
           selectedKeys,
           handleToggleSelectKey,
           handleDeleteFiles,
@@ -175,7 +173,6 @@ const Cell = ({
     handleToggleSelectFolder,
     commonPrefixList,
     resourcePrefix,
-    imagePreviewSuffix,
     selectedKeys,
     handleToggleSelectKey,
     handleDeleteFiles,
@@ -225,7 +222,6 @@ const Cell = ({
       <div className={styles.cellWrapper} style={style} key={resourceInfo.key}>
         <ResourceCard
           ext={ext}
-          imagePreviewSuffix={imagePreviewSuffix}
           isAudio={isAudioFunc(ext)}
           isVideo={isVideoFunc(ext)}
           isImage={isImageFunc(ext)}

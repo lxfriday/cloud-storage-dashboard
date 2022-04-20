@@ -33,7 +33,6 @@ export default function ResourceCard({
   putTime,
   fkey,
   selected,
-  imagePreviewSuffix, // 用来预览的尾缀，压缩图像提升显示性能，但是和 刷新 CDN 有冲突，暂时禁用
   handleToggleSelectKey,
   handleDeleteFile,
   handleSelectAll,
@@ -43,6 +42,8 @@ export default function ResourceCard({
   handleRefreshResource,
 }) {
   const deleteWithoutConfirm = useSelector(state => state.settings.deleteWithoutConfirm)
+  // 用来预览的尾缀，压缩图像提升显示性能，但是和 刷新 CDN 有冲突，暂时禁用
+  const imagePreviewSuffix = useSelector(state => state.settings.imagePreviewSuffix)
   const [renameOpModalVisible, setRenameOpModalVisible] = useState(false)
   const [moveOpModalVisible, setMoveOpModalVisible] = useState(false)
   const [newKey, setNewKey] = useState(fkey)
@@ -61,8 +62,8 @@ export default function ResourceCard({
     finalImage = (
       <div
         style={{
-          // backgroundImage: `url("${isGif || isSvg ? url : url + imagePreviewSuffix}")`,
-          backgroundImage: `url("${url}")`,
+          backgroundImage: `url("${isGif || isSvg ? url : url + imagePreviewSuffix}")`,
+          // backgroundImage: `url("${url}")`,
         }}
         className={styles.img}
       />
@@ -233,6 +234,7 @@ export default function ResourceCard({
               clickCount = 0
             }, 200)
           }}
+          title={fileFullName}
         >
           <div className={classnames(styles.fileExtWrapper, finalExtIsKnown && styles.known)}>
             {finalExtName}
