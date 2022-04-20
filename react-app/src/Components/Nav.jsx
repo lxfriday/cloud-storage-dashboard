@@ -1,6 +1,5 @@
-import React, { Component } from 'react'
-import styles from './Nav.module.less'
-import { Menu, Select, message } from 'antd'
+import React, { useState, useEffect } from 'react'
+import { Menu, message } from 'antd'
 import {
   FolderOpenOutlined,
   SettingOutlined,
@@ -8,113 +7,110 @@ import {
   HomeOutlined,
 } from '@ant-design/icons'
 import { NavLink } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
 
+import { initSettings } from '../store/settings'
 import { getYuanshenBackImg } from '../utils'
 import * as messageCenter from '../utils/messageCenter'
+import styles from './Nav.module.less'
 
 const { SubMenu } = Menu
-const { Option } = Select
 
-export default class Nav extends Component {
-  constructor() {
-    super()
-    this.state = {
-      bucketList: [],
-      bucketDomains: [],
-      selectBucketDomain: '',
-      backImg: getYuanshenBackImg(),
-    }
-  }
+export default function Nav({ children }) {
+  const [backImg, setBackImg] = useState('')
+  const [bucketList, setBucketList] = useState([])
+  const dispatch = useDispatch()
 
-  handleChangeDomain = domain => {
-    this.setState({ selectBucketDomain: domain })
-  }
-
-  render() {
-    const { children } = this.props
-    const { bucketList, backImg } = this.state
-
-    return (
-      <div className={styles.wrapper}>
-        <div className={styles.sideWrapper}>
-          <div className={styles.sideTopWrapper}>
-            <div className={styles.siteTitle}>云存储管理</div>
-            <Menu
-              style={{ width: 180 }}
-              defaultSelectedKeys={['home']}
-              defaultOpenKeys={['sub1']}
-              mode="inline"
-              theme="dark"
-            >
-              <Menu.Item key="home" icon={<HomeOutlined />}>
-                <NavLink
-                  to="/"
-                  className={({ isActive }) => (isActive ? styles.navLinkActive : undefined)}
-                >
-                  首页
-                </NavLink>
-              </Menu.Item>
-              <SubMenu key="sub1" icon={<FolderOpenOutlined />} title="存储空间">
-                {bucketList.map(bk => (
-                  <Menu.Item key={bk}>
-                    <NavLink
-                      to={`/storagemanage?space=${bk}`}
-                      className={({ isActive }) => (isActive ? styles.navLinkActive : undefined)}
-                    >
-                      {bk}
-                    </NavLink>
-                  </Menu.Item>
-                ))}
-              </SubMenu>
-              <Menu.Item key="settings" icon={<SettingOutlined />}>
-                <NavLink
-                  to="/settings"
-                  className={({ isActive }) => (isActive ? styles.navLinkActive : undefined)}
-                >
-                  设置
-                </NavLink>
-              </Menu.Item>
-            </Menu>
-          </div>
-          <div className={styles.sideBottomWrapper}>
-            <Menu style={{ width: 180 }} mode="inline" theme="dark">
-              <Menu.Item key="logout" icon={<LogoutOutlined />}>
-                <NavLink
-                  to="/logout"
-                  className={({ isActive }) => (isActive ? styles.navLinkActive : undefined)}
-                >
-                  七牛云(切换)
-                </NavLink>
-              </Menu.Item>
-            </Menu>
-          </div>
-        </div>
-        <div className={styles.contentWrapper}>
-          <div className={styles.backImg} style={{ backgroundImage: `url('${backImg}')` }}></div>
-          <div className={styles.backImgOverlay}></div>
-          <div className={styles.content}>{children}</div>
-        </div>
-      </div>
-    )
-  }
-  componentDidMount() {
-    this.interval = setInterval(() => {
-      this.setState({
-        backImg: getYuanshenBackImg(),
-      })
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBackImg(getYuanshenBackImg())
     }, 1000 * 300)
+    // 获取 bucket 列表
     messageCenter
       .requestGetBucketList()
       .then(data => {
-        this.setState({
-          bucketList: data,
-        })
+        setBucketList(data)
       })
       .catch(() => {
         message.error('bucket 列表获取失败')
       })
-  }
-  componentWillUnmount() {
-    clearInterval(this.interval)
-  }
+
+    messageCenter
+      .requestGetSettings()
+      .then(data => {
+        if (data.success) {
+          dispatch(initSettings(data.settings))
+        } else {
+          message.error('获取初始配置信息失败')
+        }
+      })
+      .catch(e => {
+        message.error('获取初始配置信息失败', String(e))
+      })
+    return () => {
+      clearInterval(interval)
+    }
+  }, [])
+  return (
+    <div className={styles.wrapper}>
+      <div className={styles.sideWrapper}>
+        <div className={styles.sideTopWrapper}>
+          <div className={styles.siteTitle}>云存储管理</div>
+          <Menu
+            style={{ width: 180 }}
+            defaultSelectedKeys={['home']}
+            defaultOpenKeys={['sub1']}
+            mode="inline"
+            theme="dark"
+          >
+            <Menu.Item key="home" icon={<HomeOutlined />}>
+              <NavLink
+                to="/"
+                className={({ isActive }) => (isActive ? styles.navLinkActive : undefined)}
+              >
+                首页
+              </NavLink>
+            </Menu.Item>
+            <SubMenu key="sub1" icon={<FolderOpenOutlined />} title="存储空间">
+              {bucketList.map(bk => (
+                <Menu.Item key={bk}>
+                  <NavLink
+                    to={`/storagemanage?space=${bk}`}
+                    className={({ isActive }) => (isActive ? styles.navLinkActive : undefined)}
+                  >
+                    {bk}
+                  </NavLink>
+                </Menu.Item>
+              ))}
+            </SubMenu>
+            <Menu.Item key="settings" icon={<SettingOutlined />}>
+              <NavLink
+                to="/settings"
+                className={({ isActive }) => (isActive ? styles.navLinkActive : undefined)}
+              >
+                设置
+              </NavLink>
+            </Menu.Item>
+          </Menu>
+        </div>
+        <div className={styles.sideBottomWrapper}>
+          <Menu style={{ width: 180 }} mode="inline" theme="dark">
+            <Menu.Item key="logout" icon={<LogoutOutlined />}>
+              <NavLink
+                to="/logout"
+                className={({ isActive }) => (isActive ? styles.navLinkActive : undefined)}
+              >
+                七牛云(切换)
+              </NavLink>
+            </Menu.Item>
+          </Menu>
+        </div>
+      </div>
+      <div className={styles.contentWrapper}>
+        <div className={styles.backImg} style={{ backgroundImage: `url('${backImg}')` }}></div>
+        <div className={styles.backImgOverlay}></div>
+        <div className={styles.content}>{children}</div>
+      </div>
+    </div>
+  )
 }

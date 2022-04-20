@@ -1,8 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit'
-import counterReducer from './count'
+import { createLogger } from 'redux-logger'
+
+import settingsReducer from './settings'
 
 export const store = configureStore({
   reducer: {
-    counter: counterReducer,
+    settings: settingsReducer,
   },
+  middleware: [createLogger()],
 })
+
+store.subscribe(() => console.log(store.getState()))

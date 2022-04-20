@@ -200,7 +200,7 @@ export function requestGetSettings() {
         ...providerInfo,
       },
     },
-    false
+    true
   )
 }
 
