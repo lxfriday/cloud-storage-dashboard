@@ -5,10 +5,10 @@ import React, { useEffect, Fragment, useState, useRef } from 'react'
 import { InboxOutlined, DeleteOutlined } from '@ant-design/icons'
 import { Modal, Input, message } from 'antd'
 import copy from 'copy-text-to-clipboard'
+import { useSelector } from 'react-redux'
 
 import styles from './PasteAndDragUpload.module.less'
 import { generateRandomResourceName } from '../../../utils'
-import settings from '../../../utils/settings'
 
 // 扫描 entry 对应的文件，或者扫描 entry 对应的文件夹中的所有文件及子文件夹中的所有文件
 function scanEntry(entry) {
@@ -65,6 +65,7 @@ export default function PasteAndDragUpload({
   handleSetPendingUploadPrefix,
   resetPendingUploadPrefix,
 }) {
+  const settings = useSelector(state => state.settings)
   const [overlayVisible, setOverlayVisible] = useState(false)
   const [pendingResourceNotiModalVisible, setPendingResourceNotiModalVisible] = useState(false)
   const [pendingResourceList, setPendingResourceList] = useState([])

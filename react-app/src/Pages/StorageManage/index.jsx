@@ -12,6 +12,7 @@ import {
 } from '@ant-design/icons'
 import copy from 'copy-text-to-clipboard'
 import classnames from 'classnames'
+import { useSelector } from 'react-redux'
 
 import SelectUpload from './compnents/SelectUpload'
 import ResourceList from './compnents/ResourceList'
@@ -21,7 +22,6 @@ import { renderUploadManager, destroyUploadManager } from '../../Components/Uplo
 import styles from './index.module.less'
 import * as messageCenter from '../../utils/messageCenter'
 import { debounce, getFileSize, isUrl, generateRandomResourceName } from '../../utils'
-import settings from '../../utils/settings'
 import cloudserviceprovider from '../../utils/cloudserviceprovider'
 
 const { Option } = Select
@@ -32,6 +32,7 @@ const csp = cloudserviceprovider[providerName]
 let isLoadingResource = false // 是否正在加载资源
 
 export default function StorageManage() {
+  const settings = useSelector(state => state.settings)
   let [bucketDomainInfo, setBucketDomainInfo] = useState({
     bucketDomains: [],
     selectBucketDomain: '',

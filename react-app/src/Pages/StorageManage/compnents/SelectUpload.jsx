@@ -5,8 +5,8 @@ import React, { useRef, useState, Fragment } from 'react'
 import { Modal, Input, message } from 'antd'
 import copy from 'copy-text-to-clipboard'
 import { DeleteOutlined } from '@ant-design/icons'
+import { useSelector } from 'react-redux'
 
-import settings from '../../../utils/settings'
 import { generateRandomResourceName } from '../../../utils'
 import styles from './SelectUpload.module.less'
 
@@ -21,6 +21,7 @@ export default function SelectUpload({
   handleSetPendingUploadPrefix,
   resetPendingUploadPrefix,
 }) {
+  const settings = useSelector(state => state.settings)
   const [pendingResourceNotiModalVisible, setPendingResourceNotiModalVisible] = useState(false)
   const [pendingResourceList, setPendingResourceList] = useState([])
   const inputEle = useRef(null)

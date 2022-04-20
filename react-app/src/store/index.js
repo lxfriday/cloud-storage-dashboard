@@ -7,7 +7,7 @@ export const store = configureStore({
   reducer: {
     settings: settingsReducer,
   },
-  middleware: [createLogger()],
+  middleware: [__DEV__ && createLogger()].filter(m => !!m),
 })
 
 store.subscribe(() => console.log(store.getState()))
