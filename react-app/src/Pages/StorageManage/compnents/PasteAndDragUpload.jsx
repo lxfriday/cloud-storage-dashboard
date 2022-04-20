@@ -8,7 +8,7 @@ import copy from 'copy-text-to-clipboard'
 import { useSelector } from 'react-redux'
 
 import styles from './PasteAndDragUpload.module.less'
-import { generateRandomResourceName } from '../../../utils'
+import { generateRandomResourceName, copyFormattedBySettings } from '../../../utils'
 
 // 扫描 entry 对应的文件，或者扫描 entry 对应的文件夹中的所有文件及子文件夹中的所有文件
 function scanEntry(entry) {
@@ -88,7 +88,7 @@ export default function PasteAndDragUpload({
           encodeURI(resourcePrefix + resourceInfo.key)
         )
 
-        copy(uploadedResourceLinks.join('\r\n'))
+        copyFormattedBySettings(settings.copyFormat, uploadedResourceLinks)
 
         message.success(
           res.length > 1

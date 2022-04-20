@@ -21,7 +21,13 @@ import { renderUploadManager, destroyUploadManager } from '../../Components/Uplo
 
 import styles from './index.module.less'
 import * as messageCenter from '../../utils/messageCenter'
-import { debounce, getFileSize, isUrl, generateRandomResourceName } from '../../utils'
+import {
+  debounce,
+  getFileSize,
+  isUrl,
+  generateRandomResourceName,
+  copyFormattedBySettings,
+} from '../../utils'
 import cloudserviceprovider from '../../utils/cloudserviceprovider'
 
 const { Option } = Select
@@ -286,7 +292,7 @@ export default function StorageManage() {
         })
         .then(data => {
           if (data.success) {
-            copy(encodeURI(`${resourcePrefix}${key}`))
+            copyFormattedBySettings(settings.copyFormat, encodeURI(`${resourcePrefix}${key}`))
             message.success('资源抓取成功，已复制到剪切板')
           } else {
             message.error('资源抓取失败 ' + data.msg)

@@ -1,4 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
+import copy from 'copy-text-to-clipboard'
+
 import imageExtensions from './fileExtensions/imageExtensions'
 import videoExtensions from './fileExtensions/videoExtensions'
 import audioExtensions from './fileExtensions/audioExtensions'
@@ -196,4 +198,30 @@ export function getYuanshenBackImg(returnAll = false) {
   } else {
     return imgs[Math.floor(Math.random() * imgs.length)]
   }
+}
+
+/**
+ * 根据设置的格式来进行复制
+ * @param {string} format url 或者 markdown 复制的格式
+ * @param {string | string[]} urls 要复制的地址
+ */
+export function copyFormattedBySettings(format, urls) {
+  let res = ''
+  if (format === 'url') {
+    if (typeof urls === 'string') {
+      res = urls
+    } else {
+      // url 数组
+      urls.forEach(u => (res += `${u}\r\n`))
+    }
+  } else {
+    if (typeof urls === 'string') {
+      res = `![](${urls})`
+    } else {
+      // url 数组
+      urls.forEach(u => (res += `![](${u})\r\n`))
+    }
+  }
+
+  copy(res)
 }

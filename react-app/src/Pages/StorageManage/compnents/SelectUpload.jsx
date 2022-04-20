@@ -3,11 +3,10 @@
  */
 import React, { useRef, useState, Fragment } from 'react'
 import { Modal, Input, message } from 'antd'
-import copy from 'copy-text-to-clipboard'
 import { DeleteOutlined } from '@ant-design/icons'
 import { useSelector } from 'react-redux'
 
-import { generateRandomResourceName } from '../../../utils'
+import { generateRandomResourceName, copyFormattedBySettings } from '../../../utils'
 import styles from './SelectUpload.module.less'
 
 export default function SelectUpload({
@@ -71,7 +70,7 @@ export default function SelectUpload({
           encodeURI(resourcePrefix + resourceInfo.key)
         )
 
-        copy(uploadedResourceLinks.join('\r\n'))
+        copyFormattedBySettings(settings.copyFormat, uploadedResourceLinks)
 
         message.success(
           res.length > 1
