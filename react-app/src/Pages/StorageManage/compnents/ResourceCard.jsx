@@ -11,6 +11,7 @@ import {
 import { message, Menu, Dropdown, Modal, Input } from 'antd'
 import copy from 'copy-text-to-clipboard'
 import classnames from 'classnames'
+import { useSelector } from 'react-redux'
 
 import { getFullTime, getFileSize } from '../../../utils'
 import styles from './ResourceCard.module.less'
@@ -41,6 +42,7 @@ export default function ResourceCard({
   handleRenameResource,
   handleRefreshResource,
 }) {
+  const deleteWithoutConfirm = useSelector(state => state.settings.deleteWithoutConfirm)
   const [renameOpModalVisible, setRenameOpModalVisible] = useState(false)
   const [moveOpModalVisible, setMoveOpModalVisible] = useState(false)
   const [newKey, setNewKey] = useState(fkey)
@@ -74,18 +76,22 @@ export default function ResourceCard({
   }
 
   function handlePressDelete() {
-    Modal.confirm({
-      title: '确定删除以下文件？',
-      icon: <ExclamationCircleOutlined />,
-      content: url,
-      width: 750,
-      okText: '删除',
-      okType: 'danger',
-      cancelText: '取消',
-      onOk() {
-        handleDeleteFile([fkey])
-      },
-    })
+    if (deleteWithoutConfirm) {
+      handleDeleteFile([fkey])
+    } else {
+      Modal.confirm({
+        title: '确定删除以下文件？',
+        icon: <ExclamationCircleOutlined />,
+        content: url,
+        width: 750,
+        okText: '删除',
+        okType: 'danger',
+        cancelText: '取消',
+        onOk() {
+          handleDeleteFile([fkey])
+        },
+      })
+    }
   }
 
   // 文件详情

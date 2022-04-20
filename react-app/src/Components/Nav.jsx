@@ -7,7 +7,7 @@ import {
   HomeOutlined,
 } from '@ant-design/icons'
 import { NavLink } from 'react-router-dom'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 
 import { initSettings } from '../store/settings'
 import { getYuanshenBackImg } from '../utils'
@@ -17,14 +17,12 @@ import styles from './Nav.module.less'
 const { SubMenu } = Menu
 
 export default function Nav({ children }) {
-  const [backImg, setBackImg] = useState('')
+  const backImgs = useSelector(state => state.settings.customBackImgs)
+  const [backImg, setBackImg] = useState(backImgs[Math.floor(Math.random() * backImgs.length)])
   const [bucketList, setBucketList] = useState([])
   const dispatch = useDispatch()
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setBackImg(getYuanshenBackImg())
-    }, 1000 * 300)
     // 获取 bucket 列表
     messageCenter
       .requestGetBucketList()
@@ -47,10 +45,17 @@ export default function Nav({ children }) {
       .catch(e => {
         message.error('获取初始配置信息失败', String(e))
       })
+  }, [])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBackImg(backImgs[Math.floor(Math.random() * backImgs.length)])
+    }, 1000 * 300)
     return () => {
       clearInterval(interval)
     }
-  }, [])
+  }, [backImgs])
+
   return (
     <div className={styles.wrapper}>
       <div className={styles.sideWrapper}>

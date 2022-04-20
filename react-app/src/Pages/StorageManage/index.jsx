@@ -203,7 +203,7 @@ export default function StorageManage() {
         const nSelectedKeys = []
         selectedKeys.forEach(k => {
           if (!keys.includes(k)) {
-            nSelectedKeys(k)
+            nSelectedKeys.push(k)
           }
         })
         setSelectedKeys(nSelectedKeys)
@@ -612,16 +612,20 @@ export default function StorageManage() {
                   type="primary"
                   danger
                   onClick={() => {
-                    Modal.confirm({
-                      title: '确定删除选中的文件？',
-                      icon: <ExclamationCircleOutlined />,
-                      okText: '删除',
-                      okType: 'danger',
-                      cancelText: '取消',
-                      onOk() {
-                        handleDeleteSelectedFiles()
-                      },
-                    })
+                    if (settings.deleteWithoutConfirm) {
+                      handleDeleteSelectedFiles()
+                    } else {
+                      Modal.confirm({
+                        title: '确定删除选中的文件？',
+                        icon: <ExclamationCircleOutlined />,
+                        okText: '删除',
+                        okType: 'danger',
+                        cancelText: '取消',
+                        onOk() {
+                          handleDeleteSelectedFiles()
+                        },
+                      })
+                    }
                   }}
                 >
                   删除({selectedKeys.length})

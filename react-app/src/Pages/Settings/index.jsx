@@ -9,7 +9,15 @@ import styles from './index.module.less'
 
 export default function Settings() {
   const settings = useSelector(state => state.settings)
+  const [tmpImagePreviewSuffix, setTmpImagePreviewSuffix] = useState(settings.imagePreviewSuffix)
+  const [tmpBackImgs, setTmpBackImgs] = useState(settings.customBackImgs)
   const dispatch = useDispatch()
+
+  console.log({
+    tmpImagePreviewSuffix,
+    tmpBackImgs,
+    equal: tmpImagePreviewSuffix === settings.imagePreviewSuffix,
+  })
 
   function handleUpdateSettings({ k, v }) {
     dispatch(updateSettings({ k, v }))
@@ -57,11 +65,12 @@ export default function Settings() {
   // 保存自定义背景图
   function handleSaveCustomBackImgs() {
     // 去除空字符串
-    const backImgs = settings.customBackImgs.filter(url => !!url)
+    const backImgs = tmpBackImgs.filter(url => !!url)
     handleSave({
       k: 'customBackImgs',
       v: backImgs,
     })
+    setTmpBackImgs(backImgs)
   }
 
   return (
@@ -133,14 +142,9 @@ export default function Settings() {
           <Input
             size="small"
             type="text"
-            value={settings.imagePreviewSuffix}
+            value={tmpImagePreviewSuffix}
             style={{ width: 600 }}
-            onChange={e =>
-              handleUpdateSettings({
-                k: 'imagePreviewSuffix',
-                v: e.target.value,
-              })
-            }
+            onChange={e => setTmpImagePreviewSuffix(e.target.value)}
           />
           <Button
             type="primary"
@@ -148,7 +152,7 @@ export default function Settings() {
             onClick={() => {
               handleSave({
                 k: 'imagePreviewSuffix',
-                v: settings.imagePreviewSuffix,
+                v: tmpImagePreviewSuffix,
               })
             }}
           >
@@ -175,7 +179,7 @@ export default function Settings() {
             row={6}
             size="small"
             type="text"
-            value={settings.customBackImgs.join('\n')}
+            value={tmpBackImgs.join('\n')}
             style={{ width: 650, height: 200 }}
             onChange={e => {
               const { value } = e.target
@@ -195,10 +199,11 @@ export default function Settings() {
               imgs = newValue.split('\n')
               // img 可能有空字符串
 
-              handleUpdateSettings({
-                k: 'customBackImgs',
-                v: imgs,
-              })
+              // handleUpdateSettings({
+              //   k: 'customBackImgs',
+              //   v: imgs,
+              // })
+              setTmpBackImgs(imgs)
             }}
           />
           <Button type="primary" size="small" onClick={handleSaveCustomBackImgs}>
