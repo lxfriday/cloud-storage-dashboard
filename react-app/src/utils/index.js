@@ -122,7 +122,7 @@ export function getFullTime(t) {
 }
 
 export function getFileSize(size) {
-  return filesize(size, { base: 2 })
+  return filesize(size, { base: 2, standard: 'jedec' })
 }
 
 export function debounce(func, wait, immediate) {
@@ -182,23 +182,23 @@ export function isUrl(string) {
   return false
 }
 
-// 随机显示一个元神妹子
-export function getYuanshenBackImg(returnAll = false) {
-  const imgs = [
-    'https://gitee.com/lxfriday/vscode-osu-mode2/raw/master/images/Character_Diona_Portrait.png',
-    'https://gitee.com/lxfriday/vscode-osu-mode2/raw/master/images/Character_Fischl_Portrait.png',
-    'https://gitee.com/lxfriday/vscode-osu-mode2/raw/master/images/Character_Ganyu_Portrait.png',
-    'https://gitee.com/lxfriday/vscode-osu-mode2/raw/master/images/Character_Hu_Tao_Portrait.png',
-    'https://gitee.com/lxfriday/vscode-osu-mode2/raw/master/images/Character_Keqing_Portrait.png',
-    'https://gitee.com/lxfriday/vscode-osu-mode2/raw/master/images/Character_Klee_Portrait.png',
-    'https://gitee.com/lxfriday/vscode-osu-mode2/raw/master/images/Character_Qiqi_Portrait.png',
-  ]
-  if (returnAll) {
-    return imgs
-  } else {
-    return imgs[Math.floor(Math.random() * imgs.length)]
-  }
-}
+// // 随机显示一个元神妹子
+// export function getYuanshenBackImg(returnAll = false) {
+//   const imgs = [
+//     'https://gitee.com/lxfriday/vscode-osu-mode2/raw/master/images/Character_Diona_Portrait.png',
+//     'https://gitee.com/lxfriday/vscode-osu-mode2/raw/master/images/Character_Fischl_Portrait.png',
+//     'https://gitee.com/lxfriday/vscode-osu-mode2/raw/master/images/Character_Ganyu_Portrait.png',
+//     'https://gitee.com/lxfriday/vscode-osu-mode2/raw/master/images/Character_Hu_Tao_Portrait.png',
+//     'https://gitee.com/lxfriday/vscode-osu-mode2/raw/master/images/Character_Keqing_Portrait.png',
+//     'https://gitee.com/lxfriday/vscode-osu-mode2/raw/master/images/Character_Klee_Portrait.png',
+//     'https://gitee.com/lxfriday/vscode-osu-mode2/raw/master/images/Character_Qiqi_Portrait.png',
+//   ]
+//   if (returnAll) {
+//     return imgs
+//   } else {
+//     return imgs[Math.floor(Math.random() * imgs.length)]
+//   }
+// }
 
 /**
  * 根据设置的格式来进行复制
