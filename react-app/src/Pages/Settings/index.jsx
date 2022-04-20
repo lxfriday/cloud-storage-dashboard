@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Switch, Input, Button, Radio, message } from 'antd'
 import { useSelector, useDispatch } from 'react-redux'
 
 import * as messageCenter from '../../utils/messageCenter'
-import { getYuanshenBackImg } from '../../utils'
-import { updateSettings, initSettings } from '../../store/settings'
+import { updateSettings } from '../../store/settings'
 import styles from './index.module.less'
 
 export default function Settings() {

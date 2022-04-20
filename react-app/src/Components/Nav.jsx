@@ -10,7 +10,6 @@ import { NavLink } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { initSettings } from '../store/settings'
-import { getYuanshenBackImg } from '../utils'
 import * as messageCenter from '../utils/messageCenter'
 import styles from './Nav.module.less'
 
@@ -18,7 +17,7 @@ const { SubMenu } = Menu
 
 export default function Nav({ children }) {
   const backImgs = useSelector(state => state.settings.customBackImgs)
-  const [backImg, setBackImg] = useState(backImgs[Math.floor(Math.random() * backImgs.length)])
+  const [backImg, setBackImg] = useState()
   const [bucketList, setBucketList] = useState([])
   const dispatch = useDispatch()
 
@@ -38,6 +37,11 @@ export default function Nav({ children }) {
       .then(data => {
         if (data.success) {
           dispatch(initSettings(data.settings))
+          setBackImg(
+            data.settings.customBackImgs[
+              Math.floor(Math.random() * data.settings.customBackImgs.length)
+            ]
+          )
         } else {
           message.error('获取初始配置信息失败')
         }
