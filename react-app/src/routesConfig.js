@@ -1,7 +1,6 @@
 import Home from './Pages/Home/index'
 import Settings from './Pages/Settings/index'
 import StorageManage from './Pages/StorageManage/index'
-import Logout from './Pages/Logout'
 
 const routes = [
   {
@@ -14,11 +13,7 @@ const routes = [
     comp: StorageManage,
     title: '管理存储空间',
   },
-  {
-    path: '/logout',
-    comp: Logout,
-    title: '切换',
-  },
+  // 这里用 * 而不是 /，是因为 vscode 的特殊情况，默认不会匹配到任何路由
   {
     path: '*',
     comp: Home,

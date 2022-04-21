@@ -3,6 +3,7 @@ import { Input, Button, message, notification, Spin } from 'antd'
 import { SendOutlined, DeleteFilled } from '@ant-design/icons'
 import classnames from 'classnames'
 import { useSelector, useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 
 import { initSettings } from '../store/settings'
 import loadParticlesJS from '../utils/particle'
@@ -43,6 +44,7 @@ const csps = [
 ]
 
 export default function Login() {
+  const navigate = useNavigate()
   const usedCSPs = useSelector(state => state.settings.usedCSPs)
   const dispatch = useDispatch()
   const [isLoading, setIsLoading] = useState(false)
@@ -77,8 +79,10 @@ export default function Login() {
       })
       .then(data => {
         if (data.success) {
+          navigate('/')
           message.success('登录成功')
           dispatch(initSettings(data.settings))
+          // 这里注意，虽然没有注册为 / 的路由，但是会 fallback 到 * 对应的页面，也就是 首页
           // setIsLoading(false) 不需要
         } else {
           notification.error({
