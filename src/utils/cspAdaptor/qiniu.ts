@@ -3,6 +3,7 @@ import * as vscode from 'vscode'
 import * as dayjs from 'dayjs'
 
 import * as Request from '../request'
+import * as boot from '../boot'
 
 // ---------------------------------------------------
 import qiniuKeys from './qiniu.keys'
@@ -16,16 +17,11 @@ function notiTpl(msg: string) {
   return `七牛：${msg}`
 }
 
-// const publicConfig = {
-//   bucket: 'storage',
-//   imgDomain: 'https://qiniu1.lxfriday.xyz/',
-// }
-
 export const qiniuConfig = {
   ak: qiniuKeys.ak,
   sk: qiniuKeys.sk,
   bucket: 'storage',
-  imgDomain: 'https://qiniu1.lxfriday.xyz/',
+  // imgDomain: 'https://qiniu1.lxfriday.xyz/',
 }
 
 const urls = {
@@ -39,33 +35,49 @@ const urls = {
 
 class Qiniu {
   // base config
-  ak: string
-  sk: string
-  bucket: string
-  imgDomain: string
-  expires: number
-  returnBody: string
+  ak: string = ''
+  sk: string = ''
+  bucket: string = ''
+  expires: number = 604800
+  returnBody: string =
+    '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","etag":"$(etag)","mimeType":"$(mimeType)","ext":"$(ext)"}'
 
   // img list config
-  marker: string // 分页用
-  resourceListReachEnd: boolean // 资源是否加载完了
+  marker: string = '' // 分页用
+  resourceListReachEnd: boolean = false // 资源是否加载完了
 
-  qiniuMac: qiniu.auth.digest.Mac
-  // qiniuConfig: qiniu.conf.Config
+  qiniuMac: qiniu.auth.digest.Mac | null = null
 
-  constructor(params: { ak: string; sk: string; bucket: string; imgDomain: string }) {
-    this.ak = params.ak
-    this.sk = params.sk
-    this.bucket = params.bucket
-    this.imgDomain = params.imgDomain
-    this.expires = 604800 // 一周
-    this.returnBody =
-      '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","etag":"$(etag)","mimeType":"$(mimeType)","ext":"$(ext)"}'
-    this.marker = ''
-    this.resourceListReachEnd = false
+  // 不再通过实例化的时候传数据，通过 login 把数据传递过来
+  constructor() {}
 
-    this.qiniuMac = new qiniu.auth.digest.Mac(params.ak, params.sk)
-    // this.qiniuConfig = new qiniu.conf.Config()
+  // 首次获取配置的时候，如果是有 currentCSP 的，则会直接把 currentCSP 信息更新在对应的 adaptor 里
+  updateCSPInfo(cspInfo: { csp: string; ak: string; sk: string; nickname: string }) {
+    this.ak = cspInfo.ak
+    this.sk = cspInfo.sk
+    this.qiniuMac = new qiniu.auth.digest.Mac(cspInfo.ak, cspInfo.sk)
+  }
+
+  // 登录，通过请求一个接口看是否成功来决定登录是否成功
+  // 登录的时候有一个很重要的事情：设置当前的 ak、sk
+  async login(cspInfo: { csp: string; ak: string; sk: string; nickname: string }) {
+    this.updateCSPInfo(cspInfo)
+    const res = await this.getBucketList()
+    if (res.error) {
+      this.ak = ''
+      this.sk = ''
+      this.qiniuMac = null
+      return {
+        success: false,
+        msg: res.error,
+      }
+    }
+    // 把登录信息保存在本地
+    const settings = boot.login(cspInfo)
+    return {
+      success: true,
+      settings,
+    }
   }
 
   // 上传用的 token
@@ -76,7 +88,7 @@ class Qiniu {
       returnBody: this.returnBody,
     }
     const putPolicy = new qiniu.rs.PutPolicy(options)
-    const uploadToken = putPolicy.uploadToken(this.qiniuMac)
+    const uploadToken = putPolicy.uploadToken(<qiniu.auth.digest.Mac>this.qiniuMac)
     return uploadToken
   }
 
@@ -90,7 +102,10 @@ class Qiniu {
     }
 
     // const bucketManager = new qiniu.rs.BucketManager(this.qiniuMac, this.qiniuConfig)
-    const bucketManager = new qiniu.rs.BucketManager(this.qiniuMac, new qiniu.conf.Config())
+    const bucketManager = new qiniu.rs.BucketManager(
+      <qiniu.auth.digest.Mac>this.qiniuMac,
+      new qiniu.conf.Config()
+    )
     const options = {
       prefix,
       marker: fromBegin ? '' : this.marker,
@@ -192,14 +207,17 @@ class Qiniu {
   }
 
   generateHTTPAuthorization(url: string) {
-    return qiniu.util.generateAccessToken(this.qiniuMac, url)
+    return qiniu.util.generateAccessToken(<qiniu.auth.digest.Mac>this.qiniuMac, url)
   }
 
   // 删除 bucket 中的文件
   // 删除单个文件和多个文件都走这个接口
   // ref https://developer.qiniu.com/kodo/1289/nodejs
   deleteBucketFiles(keysList: string[]) {
-    const bucketManager = new qiniu.rs.BucketManager(this.qiniuMac, new qiniu.conf.Config())
+    const bucketManager = new qiniu.rs.BucketManager(
+      <qiniu.auth.digest.Mac>this.qiniuMac,
+      new qiniu.conf.Config()
+    )
 
     const deleteOperations = keysList.map(key => qiniu.rs.deleteOp(this.bucket, key))
 
@@ -261,7 +279,10 @@ class Qiniu {
   // 抓取网络资源到空间
   fetchResourceToBucket(url: string, key: string) {
     return new Promise<{ success: boolean; msg: string }>((res, rej) => {
-      const bucketManager = new qiniu.rs.BucketManager(this.qiniuMac, new qiniu.conf.Config())
+      const bucketManager = new qiniu.rs.BucketManager(
+        <qiniu.auth.digest.Mac>this.qiniuMac,
+        new qiniu.conf.Config()
+      )
       bucketManager.fetch(url, this.bucket, key, function (err, respBody, respInfo) {
         if (err) {
           res({
@@ -288,7 +309,10 @@ class Qiniu {
 
   // 批量移动或者重命名，移动和重命名是同一个操作，只是对 key 做重命名而已
   moveBucketFiles(keysInfoList: { originalKey: string; newKey: string }[]) {
-    const bucketManager = new qiniu.rs.BucketManager(this.qiniuMac, new qiniu.conf.Config())
+    const bucketManager = new qiniu.rs.BucketManager(
+      <qiniu.auth.digest.Mac>this.qiniuMac,
+      new qiniu.conf.Config()
+    )
 
     const moveOperations = keysInfoList.map(({ originalKey, newKey }) =>
       qiniu.rs.moveOp(this.bucket, originalKey, this.bucket, newKey)
@@ -316,7 +340,7 @@ class Qiniu {
   // https://developer.qiniu.com/dcdn/10755/dcdn-cache-refresh-with-the-query
 
   refreshFiles(fileUrls: string[]) {
-    const cdnManager = new qiniu.cdn.CdnManager(this.qiniuMac)
+    const cdnManager = new qiniu.cdn.CdnManager(<qiniu.auth.digest.Mac>this.qiniuMac)
     return new Promise((resolve, reject) => {
       cdnManager.refreshUrls(fileUrls, function (err, respBody, respInfo) {
         if (respBody.code === 200) {
@@ -339,7 +363,7 @@ class Qiniu {
   // ref https://developer.qiniu.com/kodo/1289/nodejs#fusion-refresh-dirs
   refreshDirs(dirUrls: string[]) {
     console.log('refreshDirs', dirUrls)
-    const cdnManager = new qiniu.cdn.CdnManager(this.qiniuMac)
+    const cdnManager = new qiniu.cdn.CdnManager(<qiniu.auth.digest.Mac>this.qiniuMac)
     return new Promise((resolve, reject) => {
       cdnManager.refreshDirs(dirUrls, function (err, respBody, respInfo) {
         if (respBody.code === 200) {
@@ -359,11 +383,4 @@ class Qiniu {
   }
 }
 
-const qiniuE = new Qiniu({
-  ak: qiniuConfig.ak,
-  sk: qiniuConfig.sk,
-  bucket: qiniuConfig.bucket,
-  imgDomain: qiniuConfig.imgDomain,
-})
-
-export default qiniuE
+export default new Qiniu()

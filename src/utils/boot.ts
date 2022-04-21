@@ -5,8 +5,48 @@
  * 如果文件夹不存在则创建，如果配置文件不存在则创建
  */
 import * as path from 'path'
+import * as vscode from 'vscode'
 import * as fs from 'fs'
 import * as utils from './index'
+
+function notiTpl(msg: string) {
+  return `扩展初始化失败：${msg}`
+}
+
+type copyFormatType = 'url' | 'markdown'
+
+type currentCSPType = {
+  nickname: string
+  csp: string
+  ak: string
+  sk: string
+}
+
+type baseSettingsType = {
+  forceHTTPS: boolean
+  uploadUseOrignalFileName: boolean
+  deleteWithoutConfirm: boolean
+  copyFormat: copyFormatType
+  imagePreviewSuffix: string
+  downloadDir: string
+  customBackImgs: string[]
+
+  currentCSP: currentCSPType | null
+  usedCSPs: currentCSPType[]
+}
+
+type updateSettingsParamsType = {
+  forceHTTPS?: boolean
+  uploadUseOrignalFileName?: boolean
+  deleteWithoutConfirm?: boolean
+  copyFormat?: copyFormatType
+  imagePreviewSuffix?: string
+  downloadDir?: string
+  customBackImgs?: string[]
+
+  currentCSP?: currentCSPType | null
+  usedCSPs?: currentCSPType[]
+}
 
 let homePath = ''
 if (process.platform === 'win32') {
@@ -24,15 +64,16 @@ const resetNeededBaseSettings = {
   forceHTTPS: false, // 使用 https
   uploadUseOrignalFileName: false, // 上传时使用原文件名
   deleteWithoutConfirm: false, // 删除时不需要确认
-  copyFormat: 'url', // 复制到剪切板的格式，url或者 markdown img
+  copyFormat: <copyFormatType>'url', // 复制到剪切板的格式，url或者 markdown img
   imagePreviewSuffix: '?imageView2/1/w/85/h/85/format/webp/q/10', // 文件预览后缀
   downloadDir: '', // 文件下载的目录
-  customBackImgs: utils.getYuanshenBackImg(true), // 自定义右下角背景图
+  customBackImgs: <string[]>utils.getYuanshenBackImg(true), // 自定义右下角背景图
 }
 
 const cspSettings = {
   // 当前正在使用的供应商
   // currentCSP: {
+  //   nickname: '',
   //   csp: '',
   //   ak: '',
   //   sk: '',
@@ -41,6 +82,7 @@ const cspSettings = {
   // 已经登录了的 CSP 信息，可以供用户直接一键切换
   usedCSPs: [
     // {
+    //   nickname: '',
     //   csp: '',
     //   ak: '',
     //   sk: '',
@@ -48,7 +90,7 @@ const cspSettings = {
   ],
 }
 
-const baseSettings = {
+const baseSettings: baseSettingsType = {
   ...resetNeededBaseSettings,
   ...cspSettings,
 }
@@ -71,7 +113,7 @@ export default function boot() {
 
 export function getSettings() {
   try {
-    const settings = JSON.parse(fs.readFileSync(settingsPath).toString())
+    const settings: baseSettingsType = JSON.parse(fs.readFileSync(settingsPath).toString())
     return {
       success: true,
       settings,
@@ -85,7 +127,7 @@ export function getSettings() {
 }
 
 // 新设置传过来可能只有部分设置
-export function updateSettings(newSettings: typeof baseSettings) {
+export function updateSettings(newSettings: updateSettingsParamsType) {
   try {
     const oldSettings = JSON.parse(fs.readFileSync(settingsPath).toString())
 
@@ -112,6 +154,95 @@ export function resetSettings() {
     const settings = {
       ...oldSettings,
       ...resetNeededBaseSettings,
+    }
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2))
+    return { success: true, settings }
+  } catch (e) {
+    return {
+      success: false,
+      msg: String(e),
+    }
+  }
+}
+
+// 登录时的配置存储
+export function login(cspInfo: currentCSPType) {
+  try {
+    const oldSettings: baseSettingsType = JSON.parse(fs.readFileSync(settingsPath).toString())
+
+    const currentCSP = {
+      ak: cspInfo.ak,
+      sk: cspInfo.sk,
+      nickname: cspInfo.nickname,
+      csp: cspInfo.csp,
+    }
+
+    const loginSettings = {
+      currentCSP,
+      usedCSPs: [
+        ...oldSettings.usedCSPs
+          .map(_ => {
+            // 新输入的 ak sk csp 和已登录过的完全一致，则认为重复登录，把旧的删掉
+            if (
+              _.ak === cspInfo.ak &&
+              _.sk === cspInfo.sk &&
+              _.csp === cspInfo.csp &&
+              _.nickname === cspInfo.nickname
+            ) {
+              return null
+            }
+            return _
+          })
+          .filter(_ => !!_),
+        currentCSP,
+      ],
+    }
+
+    const settings = {
+      ...oldSettings,
+      ...loginSettings,
+    }
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2))
+    return settings
+  } catch (e) {
+    console.log('保存登录信息失败')
+    vscode.window.showErrorMessage(notiTpl('保存登录信息失败：' + String(e)))
+    return {}
+  }
+}
+
+// 已登录列表中，删除某条记录
+export function deleteUsedCSP(cspInfo: currentCSPType) {
+  try {
+    const oldSettings: baseSettingsType = JSON.parse(fs.readFileSync(settingsPath).toString())
+    let currentCSP = oldSettings.currentCSP
+    let usedCSPs = oldSettings.usedCSPs
+      .map(_ => {
+        if (
+          _.ak === cspInfo.ak &&
+          _.sk === cspInfo.sk &&
+          _.csp === cspInfo.csp &&
+          _.nickname === cspInfo.nickname
+        ) {
+          return null
+        } else {
+          return _
+        }
+      })
+      .filter(_ => !!_)
+    if (
+      currentCSP?.ak === cspInfo.ak &&
+      currentCSP?.sk === cspInfo.sk &&
+      currentCSP?.csp === cspInfo.csp &&
+      currentCSP?.nickname === cspInfo.nickname
+    ) {
+      currentCSP = null
+    }
+
+    const settings = {
+      ...oldSettings,
+      currentCSP,
+      usedCSPs,
     }
     fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2))
     return { success: true, settings }

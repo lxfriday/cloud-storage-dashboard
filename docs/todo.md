@@ -3,10 +3,9 @@
 ## high priority
 
 - 文件下载
+
   - 并发控制 async
   - 专业文件下载器 https://www.npmjs.com/package/nodejs-file-downloader
-- 七牛，登录
-- 登录设置成可多平台同时登录，也就是切换，保存多个平台的 keys
 
 - 文件搜索
 - 文件夹问题

@@ -23,11 +23,31 @@ export default function messageController(
         const csp = cspAdaptor(message.data.providerName)
 
         switch (message.command) {
-          case MESSAGE_COMMANDS.getSettings:
-            const settings = boot.getSettings()
+          case MESSAGE_COMMANDS.deleteUsedCSP:
+            const deleteUsedCSPRes = await boot.deleteUsedCSP(message.data)
             postMessage({
               uniqueId: message.uniqueId,
-              data: settings,
+              data: deleteUsedCSPRes,
+            })
+            return
+          case MESSAGE_COMMANDS.login:
+            const loginRes = await csp.login(message.data)
+            postMessage({
+              uniqueId: message.uniqueId,
+              data: loginRes,
+            })
+            return
+          case MESSAGE_COMMANDS.getSettings:
+            const getSettingsRes = boot.getSettings()
+            // 在获取配置的时候，把本地的一些配置做好
+            if (getSettingsRes.success && getSettingsRes.settings?.currentCSP) {
+              const currentCSP = getSettingsRes.settings?.currentCSP
+              cspAdaptor(currentCSP.csp).updateCSPInfo(currentCSP)
+            }
+
+            postMessage({
+              uniqueId: message.uniqueId,
+              data: getSettingsRes,
             })
             return
           case MESSAGE_COMMANDS.updateSettings:

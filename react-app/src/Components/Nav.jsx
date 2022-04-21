@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Menu, message } from 'antd'
+import { Menu, message, Spin } from 'antd'
 import {
   FolderOpenOutlined,
   SettingOutlined,
@@ -10,7 +10,7 @@ import { NavLink } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 
 import Login from '../Components/Login'
-import { initSettings } from '../store/settings'
+import { initSettings, logout } from '../store/settings'
 import * as messageCenter from '../utils/messageCenter'
 import styles from './Nav.module.less'
 
@@ -19,32 +19,35 @@ const { SubMenu } = Menu
 export default function Nav({ children }) {
   const backImgs = useSelector(state => state.settings.customBackImgs)
   const currentCSP = useSelector(state => state.settings.currentCSP)
+  // 是否已经初始化了，用于在获取到登录信息之前做过渡
+  const [hasInitialized, setHasInitialized] = useState(false)
   const [backImg, setBackImg] = useState()
   const [bucketList, setBucketList] = useState([])
   const dispatch = useDispatch()
   const hasloggedIn = !!currentCSP
 
-  useEffect(() => {
-    // 获取 bucket 列表
-    messageCenter
-      .requestGetBucketList()
-      .then(data => {
-        setBucketList(data)
-      })
-      .catch(() => {
-        message.error('bucket 列表获取失败')
-      })
+  function handleChangeCSP() {
+    dispatch(logout())
+  }
 
+  useEffect(() => {
+    let timer = null
     messageCenter
       .requestGetSettings()
       .then(data => {
         if (data.success) {
-          dispatch(initSettings(data.settings))
-          setBackImg(
-            data.settings.customBackImgs[
-              Math.floor(Math.random() * data.settings.customBackImgs.length)
-            ]
-          )
+          // 加定时器只是为了让 loading 稳定显示1秒，免得页面 render 太快，loading 就闪了一下，体验不好
+          timer = setTimeout(() => {
+            setHasInitialized(true)
+            dispatch(initSettings(data.settings))
+            if (data.settings.customBackImgs.length) {
+              setBackImg(
+                data.settings.customBackImgs[
+                  Math.floor(Math.random() * data.settings.customBackImgs.length)
+                ]
+              )
+            }
+          }, 1000)
         } else {
           message.error('获取初始配置信息失败')
         }
@@ -52,16 +55,45 @@ export default function Nav({ children }) {
       .catch(e => {
         message.error('获取初始配置信息失败', String(e))
       })
+    return () => {
+      clearTimeout(timer)
+    }
   }, [])
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    if (hasloggedIn) {
+      // 获取 bucket 列表
+      messageCenter
+        .requestGetBucketList()
+        .then(data => {
+          setBucketList(data)
+        })
+        .catch(() => {
+          message.error('bucket 列表获取失败')
+        })
+    }
+  }, [hasloggedIn])
+
+  useEffect(() => {
+    let interval = null
+    if (backImgs.length) {
       setBackImg(backImgs[Math.floor(Math.random() * backImgs.length)])
-    }, 1000 * 300)
+      interval = setInterval(() => {
+        setBackImg(backImgs[Math.floor(Math.random() * backImgs.length)])
+      }, 1000 * 300)
+    }
     return () => {
       clearInterval(interval)
     }
   }, [backImgs])
+
+  if (!hasInitialized) {
+    return (
+      <div className={styles.loadingWrapper}>
+        <Spin size="large" />
+      </div>
+    )
+  }
 
   if (hasloggedIn) {
     return (
@@ -107,14 +139,9 @@ export default function Nav({ children }) {
             </Menu>
           </div>
           <div className={styles.sideBottomWrapper}>
-            <Menu style={{ width: 180 }} mode="inline" theme="dark">
-              <Menu.Item key="logout" icon={<LogoutOutlined />}>
-                <NavLink
-                  to="/logout"
-                  className={({ isActive }) => (isActive ? styles.navLinkActive : undefined)}
-                >
-                  七牛云(切换)
-                </NavLink>
+            <Menu style={{ width: 180 }} mode="inline" theme="dark" selectedKeys={[]}>
+              <Menu.Item key="changeCSP" icon={<LogoutOutlined />} onClick={handleChangeCSP}>
+                {currentCSP.nickname}(切换)
               </Menu.Item>
             </Menu>
           </div>

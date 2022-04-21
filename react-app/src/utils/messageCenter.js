@@ -183,7 +183,6 @@ export function requestShowOpenDialog(params = {}) {
     {
       serverCommand: MESSAGE_COMMANDS.showOpenDialog,
       data: {
-        ...providerInfo,
         ...params,
       },
     },
@@ -196,11 +195,9 @@ export function requestGetSettings() {
   return messageAdaptor(
     {
       serverCommand: MESSAGE_COMMANDS.getSettings,
-      data: {
-        ...providerInfo,
-      },
+      data: {},
     },
-    true
+    false
   )
 }
 
@@ -209,7 +206,6 @@ export function requestUpdateSettings(newSettings) {
     {
       serverCommand: MESSAGE_COMMANDS.updateSettings,
       data: {
-        ...providerInfo,
         newSettings,
       },
     },
@@ -221,8 +217,31 @@ export function requestResetSettings() {
   return messageAdaptor(
     {
       serverCommand: MESSAGE_COMMANDS.resetSettings,
+      data: {},
+    },
+    false
+  )
+}
+
+export function requestLogin(info) {
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.login,
       data: {
-        ...providerInfo,
+        providerName: info.csp,
+        ...info,
+      },
+    },
+    false
+  )
+}
+
+export function requestDeleteUsedCSP(info) {
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.deleteUsedCSP,
+      data: {
+        ...info,
       },
     },
     false

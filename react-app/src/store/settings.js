@@ -12,6 +12,7 @@ const settingsSlice = createSlice({
     customBackImgs: [], // 自定义右下角背景图
     // 当前正在使用的供应商
     // currentCSP: {
+    //   nickname: '',
     //   csp: '',
     //   ak: '',
     //   sk: '',
@@ -20,6 +21,7 @@ const settingsSlice = createSlice({
     // 已经登录了的 CSP 信息，可以供用户直接一键切换
     usedCSPs: [
       // {
+      //   nickname: '',
       //   csp: '',
       //   ak: '',
       //   sk: '',
@@ -33,12 +35,14 @@ const settingsSlice = createSlice({
     },
     // 初始化设置
     initSettings: (state, { payload }) => {
-      console.log('initSettings', payload)
       Object.keys(payload).forEach(k => (state[k] = payload[k]))
+    },
+    logout: state => {
+      state.currentCSP = null
     },
   },
 })
 
-export const { updateSettings, initSettings } = settingsSlice.actions
+export const { updateSettings, initSettings, logout } = settingsSlice.actions
 
 export default settingsSlice.reducer

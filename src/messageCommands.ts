@@ -17,4 +17,6 @@ export default {
   getSettings: 'getSettings',
   updateSettings: 'updateSettings',
   resetSettings: 'resetSettings',
+  login: 'login',
+  deleteUsedCSP: 'deleteUsedCSP',
 }
