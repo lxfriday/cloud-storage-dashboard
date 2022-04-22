@@ -91,13 +91,13 @@ export function requestGetOverviewInfo() {
   )
 }
 
-export function requestOpenInBrowser(url) {
+export function requestOpen(target) {
   return messageAdaptor(
     {
-      serverCommand: MESSAGE_COMMANDS.openInBrowser,
+      serverCommand: MESSAGE_COMMANDS.open,
       data: {
         ...providerInfo,
-        url,
+        target,
       },
     },
     false

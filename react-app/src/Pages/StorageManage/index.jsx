@@ -428,7 +428,23 @@ export default function StorageManage() {
       })
       .then(data => {
         if (data.success) {
-          message.success('文件下载成功')
+          notification.success({
+            message: '文件下载成功',
+            description: (
+              <div>
+                在资源管理器中 【
+                <span
+                  className={styles.openInExplorer}
+                  onClick={() => {
+                    messageCenter.requestOpen(settings.downloadDir)
+                  }}
+                >
+                  打开
+                </span>
+                】 文件夹
+              </div>
+            ),
+          })
         } else if (data.failedFiles.length) {
           console.log('failedFiles', failedFiles)
           notification.error({
@@ -747,7 +763,7 @@ export default function StorageManage() {
         resourceList={resourceList}
         resourcePrefix={resourcePrefix}
         handleOpenInBrowser={url =>
-          messageCenter.requestOpenInBrowser(url).then(data => {
+          messageCenter.requestOpen(url).then(data => {
             if (data.success) {
               message.success('请在浏览器中查看')
             }

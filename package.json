@@ -64,6 +64,7 @@
     "axios": "^0.26.1",
     "dayjs": "^1.11.0",
     "nodejs-file-downloader": "^4.9.3",
+    "open": "^8.4.0",
     "qiniu": "^7.4.0"
   }
 }

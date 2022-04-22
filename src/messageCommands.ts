@@ -6,7 +6,7 @@ export default {
   getBucketDomains: 'getBucketDomains',
   deleteBucketFiles: 'deleteBucketFiles',
   getOverviewInfo: 'getOverviewInfo',
-  openInBrowser: 'openInBrowser',
+  open: 'open',
   readPaths: 'readPaths',
   serverUploadFiles: 'serverUploadFiles',
   fetchResourceToBucket: 'fetchResourceToBucket',

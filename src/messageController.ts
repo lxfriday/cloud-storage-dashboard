@@ -2,7 +2,7 @@ import * as vscode from 'vscode'
 import cspAdaptor from './utils/cspAdaptor'
 import MESSAGE_COMMANDS from './messageCommands'
 import globalConfig from './globalConfig'
-import openInBrowser from './utils/openInBrowser'
+import open from './utils/open'
 import * as fsManager from './utils/fsManager'
 import * as utils from './utils'
 import * as boot from './utils/boot'
@@ -72,9 +72,8 @@ export default function messageController(
               data: { readPathsResult },
             })
             return
-
-          case MESSAGE_COMMANDS.openInBrowser:
-            const openResult = await openInBrowser(message.data.url)
+          case MESSAGE_COMMANDS.open:
+            const openResult = await open(message.data.target)
             postMessage({
               uniqueId: message.uniqueId,
               data: {
