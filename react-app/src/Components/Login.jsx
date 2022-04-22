@@ -59,12 +59,16 @@ export default function Login() {
 
   // 点击进入xxx，登录
   function handleSubmit(submitCSPInfo) {
-    const { ak, sk } = submitCSPInfo
+    const { ak, sk, nickname } = submitCSPInfo
     const trimmedKeys = {
       ak: ak.trim(),
       sk: sk.trim(),
+      nickname: nickname.trim(),
     }
-    if (!trimmedKeys.ak.length) {
+    if (!trimmedKeys.nickname.length) {
+      message.error('请填写 别名')
+      return
+    } else if (!trimmedKeys.ak.length) {
       message.error('请填写 ACCESS_KEY')
       return
     } else if (!trimmedKeys.sk.length) {
