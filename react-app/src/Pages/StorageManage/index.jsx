@@ -554,7 +554,7 @@ export default function StorageManage() {
             title="导出 folder 中所有链接"
             onClick={() => {
               let totalStr = ''
-              resourceList.forEach(r => (totalStr += `${resourcePrefix + r.key}\r\n`))
+              resourceList.forEach(r => (totalStr += `${encodeURI(resourcePrefix + r.key)}\r\n`))
               copy(totalStr)
               message.success('已复制到剪切板')
             }}
