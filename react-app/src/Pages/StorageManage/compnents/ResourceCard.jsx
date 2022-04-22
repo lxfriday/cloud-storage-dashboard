@@ -40,6 +40,8 @@ export default function ResourceCard({
   handleOpenInBrowser,
   handleRenameResource,
   handleRefreshResource,
+  handleDownloadFile,
+  fileFullName,
 }) {
   const deleteWithoutConfirm = useSelector(state => state.settings.deleteWithoutConfirm)
   // 用来预览的尾缀，压缩图像提升显示性能，但是和 刷新 CDN 有冲突，暂时禁用
@@ -47,9 +49,6 @@ export default function ResourceCard({
   const [renameOpModalVisible, setRenameOpModalVisible] = useState(false)
   const [moveOpModalVisible, setMoveOpModalVisible] = useState(false)
   const [newKey, setNewKey] = useState(fkey)
-
-  const keyS = fkey.split('/')
-  const fileFullName = keyS[keyS.length - 1]
 
   let finalImage = null
 
@@ -125,24 +124,28 @@ export default function ResourceCard({
         刷新CDN
       </Menu.Item>
       <Menu.Divider />
-      <Menu.Item key="2" onClick={() => setRenameOpModalVisible(true)}>
+      <Menu.Item key="2" onClick={handleDownloadFile}>
+        下载
+      </Menu.Item>
+      <Menu.Divider />
+      <Menu.Item key="3" onClick={() => setRenameOpModalVisible(true)}>
         重命名
       </Menu.Item>
       <Menu.Divider />
-      <Menu.Item key="8" onClick={() => setRenameOpModalVisible(true)}>
+      <Menu.Item key="4" onClick={() => setRenameOpModalVisible(true)}>
         移动
       </Menu.Item>
       <Menu.Divider />
-      <Menu.Item key="3" onClick={() => handleToggleSelectKey(fkey)}>
+      <Menu.Item key="5" onClick={() => handleToggleSelectKey(fkey)}>
         选择
       </Menu.Item>
       <Menu.Divider />
-      <Menu.Item key="4" onClick={handleSelectAll}>
+      <Menu.Item key="6" onClick={handleSelectAll}>
         全选
       </Menu.Item>
       <Menu.Divider />
       <Menu.Item
-        key="5"
+        key="7"
         style={{ color: 'green' }}
         onClick={() => {
           copy(url)
@@ -154,7 +157,7 @@ export default function ResourceCard({
       <Menu.Divider />
       {isImage && (
         <Menu.Item
-          key="6"
+          key="8"
           style={{ color: 'green' }}
           onClick={() => {
             copy(`![${fileFullName}](${url})`)
@@ -165,7 +168,7 @@ export default function ResourceCard({
         </Menu.Item>
       )}
       <Menu.Divider />
-      <Menu.Item key="7" style={{ color: 'red' }} onClick={handlePressDelete}>
+      <Menu.Item key="9" style={{ color: 'red' }} onClick={handlePressDelete}>
         删除
       </Menu.Item>
     </Menu>

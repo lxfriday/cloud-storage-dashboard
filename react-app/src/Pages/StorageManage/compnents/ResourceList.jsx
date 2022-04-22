@@ -34,6 +34,7 @@ export default function ResourceList({
   handleRenameResource,
   handleRefreshResource,
   handleRefreshDir,
+  handleDownloadFiles,
 }) {
   // 资源框实际大小
   const resourceWidth = 130
@@ -136,6 +137,7 @@ export default function ResourceList({
           handleOpenInBrowser,
           handleRenameResource,
           handleRefreshResource,
+          handleDownloadFiles,
         }}
       >
         {Cell}
@@ -181,6 +183,7 @@ const Cell = ({
     handleOpenInBrowser,
     handleRenameResource,
     handleRefreshResource,
+    handleDownloadFiles,
   },
 }) => {
   // 注意 ind 指的是第多少个格子，不是 listData 的第 ind 个
@@ -213,15 +216,18 @@ const Cell = ({
   } else {
     // 是资源
     // const ext = resourceInfo.mimeType.split('/')[1]
-    const { ext } = getResourceExtAndName(resourceInfo.key)
     // 在打开 image gallary 的时候， ind 在 resourceList 对应的资源可能存在偏移，这个时候需要把偏移摆正
     const previewInd = ind - ((isTopFolder ? 0 : 1) + commonPrefixList.length)
     const url = encodeURI(resourcePrefix + resourceInfo.key)
+    const keyS = resourceInfo.key.split('/')
+    const fileFullName = keyS[keyS.length - 1]
+    const { ext, fname } = getResourceExtAndName(fileFullName)
 
     return (
       <div className={styles.cellWrapper} style={style} key={resourceInfo.key}>
         <ResourceCard
           ext={ext}
+          fileFullName={fileFullName}
           isAudio={isAudioFunc(ext)}
           isVideo={isVideoFunc(ext)}
           isImage={isImageFunc(ext)}
@@ -242,6 +248,15 @@ const Cell = ({
           handleOpenInBrowser={() => handleOpenInBrowser(url)}
           handleRenameResource={handleRenameResource}
           handleRefreshResource={() => handleRefreshResource(resourcePrefix + resourceInfo.key)}
+          handleDownloadFile={() =>
+            handleDownloadFiles([
+              {
+                url: resourcePrefix + resourceInfo.key, // 不 encode
+                fname,
+                ext,
+              },
+            ])
+          }
         />
       </div>
     )

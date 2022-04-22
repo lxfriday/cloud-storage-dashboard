@@ -225,3 +225,13 @@ export function copyFormattedBySettings(format, urls) {
 
   copy(res)
 }
+
+export function getDownloadFilesInfo(filesInfo) {
+  return filesInfo.map(f => {
+    return {
+      id: `${Date.now()}_${uuidv4()}`,
+      url: f.url,
+      fname: !!f.ext.length ? `${f.fname}_${Date.now()}.${f.ext}` : `${f.fname}_${Date.now()}`,
+    }
+  })
+}

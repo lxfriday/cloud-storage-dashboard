@@ -19,4 +19,5 @@ export default {
   resetSettings: 'resetSettings',
   login: 'login',
   deleteUsedCSP: 'deleteUsedCSP',
+  downloadFiles: 'downloadFiles',
 }

@@ -27,6 +27,8 @@ import {
   isUrl,
   generateRandomResourceName,
   copyFormattedBySettings,
+  getResourceExtAndName,
+  getDownloadFilesInfo,
 } from '../../utils'
 import cloudserviceprovider from '../../utils/cloudserviceprovider'
 
@@ -400,6 +402,63 @@ export default function StorageManage() {
     setSelectedFolders([])
   }
 
+  // 单、多文件下载都走这个函数
+  // filesInfo => [{ext, fname, url}, ...]
+  // ext 尾缀
+  // fname 纯文件名，不包含尾缀
+  // url 文件地址
+  function handleDownloadFiles(filesInfo) {
+    // 下载前先检查文件下载目录是否指定了
+    if (!settings.downloadDir.length) {
+      notification.error({
+        message: '注意',
+        description: '请先前往 【设置】 指定【文件下载目录】，再进行文件下载操作',
+        duration: 5,
+      })
+      return
+    }
+    console.log('handleDownloadFiles', filesInfo)
+    const processedFilesInfo = getDownloadFilesInfo(filesInfo)
+    setSelectedKeys([])
+    message.info('文件下载开始')
+    messageCenter
+      .requestDownloadFiles({
+        filesInfo: processedFilesInfo,
+        downloadDir: settings.downloadDir,
+      })
+      .then(data => {
+        if (data.success) {
+          message.success('文件下载成功')
+        } else if (data.failedFiles.length) {
+          console.log('failedFiles', failedFiles)
+          notification.error({
+            message: '注意',
+            description: '部分文件下载失败',
+            duration: 5,
+          })
+        }
+      })
+      .catch(e => {
+        message.success('下载初始化失败2')
+      })
+  }
+
+  // 点击工具栏的下载，这是批量下载
+  function handleBulkDownload() {
+    const downloadFilesInfo = []
+    for (const r of resourceList) {
+      if (selectedKeys.includes(r.key)) {
+        const keyS = r.key.split('/')
+        const fileFullName = keyS[keyS.length - 1]
+        downloadFilesInfo.push({
+          url: resourcePrefix + r.key,
+          ...getResourceExtAndName(fileFullName),
+        })
+      }
+    }
+    handleDownloadFiles(downloadFilesInfo)
+  }
+
   useEffect(async () => {
     // 打开一个 bucket 的时候，更新 localside bucket
     setResourceList([])
@@ -612,7 +671,9 @@ export default function StorageManage() {
                 <Button size="small" onClick={handleRefreshSelectedResources}>
                   刷新缓存({selectedKeys.length})
                 </Button>
-                <Button size="small">下载({selectedKeys.length})</Button>
+                <Button size="small" onClick={handleBulkDownload}>
+                  下载({selectedKeys.length})
+                </Button>
                 <Button
                   size="small"
                   type="primary"
@@ -709,6 +770,7 @@ export default function StorageManage() {
         handleRenameResource={handleRenameResource}
         handleRefreshResource={handleRefreshResource}
         handleRefreshDir={handleRefreshDir}
+        handleDownloadFiles={handleDownloadFiles}
       />
       {/* 注意这里 display 一定要为 none，否则页面底部会出现多余的图片 */}
       <div style={{ display: 'none' }}>

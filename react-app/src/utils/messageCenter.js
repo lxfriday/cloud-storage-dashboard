@@ -247,3 +247,16 @@ export function requestDeleteUsedCSP(info) {
     false
   )
 }
+
+export function requestDownloadFiles({ filesInfo, downloadDir }) {
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.downloadFiles,
+      data: {
+        filesInfo,
+        downloadDir,
+      },
+    },
+    false
+  )
+}

@@ -40,6 +40,7 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
+    "@types/async": "^3.2.12",
     "@types/glob": "^7.2.0",
     "@types/mocha": "^9.1.0",
     "@types/node": "14.x",
@@ -59,8 +60,10 @@
     "webpack-cli": "^4.9.2"
   },
   "dependencies": {
+    "async": "^3.2.3",
     "axios": "^0.26.1",
     "dayjs": "^1.11.0",
+    "nodejs-file-downloader": "^4.9.3",
     "qiniu": "^7.4.0"
   }
 }

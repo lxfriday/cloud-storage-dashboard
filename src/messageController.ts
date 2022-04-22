@@ -6,6 +6,7 @@ import openInBrowser from './utils/openInBrowser'
 import * as fsManager from './utils/fsManager'
 import * as utils from './utils'
 import * as boot from './utils/boot'
+import * as downloadManager from './utils/downloadManager'
 
 export default function messageController(
   panel: vscode.WebviewPanel,
@@ -172,7 +173,17 @@ export default function messageController(
               uniqueId: message.uniqueId,
               data: showOpenDialogRes,
             })
-          // return
+            return
+          case MESSAGE_COMMANDS.downloadFiles:
+            const downloadRes = await downloadManager.download(
+              message.data.filesInfo,
+              message.data.downloadDir
+            )
+            postMessage({
+              uniqueId: message.uniqueId,
+              data: downloadRes,
+            })
+            return
         }
       } catch (e) {
         vscode.window.showErrorMessage(`extension 出现了错误 ${String(e)}`)
