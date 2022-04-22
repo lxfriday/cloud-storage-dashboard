@@ -576,6 +576,7 @@ export default function StorageManage() {
       />
       <div className={styles.bucketNavWrapper}>
         <Select
+          className={styles.domainSelector}
           value={bucketDomainInfo.selectBucketDomain}
           style={{ width: 250 }}
           onChange={handleChangeDomain}
@@ -598,7 +599,6 @@ export default function StorageManage() {
             resetPendingUploadPrefix={() => setPendingUploadPrefix(uploadFolders.join(''))}
           >
             <Button
-              type="dashed"
               title="文件上传(支持多选)"
               icon={<FileOutlined style={{ fontSize: '20px' }} />}
             ></Button>
@@ -613,19 +613,16 @@ export default function StorageManage() {
             resetPendingUploadPrefix={() => setPendingUploadPrefix(uploadFolders.join(''))}
           >
             <Button
-              type="dashed"
               title="文件夹上传"
               icon={<FolderOpenOutlined style={{ fontSize: '20px' }} />}
             ></Button>
           </SelectUpload>
           <Button
             onClick={() => setFetchFromUrlModalVisible(true)}
-            type="dashed"
             title="url 直传文件"
             icon={<LinkOutlined style={{ fontSize: '20px' }} />}
           ></Button>
           <Button
-            type="dashed"
             title="导出 folder 中所有链接"
             onClick={() => {
               let totalStr = ''
@@ -636,7 +633,6 @@ export default function StorageManage() {
             icon={<ProfileOutlined style={{ fontSize: '20px' }} />}
           ></Button>
           <Button
-            type="dashed"
             title="刷新"
             onClick={() => handleRefresh(uploadFolders)}
             icon={<SyncOutlined style={{ fontSize: '20px' }} />}

@@ -7,7 +7,23 @@
   align-items: center;
   color: #fff;
 
+  .domainSelector {
+    :global {
+      .ant-select-selector {
+        background-color: transparent;
+        color: #fff;
+      }
+      .ant-select-arrow {
+        color: #fff;
+      }
+    }
+  }
+
   .bucketToolsWrapper {
+    button {
+      background-color: #111;
+      color: #ccc;
+    }
     button ~ button {
       margin-left: 10px;
     }
