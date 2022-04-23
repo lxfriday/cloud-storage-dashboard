@@ -5,3 +5,4 @@ node_modules
 *.vsix
 *.keys.ts
 /eg/
+/react-app-dist/

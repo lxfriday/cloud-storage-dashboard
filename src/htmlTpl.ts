@@ -1,7 +1,21 @@
+import * as path from 'path'
+import * as vscode from 'vscode'
+
 const serverHost = 'http://localhost'
 const serverPort = 3001
 
-export default `
+const prodCssPath = vscode.Uri.file(path.resolve(__dirname, '../react-app-dist', 'index.css')).with(
+  {
+    scheme: 'vscode-resource',
+  }
+)
+const prodJSPath = vscode.Uri.file(path.resolve(__dirname, '../react-app-dist', 'index.js')).with({
+  scheme: 'vscode-resource',
+})
+
+// prod ref https://stackoverflow.com/questions/56182144/vscode-extension-webview-external-html-and-css
+
+const devHtmlTpl = `
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -14,8 +28,6 @@ export default `
       window.__vite_plugin_react_preamble_installed__ = true
     </script>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/src/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>云存储管理</title>
   </head>
   <body>
@@ -28,3 +40,20 @@ export default `
     ></script>
   </body>
 </html>`
+
+const prodHtmlTpl = `
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>云存储管理</title>
+    <link rel="stylesheet" href="${prodCssPath}">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="${prodJSPath}"></script>
+  </body>
+</html>
+`
+
+export default global.__DEV__ ? devHtmlTpl : prodHtmlTpl

@@ -2,6 +2,8 @@
 
 ## high priority
 
+- 如果碰到 home 没办法确定的情况，需要用户指定 home dir
+
 - 文件搜索
 - 文件夹问题
 
