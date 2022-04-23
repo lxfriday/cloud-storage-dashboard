@@ -28,6 +28,7 @@
     "views": {}
   },
   "scripts": {
+    "ins": "yarn install && cd react-app && yarn install",
     "dev": "cd react-app && npm run dev",
     "vscode:prepublish": "yarn run package",
     "compile": "webpack",
