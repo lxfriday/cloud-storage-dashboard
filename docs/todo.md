@@ -2,11 +2,6 @@
 
 ## high priority
 
-- 文件下载
-
-  - 并发控制 async
-  - 专业文件下载器 https://www.npmjs.com/package/nodejs-file-downloader
-
 - 文件搜索
 - 文件夹问题
 
@@ -29,12 +24,6 @@
 ## 上传
 
 ## 下载
-
-- 下载单文件
-- 下载多文件
-- 文件下载
-- 让用户选择文件夹，这样把所有文件都放到下载文件夹中
-- 某些特殊文件，可以下载完之后直接打开（用系统默认的方式）
 
 ## low priority
 
