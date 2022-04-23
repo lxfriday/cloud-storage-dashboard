@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from 'vite'
 import path from 'path'
 import react from '@vitejs/plugin-react'
+import port from './port.dev'
 
 const reactAppDist = path.resolve(__dirname, '../react-app-dist')
 
@@ -41,11 +42,11 @@ export default defineConfig(({ command, mode }) => {
     },
     server: {
       host: 'localhost',
-      port: '3001',
+      port: port,
       hmr: {
         protocol: 'ws',
         host: 'localhost',
-        port: '3001',
+        port: port,
       },
     },
     define: {

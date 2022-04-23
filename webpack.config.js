@@ -12,10 +12,6 @@ module.exports = (env, argv) => {
   const { mode } = argv
   const isProd = mode === 'production'
   const isDev = mode === 'development'
-  console.log({
-    isProd,
-    isDev,
-  })
   return {
     target: 'node', // vscode extensions run in a Node.js-context 📖 -> https://webpack.js.org/configuration/node/
     mode: isProd ? 'production' : 'development', // this leaves the source code as close as possible to the original (when packaging we set this to 'production')

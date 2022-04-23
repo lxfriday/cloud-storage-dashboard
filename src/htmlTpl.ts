@@ -1,8 +1,11 @@
 import * as path from 'path'
 import * as vscode from 'vscode'
+import port from './port.dev'
+
+console.log('port', port)
 
 const serverHost = 'http://localhost'
-const serverPort = 3001
+const serverPort = port
 
 const prodCssPath = vscode.Uri.file(path.resolve(__dirname, '../react-app-dist', 'index.css')).with(
   {

@@ -6,3 +6,4 @@ node_modules
 *.keys.ts
 /eg/
 /react-app-dist/
+port.dev.*
