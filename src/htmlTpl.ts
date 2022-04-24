@@ -2,8 +2,6 @@ import * as path from 'path'
 import * as vscode from 'vscode'
 import port from './port.dev'
 
-console.log('port', port)
-
 const serverHost = 'http://localhost'
 const serverPort = port
 
