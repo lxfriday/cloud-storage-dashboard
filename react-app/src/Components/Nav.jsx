@@ -106,7 +106,7 @@ export default function Nav({ children }) {
               defaultSelectedKeys={['home']}
               defaultOpenKeys={['sub1']}
               mode="inline"
-              theme="dark"
+              theme="light"
             >
               <Menu.Item key="home" icon={<HomeOutlined />}>
                 <NavLink
@@ -139,7 +139,7 @@ export default function Nav({ children }) {
             </Menu>
           </div>
           <div className={styles.sideBottomWrapper}>
-            <Menu style={{ width: 180 }} mode="inline" theme="dark" selectedKeys={[]}>
+            <Menu style={{ width: 180 }} mode="inline" theme="light" selectedKeys={[]}>
               <Menu.Item key="changeCSP" icon={<LogoutOutlined />} onClick={handleChangeCSP}>
                 {currentCSP.nickname}(切换)
               </Menu.Item>
