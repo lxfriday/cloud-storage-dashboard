@@ -2,11 +2,12 @@
 
 ## high priority
 
-- 首页介绍-导流到 github star，bilibili，
-  - 包含操作指引
-- 标签页图标
 - 没有设置下载目录的时候，出现弹窗，点击弹窗中的文字可以调到设置页面的对应设置
 - 侧边导航栏样式统一
+- 登录页给出 获取 ak、sk 的 url
+- 首页介绍-导流到 github star，bilibili，
+
+  - 包含操作指引
 
 - 如果碰到 home 没办法确定的情况，需要用户指定 home dir
 

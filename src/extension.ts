@@ -1,4 +1,5 @@
 import * as vscode from 'vscode'
+import * as path from 'path'
 import htmlTpl from './htmlTpl'
 import messageController from './messageController'
 import boot from './utils/boot'
@@ -29,6 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
     // const htmlPathInfo = path.join(context.extensionPath, 'src/public/index.html')
     // panel.webview.html = fs.readFileSync(htmlPathInfo).toString()
 
+    panel.iconPath = vscode.Uri.file(path.resolve(__dirname, '../assets/logo_64x64.png'))
     panel.webview.html = htmlTpl
     messageController(panel, context)
   })
