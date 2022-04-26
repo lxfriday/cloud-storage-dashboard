@@ -15,6 +15,7 @@ const csps = [
     id: 'qiniu',
     name: '七牛云',
     enable: true,
+    keysUrl: 'https://portal.qiniu.com/user/key',
   },
   {
     id: 'tencentcloud',
@@ -252,6 +253,18 @@ export default function Login() {
                 >
                   进入{selectedCSP.name}
                 </Button>
+                <div className={styles.getKeysNotiWrapper}>
+                  前往
+                  <span
+                    className={styles.gotoPortal}
+                    onClick={() => {
+                      selectedCSP.keysUrl && messageCenter.requestOpen(selectedCSP.keysUrl)
+                    }}
+                  >
+                    【控制台】
+                  </span>
+                  获取密钥
+                </div>
               </div>
             </div>
           )}
