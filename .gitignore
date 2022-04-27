@@ -7,3 +7,4 @@ node_modules
 /eg/
 /react-app-dist/
 port.dev.*
+/eg
