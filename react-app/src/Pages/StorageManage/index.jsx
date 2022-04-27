@@ -417,7 +417,6 @@ export default function StorageManage() {
       })
       return
     }
-    console.log('handleDownloadFiles', filesInfo)
     const processedFilesInfo = getDownloadFilesInfo(filesInfo)
     setSelectedKeys([])
     message.info('文件下载开始')
