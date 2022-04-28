@@ -1,29 +1,37 @@
 import MESSAGE_COMMANDS from '../../../src/messageCommands'
 import messageAdaptor from './messageAdaptor'
+import { store } from '../store'
 
-export const providerInfo = {
-  providerName: 'qiniu',
+function getCSPInfo() {
+  const {
+    settings: { currentCSP },
+    storageManage,
+  } = store.getState()
+  let _ = !!currentCSP ? currentCSP : {}
+  return {
+    ..._,
+    bucket: storageManage.bucket,
+  }
 }
 
 export function requestGenerateUploadToken() {
   return messageAdaptor(
     {
       serverCommand: MESSAGE_COMMANDS.generateUploadToken,
-      data: {
-        ...providerInfo,
-      },
+      data: {},
+      cspInfo: getCSPInfo(),
     },
     false
   )
 }
 
-export function requestGetResourceList(params = { fromBegin: true, prefix: '' }) {
+export function requestGetResourceList(params) {
   return messageAdaptor({
     serverCommand: MESSAGE_COMMANDS.getResourceList,
     data: {
-      ...providerInfo,
       ...params,
     },
+    cspInfo: getCSPInfo(),
   })
 }
 
@@ -31,22 +39,19 @@ export function requestGetBucketList() {
   return messageAdaptor(
     {
       serverCommand: MESSAGE_COMMANDS.getBucketList,
-      data: {
-        ...providerInfo,
-      },
+      data: {},
+      cspInfo: getCSPInfo(),
     },
     false
   )
 }
 
-export function requestUpdateBucket(newBucket) {
+export function requestGetBucketDomains() {
   return messageAdaptor(
     {
-      serverCommand: MESSAGE_COMMANDS.updateBucket,
-      data: {
-        ...providerInfo,
-        newBucket,
-      },
+      serverCommand: MESSAGE_COMMANDS.getBucketDomains,
+      data: {},
+      cspInfo: getCSPInfo(),
     },
     false
   )
@@ -57,9 +62,9 @@ export function requestDeleteBucketFiles(keysList) {
     {
       serverCommand: MESSAGE_COMMANDS.deleteBucketFiles,
       data: {
-        ...providerInfo,
         keysList,
       },
+      cspInfo: getCSPInfo(),
     },
     false
   )
@@ -71,9 +76,9 @@ export function requestMoveBucketFiles(keysInfoList) {
     {
       serverCommand: MESSAGE_COMMANDS.moveBucketFiles,
       data: {
-        ...providerInfo,
         keysInfoList,
       },
+      cspInfo: getCSPInfo(),
     },
     false
   )
@@ -83,9 +88,8 @@ export function requestGetOverviewInfo() {
   return messageAdaptor(
     {
       serverCommand: MESSAGE_COMMANDS.getOverviewInfo,
-      data: {
-        ...providerInfo,
-      },
+      data: {},
+      cspInfo: getCSPInfo(),
     },
     false
   )
@@ -96,7 +100,6 @@ export function requestOpen(target) {
     {
       serverCommand: MESSAGE_COMMANDS.open,
       data: {
-        ...providerInfo,
         target,
       },
     },
@@ -117,29 +120,15 @@ export function requestReadPaths(paths) {
   )
 }
 
-// 让 node 端上传文件
-export function requestServerUploadFiles(params) {
-  return messageAdaptor(
-    {
-      serverCommand: MESSAGE_COMMANDS.serverUploadFiles,
-      data: {
-        ...providerInfo,
-        ...params,
-      },
-    },
-    false
-  )
-}
-
 // 从网络中拉取资源到 bucket
 export function requestFetchResourceToBucket(params) {
   return messageAdaptor(
     {
       serverCommand: MESSAGE_COMMANDS.fetchResourceToBucket,
       data: {
-        ...providerInfo,
         ...params,
       },
+      cspInfo: getCSPInfo(),
     },
     false,
     // 等待时间为 1小时
@@ -153,9 +142,9 @@ export function requestRefreshFiles(fileUrls) {
     {
       serverCommand: MESSAGE_COMMANDS.refreshFiles,
       data: {
-        ...providerInfo,
         fileUrls,
       },
+      cspInfo: getCSPInfo(),
     },
     false
   )
@@ -167,9 +156,9 @@ export function requestRefreshDirs(dirUrls) {
     {
       serverCommand: MESSAGE_COMMANDS.refreshDirs,
       data: {
-        ...providerInfo,
         dirUrls,
       },
+      cspInfo: getCSPInfo(),
     },
     false
   )
@@ -228,7 +217,10 @@ export function requestLogin(info) {
     {
       serverCommand: MESSAGE_COMMANDS.login,
       data: {
-        providerName: info.csp,
+        ...info,
+      },
+      cspInfo: {
+        ...getCSPInfo(),
         ...info,
       },
     },

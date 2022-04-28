@@ -43,30 +43,20 @@ class Qiniu {
     '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","etag":"$(etag)","mimeType":"$(mimeType)","ext":"$(ext)"}'
 
   // img list config
-  marker: string = '' // 分页用
-  resourceListReachEnd: boolean = false // 资源是否加载完了
-
   qiniuMac: qiniu.auth.digest.Mac | null = null
 
-  // 不再通过实例化的时候传数据，通过 login 把数据传递过来
-  constructor() {}
-
-  // 首次获取配置的时候，如果是有 currentCSP 的，则会直接把 currentCSP 信息更新在对应的 adaptor 里
-  updateCSPInfo(cspInfo: { csp: string; ak: string; sk: string; nickname: string }) {
-    this.ak = cspInfo.ak
-    this.sk = cspInfo.sk
-    this.qiniuMac = new qiniu.auth.digest.Mac(cspInfo.ak, cspInfo.sk)
+  constructor(ak: string, sk: string, bucket: string) {
+    this.ak = ak
+    this.sk = sk
+    this.bucket = bucket
+    this.qiniuMac = new qiniu.auth.digest.Mac(ak, sk)
   }
 
   // 登录，通过请求一个接口看是否成功来决定登录是否成功
   // 登录的时候有一个很重要的事情：设置当前的 ak、sk
   async login(cspInfo: { csp: string; ak: string; sk: string; nickname: string }) {
-    this.updateCSPInfo(cspInfo)
     const res = await this.getBucketList()
     if (res.error) {
-      this.ak = ''
-      this.sk = ''
-      this.qiniuMac = null
       return {
         success: false,
         msg: res.error,
@@ -92,121 +82,107 @@ class Qiniu {
     return uploadToken
   }
 
-  // fromBegin 是否从头加载， true 则重置 marker
+  // fromBegin 是否从头加载
   getResourceList(
     fromBegin: boolean,
-    prefix: string
-  ): Promise<{ list: Array<any>; reachEnd: boolean; commonPrefixes: string[] }> {
-    if (fromBegin) {
-      this.resourceListReachEnd = false
-    }
-
-    // const bucketManager = new qiniu.rs.BucketManager(this.qiniuMac, this.qiniuConfig)
+    prefix: string,
+    marker: string
+  ): Promise<{ list: Array<any>; reachEnd: boolean; commonPrefixes: string[]; marker: string }> {
     const bucketManager = new qiniu.rs.BucketManager(
       <qiniu.auth.digest.Mac>this.qiniuMac,
       new qiniu.conf.Config()
     )
     const options = {
       prefix,
-      marker: fromBegin ? '' : this.marker,
+      marker,
       limit: 1000,
       delimiter: '/',
     }
     return new Promise((resolve, reject) => {
-      if (this.resourceListReachEnd) {
-        resolve({
-          list: [],
-          commonPrefixes: [],
-          reachEnd: true,
-        })
-      } else {
-        bucketManager.listPrefix(this.bucket, options, (respErr, respBody, respInfo) => {
-          // console.log('listPrefix', {
-          //   bucket: this.bucket,
-          //   options,
-          //   respBody,
-          // })
+      bucketManager.listPrefix(this.bucket, options, (respErr, respBody, respInfo) => {
+        // console.log('listPrefix', {
+        //   bucket: this.bucket,
+        //   options,
+        //   respBody,
+        // })
 
-          if (respBody.error) {
-            vscode.window.showErrorMessage(notiTpl(respBody.error))
-            resolve({
-              list: [],
-              commonPrefixes: [],
-              reachEnd: true,
+        if (respBody.error) {
+          vscode.window.showErrorMessage(notiTpl(respBody.error))
+          resolve({
+            list: [],
+            commonPrefixes: [],
+            reachEnd: true,
+            marker: '',
+          })
+        }
+
+        // 依据 prefix 从 commonPrefixes 中分离出当前的 folders
+        function extractCurrentFolders(cps: string[]) {
+          if (!cps) {
+            return []
+          } else {
+            const pfxReg = new RegExp(prefix)
+            return cps.map(cp => {
+              return cp.replace(pfxReg, '')
             })
           }
+        }
 
-          // 依据 prefix 从 commonPrefixes 中分离出当前的 folders
-          function extractCurrentFolders(cps: string[]) {
-            if (!cps) {
-              return []
-            } else {
-              const pfxReg = new RegExp(prefix)
-              return cps.map(cp => {
-                return cp.replace(pfxReg, '')
-              })
-            }
-          }
-
-          if (respBody) {
-            // 加载成之后
-            // 更新标记点
-            if (respBody.marker) {
-              this.updateMarker(respBody.marker)
-              resolve({
-                list: respBody.items,
-                // 文件夹，会自动带上尾缀 /
-                // ['testfoler/', '/']
-                commonPrefixes: extractCurrentFolders(respBody.commonPrefixes),
-                reachEnd: false,
-              })
-            } else {
-              // 如果加载完了 respBody.marker 没有值，服务端不会返回这个字段
-              this.updateMarker('')
-              this.resourceListReachEnd = true
-              resolve({
-                list: respBody.items,
-                commonPrefixes: extractCurrentFolders(respBody.commonPrefixes),
-                reachEnd: true,
-              })
-            }
+        if (respBody) {
+          // 加载成之后
+          // 更新标记点
+          if (respBody.marker) {
+            resolve({
+              list: respBody.items,
+              // 文件夹，会自动带上尾缀 /
+              // ['testfoler/', '/']
+              commonPrefixes: extractCurrentFolders(respBody.commonPrefixes),
+              reachEnd: false,
+              marker: respBody.marker,
+            })
           } else {
-            console.log('respInfo', respInfo)
-            vscode.window.showErrorMessage(notiTpl('未知错误，资源列表加载失败'))
+            // 如果加载完了 respBody.marker 没有值，服务端不会返回这个字段
+            resolve({
+              list: respBody.items,
+              commonPrefixes: extractCurrentFolders(respBody.commonPrefixes),
+              reachEnd: true,
+              marker: '',
+            })
           }
-        })
-      }
+        } else {
+          console.log('respInfo', respInfo)
+          vscode.window.showErrorMessage(notiTpl('未知错误，资源列表加载失败'))
+        }
+      })
     })
-  }
-
-  updateBucket(newBucket: string) {
-    this.bucket = newBucket
-    this.marker = ''
-    this.resourceListReachEnd = false
-  }
-
-  updateMarker(newMarker: string) {
-    this.marker = newMarker
   }
 
   // 获取用户的 bucket 列表
   getBucketList() {
-    return Request.get({
-      url: urls.buckets,
-    })
+    return Request.qiniuGet(
+      {
+        url: urls.buckets,
+      },
+      this.generateHTTPAuthorization
+    )
   }
 
   // 获取 bucket 对应的 domains
-  getBucketDomains(bucket: string) {
-    return Request.get({
-      url: urls.domains,
-      params: {
-        tbl: bucket,
+  getBucketDomains() {
+    const bucket = this.bucket
+    return Request.qiniuGet(
+      {
+        url: urls.domains,
+        params: {
+          tbl: bucket,
+        },
       },
-    })
+      this.generateHTTPAuthorization
+    )
   }
 
-  generateHTTPAuthorization(url: string) {
+  // 要作为参数传递，所以是箭头函数
+  generateHTTPAuthorization = (url: string) => {
     return qiniu.util.generateAccessToken(<qiniu.auth.digest.Mac>this.qiniuMac, url)
   }
 
@@ -250,7 +226,7 @@ class Qiniu {
       .format(formatStr)}&end=${day.format(formatStr)}&g=day`
 
     let requests = [urls.count, urls.countLine, urls.space, urls.spaceLine].map(url => {
-      return Request.get({ url: `${url}${param}` })
+      return Request.qiniuGet({ url: `${url}${param}` }, this.generateHTTPAuthorization)
     })
 
     return new Promise((res, rej) => {
@@ -268,12 +244,6 @@ class Qiniu {
           })
         })
     })
-  }
-
-  //uploadMeta => [{key: '', path: ''}]
-  // 在 node 端上传文件
-  uploadFiles(uploadMeta: { key: string; path: string }[]) {
-    console.log('uploadMeta', uploadMeta)
   }
 
   // 抓取网络资源到空间
@@ -383,4 +353,4 @@ class Qiniu {
   }
 }
 
-export default new Qiniu()
+export default Qiniu

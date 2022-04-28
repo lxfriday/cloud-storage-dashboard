@@ -8,7 +8,6 @@ export default {
   getOverviewInfo: 'getOverviewInfo',
   open: 'open',
   readPaths: 'readPaths',
-  serverUploadFiles: 'serverUploadFiles',
   fetchResourceToBucket: 'fetchResourceToBucket',
   moveBucketFiles: 'moveBucketFiles',
   refreshFiles: 'refreshFiles',

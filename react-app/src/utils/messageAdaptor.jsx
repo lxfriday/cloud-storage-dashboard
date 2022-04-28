@@ -8,7 +8,7 @@ import loading from '../Components/Loading'
 
 const randomKey = () => `${Date.now()}_${Math.floor(Math.random() * 10000000)}`
 export default function messageAdaptor(
-  { serverCommand, data },
+  { serverCommand, data, cspInfo },
   showLoading = true, // 是否显示加载效果
   timeout = 10000 // reject 超时时间
 ) {
@@ -48,8 +48,9 @@ export default function messageAdaptor(
       command: serverCommand,
       uniqueId,
       data,
+      cspInfo,
     })
-    __DEV__ && LogO('page send message', { command: serverCommand, uniqueId, data })
+    __DEV__ && LogO('page send message', { command: serverCommand, uniqueId, data, cspInfo })
   })
 }
 

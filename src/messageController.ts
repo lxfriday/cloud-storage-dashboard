@@ -20,58 +20,61 @@ export default function messageController(
     async message => {
       try {
         global.__DEV__ && console.log('server receive message', message)
-        const csp = cspAdaptor(message.data.providerName)
 
         switch (message.command) {
-          case MESSAGE_COMMANDS.deleteUsedCSP:
+          case MESSAGE_COMMANDS.deleteUsedCSP: {
             const deleteUsedCSPRes = await boot.deleteUsedCSP(message.data)
             postMessage({
               uniqueId: message.uniqueId,
               data: deleteUsedCSPRes,
             })
             return
-          case MESSAGE_COMMANDS.login:
+          }
+
+          case MESSAGE_COMMANDS.login: {
+            const csp = cspAdaptor(message.cspInfo)
             const loginRes = await csp.login(message.data)
             postMessage({
               uniqueId: message.uniqueId,
               data: loginRes,
             })
             return
-          case MESSAGE_COMMANDS.getSettings:
-            const getSettingsRes = boot.getSettings()
-            // 在获取配置的时候，把本地的一些配置做好
-            if (getSettingsRes.success && getSettingsRes.settings?.currentCSP) {
-              const currentCSP = getSettingsRes.settings?.currentCSP
-              cspAdaptor(currentCSP.csp).updateCSPInfo(currentCSP)
-            }
+          }
 
+          case MESSAGE_COMMANDS.getSettings: {
+            const getSettingsRes = boot.getSettings()
             postMessage({
               uniqueId: message.uniqueId,
               data: getSettingsRes,
             })
             return
-          case MESSAGE_COMMANDS.updateSettings:
+          }
+
+          case MESSAGE_COMMANDS.updateSettings: {
             const updateSettingsRes = boot.updateSettings(message.data.newSettings)
             postMessage({
               uniqueId: message.uniqueId,
               data: updateSettingsRes,
             })
             return
-          case MESSAGE_COMMANDS.resetSettings:
+          }
+          case MESSAGE_COMMANDS.resetSettings: {
             const resetSettingsRes = boot.resetSettings()
             postMessage({
               uniqueId: message.uniqueId,
               data: resetSettingsRes,
             })
             return
-          case MESSAGE_COMMANDS.readPaths:
+          }
+          case MESSAGE_COMMANDS.readPaths: {
             const readPathsResult = await fsManager.readPaths(message.data.paths)
             postMessage({
               uniqueId: message.uniqueId,
               data: { readPathsResult },
             })
             return
-          case MESSAGE_COMMANDS.open:
+          }
+          case MESSAGE_COMMANDS.open: {
             const openResult = await open(message.data.target)
             postMessage({
               uniqueId: message.uniqueId,
@@ -80,66 +83,75 @@ export default function messageController(
               },
             })
             return
-          case MESSAGE_COMMANDS.generateUploadToken:
+          }
+          case MESSAGE_COMMANDS.generateUploadToken: {
+            const csp = cspAdaptor(message.cspInfo)
             postMessage({
               data: csp.generateUploadToken(),
               uniqueId: message.uniqueId,
             })
             return
-          case MESSAGE_COMMANDS.getBucketList:
+          }
+          case MESSAGE_COMMANDS.getBucketList: {
+            const csp = cspAdaptor(message.cspInfo)
             const bucketList = await csp.getBucketList()
             postMessage({
               data: bucketList,
               uniqueId: message.uniqueId,
             })
             return
-          case MESSAGE_COMMANDS.getResourceList:
-            const { list, reachEnd, commonPrefixes } = await csp.getResourceList(
+          }
+          case MESSAGE_COMMANDS.getResourceList: {
+            const csp = cspAdaptor(message.cspInfo)
+            const getResourceListRes = await csp.getResourceList(
               message.data.fromBegin,
-              message.data.prefix
+              message.data.prefix,
+              message.data.marker
             )
             postMessage({
-              data: { list, reachEnd, commonPrefixes },
               uniqueId: message.uniqueId,
+              data: getResourceListRes,
             })
             return
-          case MESSAGE_COMMANDS.updateBucket:
-            csp.updateBucket(message.data.newBucket)
-            const domains = await csp.getBucketDomains(message.data.newBucket)
+          }
+          case MESSAGE_COMMANDS.getBucketDomains: {
+            const csp = cspAdaptor(message.cspInfo)
+            const domains = await csp.getBucketDomains()
             postMessage({
               uniqueId: message.uniqueId,
               data: domains,
             })
             return
-          case MESSAGE_COMMANDS.deleteBucketFiles:
+          }
+          case MESSAGE_COMMANDS.deleteBucketFiles: {
+            const csp = cspAdaptor(message.cspInfo)
             const res = await csp.deleteBucketFiles(message.data.keysList)
             postMessage({
               uniqueId: message.uniqueId,
               data: res,
             })
             return
-          case MESSAGE_COMMANDS.moveBucketFiles:
+          }
+          case MESSAGE_COMMANDS.moveBucketFiles: {
+            const csp = cspAdaptor(message.cspInfo)
             const moveBucketFilesRes = await csp.moveBucketFiles(message.data.keysInfoList)
             postMessage({
               uniqueId: message.uniqueId,
               data: moveBucketFilesRes,
             })
             return
-          case MESSAGE_COMMANDS.getOverviewInfo:
+          }
+          case MESSAGE_COMMANDS.getOverviewInfo: {
+            const csp = cspAdaptor(message.cspInfo)
             const overviewInfo = await csp.getOverviewInfo()
             postMessage({
               uniqueId: message.uniqueId,
               data: overviewInfo,
             })
             return
-          case MESSAGE_COMMANDS.serverUploadFiles:
-            await csp.uploadFiles(message.data.uploadMeta)
-            postMessage({
-              uniqueId: message.uniqueId,
-              // data: domains,
-            })
-            return
-          case MESSAGE_COMMANDS.fetchResourceToBucket:
+          }
+          case MESSAGE_COMMANDS.fetchResourceToBucket: {
+            const csp = cspAdaptor(message.cspInfo)
             const fetchResourceRsult = await csp.fetchResourceToBucket(
               message.data.url,
               message.data.key
@@ -151,39 +163,47 @@ export default function messageController(
               },
             })
             return
-          case MESSAGE_COMMANDS.refreshFiles:
+          }
+          case MESSAGE_COMMANDS.refreshFiles: {
+            const csp = cspAdaptor(message.cspInfo)
             const refreshFilesRes = await csp.refreshFiles(message.data.fileUrls)
             postMessage({
               uniqueId: message.uniqueId,
               data: refreshFilesRes,
             })
             return
-          case MESSAGE_COMMANDS.refreshDirs:
+          }
+          case MESSAGE_COMMANDS.refreshDirs: {
+            const csp = cspAdaptor(message.cspInfo)
             const refreshDirsRes = await csp.refreshDirs(message.data.dirUrls)
             postMessage({
               uniqueId: message.uniqueId,
               data: refreshDirsRes,
             })
             return
-          case MESSAGE_COMMANDS.showOpenDialog:
+          }
+          case MESSAGE_COMMANDS.showOpenDialog: {
             const showOpenDialogRes = await utils.showOpenDialog(message.data)
             postMessage({
               uniqueId: message.uniqueId,
               data: showOpenDialogRes,
             })
             return
-          case MESSAGE_COMMANDS.downloadFiles:
+          }
+          case MESSAGE_COMMANDS.downloadFiles: {
             downloadManager.manager(message.data.filesInfo, message.data.downloadDir, postMessage)
             postMessage({
               uniqueId: message.uniqueId,
             })
             return
-          case MESSAGE_COMMANDS.downloadManager_cancel:
+          }
+          case MESSAGE_COMMANDS.downloadManager_cancel: {
             downloadManager.onReceiveCancelMessage(message.data.id, postMessage)
             postMessage({
               uniqueId: message.uniqueId,
             })
             return
+          }
         }
       } catch (e) {
         vscode.window.showErrorMessage(`extension 出现了错误 ${String(e)}`)

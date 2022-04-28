@@ -131,7 +131,7 @@ function DownloadManager() {
 
   return (
     <Fragment>
-      {tasks.length && (
+      {tasks.length > 0 && (
         <Draggable handle={`.${styles.title}`} bounds="body">
           <div className={styles.wrapper}>
             <div className={styles.title}>

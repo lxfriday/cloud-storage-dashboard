@@ -17,22 +17,35 @@ axios.interceptors.request.use(function (config) {
   return config
 })
 
-export function get({ url, params, config }: requestParam) {
+export function qiniuGet(
+  { url, params, config }: requestParam,
+  getAuthorization: (url: string) => string
+) {
   if (params) {
     url += `?${qs.stringify(params)}`
   }
   if (!config) {
     config = {}
   }
-  if (/(qiniu.com|qbox.me)/g.test(url)) {
-    // 七牛api
-    config = {
-      ...config,
-      headers: {
-        ...config.headers,
-        authorization: qiniu.generateHTTPAuthorization(url),
-      },
-    }
+  // 七牛api
+  config = {
+    ...config,
+    headers: {
+      ...config.headers,
+      authorization: getAuthorization(url),
+    },
+  }
+  return axios(url, { method: 'GET', ...config }).then(res => {
+    return res.data
+  })
+}
+
+export function get({ url, params, config }: requestParam) {
+  if (params) {
+    url += `?${qs.stringify(params)}`
+  }
+  if (!config) {
+    config = {}
   }
   return axios(url, { method: 'GET', ...config }).then(res => {
     return res.data

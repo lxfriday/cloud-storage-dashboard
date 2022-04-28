@@ -12,13 +12,12 @@ import {
 } from '@ant-design/icons'
 import copy from 'copy-text-to-clipboard'
 import classnames from 'classnames'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 
 import { downloadManager } from '../../Components/DownloadManager'
 import SelectUpload from './compnents/SelectUpload'
 import ResourceList from './compnents/ResourceList'
 import PasteAndDragUpload from './compnents/PasteAndDragUpload'
-
 import styles from './index.module.less'
 import * as messageCenter from '../../utils/messageCenter'
 import {
@@ -31,15 +30,18 @@ import {
   getDownloadFilesInfo,
 } from '../../utils'
 import cloudserviceprovider from '../../utils/cloudserviceprovider'
+import { updateBucketAction } from '../../store/storageManage'
 
 const { Option } = Select
 
 const providerName = 'qiniu'
 const csp = cloudserviceprovider[providerName]
+let marker = '' // 分页标记
 
 let isLoadingResource = false // 是否正在加载资源
 
 export default function StorageManage() {
+  const dispatch = useDispatch()
   const settings = useSelector(state => state.settings)
   let [bucketDomainInfo, setBucketDomainInfo] = useState({
     bucketDomains: [],
@@ -94,15 +96,21 @@ export default function StorageManage() {
     // 刷新文件数量，存储空间
     if (!isLoadingResource) {
       isLoadingResource = true
+      marker = ''
       setResourceList([])
       setUploadFolders([]) // 需要，否则点击返回上次层的时候，返回的图标会保留
       setCommonPrefixList([])
       setSelectedKeys([])
       setSelectedFolders([])
       messageCenter
-        .requestGetResourceList({ fromBegin: true, prefix: prefixes.join('') })
+        .requestGetResourceList({
+          fromBegin: true,
+          prefix: prefixes.join(''),
+          marker: '',
+        })
         .then(data => {
           isLoadingResource = false
+          marker = data.marker
           setUploadFolders([...prefixes])
           setPendingUploadPrefix(prefixes.join(''))
           setCommonPrefixList(data.commonPrefixes)
@@ -125,17 +133,22 @@ export default function StorageManage() {
   function handleLoadData() {
     if (!isResourceListReachEnd && !isLoadingResource) {
       isLoadingResource = true
-      messageCenter.requestGetResourceList({ prefix: uploadFolders.join('') }).then(data => {
-        isLoadingResource = false
-        // 对已有的 commonprefixes 和新传过来的 commonprefixes 做合并，去重
-        setCommonPrefixList([...new Set([...commonPrefixList, ...data.commonPrefixes])])
-        setResourceList([...resourceList, ...data.list])
-        setIsResourceListReachEnd(data.reachEnd)
-      })
+      messageCenter
+        .requestGetResourceList({
+          fromBegin: false,
+          prefix: uploadFolders.join(''),
+          marker,
+        })
+        .then(data => {
+          isLoadingResource = false
+          marker = data.marker
+          // 对已有的 commonprefixes 和新传过来的 commonprefixes 做合并，去重
+          setCommonPrefixList([...new Set([...commonPrefixList, ...data.commonPrefixes])])
+          setResourceList([...resourceList, ...data.list])
+          setIsResourceListReachEnd(data.reachEnd)
+        })
     }
   }
-
-  const debouncedHandleRefresh = debounce(handleRefresh, 2000, false)
 
   function handleChangeDomain(newDoamin) {
     setBucketDomainInfo({
@@ -429,37 +442,6 @@ export default function StorageManage() {
       .catch(e => {
         message.error('请求下载任务失败')
       })
-    // .then(data => {
-    //   if (data.success) {
-    //     notification.success({
-    //       message: '文件下载成功',
-    //       description: (
-    //         <div>
-    //           在资源管理器中 【
-    //           <span
-    //             className={styles.openInExplorer}
-    //             onClick={() => {
-    //               messageCenter.requestOpen(settings.downloadDir)
-    //             }}
-    //           >
-    //             打开
-    //           </span>
-    //           】 文件夹
-    //         </div>
-    //       ),
-    //     })
-    //   } else if (data.failedFiles.length) {
-    //     console.log('failedFiles', failedFiles)
-    //     notification.error({
-    //       message: '注意',
-    //       description: '部分文件下载失败',
-    //       duration: 5,
-    //     })
-    //   }
-    // })
-    // .catch(e => {
-    //   message.success('下载初始化失败2')
-    // })
   }
 
   // 点击工具栏的下载，这是批量下载
@@ -479,13 +461,14 @@ export default function StorageManage() {
   }
 
   useEffect(async () => {
+    dispatch(updateBucketAction(currentBucket))
     // 打开一个 bucket 的时候，更新 localside bucket
     setResourceList([])
     setUploadFolders([])
     setCommonPrefixList([])
     setPendingUploadPrefix('')
     try {
-      const bucketDomains = await messageCenter.requestUpdateBucket(currentBucket)
+      const bucketDomains = await messageCenter.requestGetBucketDomains()
       setBucketDomainInfo({
         bucketDomains: bucketDomains,
         selectBucketDomain: bucketDomains[0] || '',
@@ -499,8 +482,10 @@ export default function StorageManage() {
       const resourceListResponse = await messageCenter.requestGetResourceList({
         fromBegin: true,
         prefix: '',
+        marker: '',
       })
       isLoadingResource = false
+      marker = resourceListResponse.marker
       setCommonPrefixList(resourceListResponse.commonPrefixes)
       setResourceList(resourceListResponse.list)
       setIsResourceListReachEnd(resourceListResponse.reachEnd)
@@ -508,9 +493,11 @@ export default function StorageManage() {
     } catch (e) {
       message.error(e)
     }
-    // window.addEventListener('paste', handlePaste)
+  }, [currentBucket])
+  useEffect(() => {
     return () => {
-      // window.removeEventListener('paste', handlePaste)
+      marker = ''
+      dispatch(updateBucketAction(''))
     }
   }, [currentBucket])
 
