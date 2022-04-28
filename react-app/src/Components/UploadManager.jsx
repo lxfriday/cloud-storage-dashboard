@@ -1,6 +1,7 @@
 import React, { useEffect, useState, Fragment } from 'react'
 import ReactDOM from 'react-dom'
 import { Progress, notification, Button } from 'antd'
+import { CloudUploadOutlined } from '@ant-design/icons'
 import EventEmitter from 'events'
 import Draggable from 'react-draggable'
 
@@ -132,6 +133,7 @@ function UploadManager() {
         <Draggable handle={`.${styles.title}`} bounds="body">
           <div className={styles.wrapper}>
             <div className={styles.title}>
+              <CloudUploadOutlined style={{ color: '#389e0d', fontSize: 15, marginRight: 3 }} />
               上传管理<span>({uploadingCount})</span>
             </div>
             <div className={styles.fListWrapper}>
