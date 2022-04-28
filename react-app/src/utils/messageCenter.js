@@ -260,3 +260,15 @@ export function requestDownloadFiles({ filesInfo, downloadDir }) {
     false
   )
 }
+
+export function requestCancelDownload(id) {
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.downloadManager_cancel,
+      data: {
+        id,
+      },
+    },
+    false
+  )
+}

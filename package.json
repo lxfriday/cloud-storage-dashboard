@@ -2,7 +2,7 @@
   "name": "cloud-storage-dashboard",
   "displayName": "云存储管理",
   "description": "a vscode extexsion for cloud storage management",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "publisher": "lxfriday",
   "icon": "assets/logo-large.png",
@@ -49,9 +49,7 @@
     "build:extension": "webpack --mode production --devtool hidden-source-map",
     "build:reactapp": "cd react-app && npm run build",
     "build": "npm run build:reactapp && npm run build:extension",
-    "publish": "vsce package",
-    "package": "vsce package",
-    "prepublish": "npm run build",
+    "package": "npm run build && vsce package",
     "lint": "eslint src --ext ts"
   },
   "devDependencies": {
@@ -75,11 +73,11 @@
     "webpack-cli": "^4.9.2"
   },
   "dependencies": {
+    "@lxfriday/nodejs-file-downloader": "^4.9.5",
     "async": "^3.2.3",
     "axios": "^0.26.1",
     "dayjs": "^1.11.0",
     "get-port": "^6.1.2",
-    "nodejs-file-downloader": "^4.9.3",
     "open": "^8.4.0",
     "qiniu": "^7.4.0",
     "vsce": "^2.7.0"

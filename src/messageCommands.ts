@@ -20,4 +20,7 @@ export default {
   login: 'login',
   deleteUsedCSP: 'deleteUsedCSP',
   downloadFiles: 'downloadFiles',
+  downloadManager_progress: 'downloadManager_progress',
+  downloadManager_cancel: 'downloadManager_cancel',
+  downloadManager_error: 'downloadManager_error',
 }

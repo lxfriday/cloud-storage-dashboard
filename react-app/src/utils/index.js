@@ -232,6 +232,7 @@ export function getDownloadFilesInfo(filesInfo) {
       id: `${Date.now()}_${uuidv4()}`,
       url: f.url,
       fname: !!f.ext.length ? `${f.fname}_${Date.now()}.${f.ext}` : `${f.fname}_${Date.now()}`,
+      originalName: !!f.ext.length ? `${f.fname}.${f.ext}` : f.fname,
     }
   })
 }

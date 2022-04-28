@@ -1,0 +1,52 @@
+.wrapper {
+  position: fixed;
+  right: 20px;
+  top: 64px;
+  width: 350px;
+  background-color: #fff;
+  padding-bottom: 18px;
+  border-radius: 5px;
+  z-index: 999;
+  .title {
+    display: flex;
+    align-items: center;
+    padding-left: 18px;
+    padding-top: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 5px;
+    cursor: move;
+    span {
+      font-size: 12px;
+      color: #aaa;
+    }
+  }
+  .fListWrapper {
+    padding-left: 18px;
+    padding-right: 18px;
+    max-height: 700px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    .fWrapper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      & ~ .fWrapper {
+        margin-top: 5px;
+        border-top: 1px dashed #ccc;
+      }
+      .fLeftWrapper {
+        flex: 0 0 265px;
+        padding-right: 10px;
+        .fname {
+          width: 265px;
+          .ellipsis();
+        }
+      }
+      button {
+        align-self: flex-end;
+      }
+    }
+  }
+}

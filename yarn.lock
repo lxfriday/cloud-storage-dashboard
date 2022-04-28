@@ -36,6 +36,16 @@
   resolved "https://registry.npmmirror.com/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
 
+"@lxfriday/nodejs-file-downloader@^4.9.5":
+  version "4.9.5"
+  resolved "https://registry.npmjs.org/@lxfriday/nodejs-file-downloader/-/nodejs-file-downloader-4.9.5.tgz#8c1644110303f0b57a9b5da8c858c7937010c364"
+  integrity sha512-9GkZg0Ny1ETTDFWO+yQj+13W2+MX4+Z8HE0O2VJRoPRz/N1k5TJ0TruL/tFALScFJaqmzxamHBswSjgBjH+f+w==
+  dependencies:
+    follow-redirects "^1.13.0"
+    https-proxy-agent "^5.0.0"
+    mime-types "^2.1.27"
+    sanitize-filename "^1.6.3"
+
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
   resolved "https://registry.npmmirror.com/@nodelib/fs.scandir/-/fs.scandir-2.1.5.tgz"
@@ -2138,16 +2148,6 @@ node-releases@^2.0.2:
   resolved "https://registry.npmmirror.com/node-releases/-/node-releases-2.0.2.tgz"
   integrity sha512-XxYDdcQ6eKqp/YjI+tb2C5WM2LgjnZrfYg4vgQt49EK268b6gYCHsBLrK2qvJo4FmCtqmKezb0WZFK4fkrZNsg==
 
-nodejs-file-downloader@^4.9.3:
-  version "4.9.3"
-  resolved "https://registry.npmmirror.com/nodejs-file-downloader/-/nodejs-file-downloader-4.9.3.tgz#0aee8232e5a3539b606520d15dc0a3a96b8c4a53"
-  integrity sha512-1agDW6TDkdNdyMm20iF70bpRHsA8WwVdezFTcBD4FPf/nAPwV/cDK7tUeALemK1DX1k8MfhAiYTB/jmyBkgmJw==
-  dependencies:
-    follow-redirects "^1.13.0"
-    https-proxy-agent "^5.0.0"
-    mime-types "^2.1.27"
-    sanitize-filename "^1.6.3"
-
 normalize-path@^3.0.0, normalize-path@~3.0.0:
   version "3.0.0"
   resolved "https://registry.npmmirror.com/normalize-path/-/normalize-path-3.0.0.tgz"
@@ -2656,7 +2656,7 @@ safe-buffer@^5.1.0:
 
 sanitize-filename@^1.6.3:
   version "1.6.3"
-  resolved "https://registry.npmmirror.com/sanitize-filename/-/sanitize-filename-1.6.3.tgz#755ebd752045931977e30b2025d340d7c9090378"
+  resolved "https://registry.npmjs.org/sanitize-filename/-/sanitize-filename-1.6.3.tgz#755ebd752045931977e30b2025d340d7c9090378"
   integrity sha512-y/52Mcy7aw3gRm7IrcGDFx/bCk4AhRh2eI9luHOQM86nZsqwiRkkq2GekHXBBD+SmPidc8i2PqtYZl+pWJ8Oeg==
   dependencies:
     truncate-utf8-bytes "^1.0.0"
@@ -2993,8 +2993,8 @@ toidentifier@1.0.1:
 
 truncate-utf8-bytes@^1.0.0:
   version "1.0.2"
-  resolved "https://registry.npmmirror.com/truncate-utf8-bytes/-/truncate-utf8-bytes-1.0.2.tgz#405923909592d56f78a5818434b0b78489ca5f2b"
-  integrity sha512-95Pu1QXQvruGEhv62XCMO3Mm90GscOCClvrIUwCM0PYOXK3kaF3l3sIHxx71ThJfcbM2O5Au6SO3AWCSEfW4mQ==
+  resolved "https://registry.npmjs.org/truncate-utf8-bytes/-/truncate-utf8-bytes-1.0.2.tgz#405923909592d56f78a5818434b0b78489ca5f2b"
+  integrity sha1-QFkjkJWS1W94pYGENLC3hInKXys=
   dependencies:
     utf8-byte-length "^1.0.1"
 
@@ -3153,8 +3153,8 @@ urllib@^2.34.1:
 
 utf8-byte-length@^1.0.1:
   version "1.0.4"
-  resolved "https://registry.npmmirror.com/utf8-byte-length/-/utf8-byte-length-1.0.4.tgz#f45f150c4c66eee968186505ab93fcbb8ad6bf61"
-  integrity sha512-4+wkEYLBbWxqTahEsWrhxepcoVOJ+1z5PGIjPZxRkytcdSUaNjIjBM7Xn8E+pdSuV7SzvWovBFA54FO0JSoqhA==
+  resolved "https://registry.npmjs.org/utf8-byte-length/-/utf8-byte-length-1.0.4.tgz#f45f150c4c66eee968186505ab93fcbb8ad6bf61"
+  integrity sha1-9F8VDExm7uloGGUFq5P8u4rWv2E=
 
 util-deprecate@^1.0.1, util-deprecate@~1.0.1:
   version "1.0.2"

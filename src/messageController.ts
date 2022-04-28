@@ -1,7 +1,6 @@
 import * as vscode from 'vscode'
 import cspAdaptor from './utils/cspAdaptor'
 import MESSAGE_COMMANDS from './messageCommands'
-import globalConfig from './globalConfig'
 import open from './utils/open'
 import * as fsManager from './utils/fsManager'
 import * as utils from './utils'
@@ -12,15 +11,15 @@ export default function messageController(
   panel: vscode.WebviewPanel,
   context: vscode.ExtensionContext
 ) {
-  const postMessage = (msg: any) => {
+  const postMessage = (msg: any, hideLog?: boolean) => {
     panel.webview.postMessage(msg)
-    globalConfig.showMessageProgress && console.log('server send message', msg)
+    global.__DEV__ && !hideLog && console.log('server send message', msg)
   }
 
   panel.webview.onDidReceiveMessage(
     async message => {
       try {
-        globalConfig.showMessageProgress && console.log('server receive message', message)
+        global.__DEV__ && console.log('server receive message', message)
         const csp = cspAdaptor(message.data.providerName)
 
         switch (message.command) {
@@ -174,13 +173,15 @@ export default function messageController(
             })
             return
           case MESSAGE_COMMANDS.downloadFiles:
-            const downloadRes = await downloadManager.download(
-              message.data.filesInfo,
-              message.data.downloadDir
-            )
+            downloadManager.manager(message.data.filesInfo, message.data.downloadDir, postMessage)
             postMessage({
               uniqueId: message.uniqueId,
-              data: downloadRes,
+            })
+            return
+          case MESSAGE_COMMANDS.downloadManager_cancel:
+            downloadManager.onReceiveCancelMessage(message.data.id, postMessage)
+            postMessage({
+              uniqueId: message.uniqueId,
             })
             return
         }

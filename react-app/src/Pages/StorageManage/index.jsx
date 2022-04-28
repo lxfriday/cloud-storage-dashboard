@@ -14,10 +14,10 @@ import copy from 'copy-text-to-clipboard'
 import classnames from 'classnames'
 import { useSelector } from 'react-redux'
 
+import { downloadManager } from '../../Components/DownloadManager'
 import SelectUpload from './compnents/SelectUpload'
 import ResourceList from './compnents/ResourceList'
 import PasteAndDragUpload from './compnents/PasteAndDragUpload'
-import { renderUploadManager, destroyUploadManager } from '../../Components/UploadManager'
 
 import styles from './index.module.less'
 import * as messageCenter from '../../utils/messageCenter'
@@ -419,43 +419,47 @@ export default function StorageManage() {
     }
     const processedFilesInfo = getDownloadFilesInfo(filesInfo)
     setSelectedKeys([])
-    message.info('文件下载开始')
+    // message.info('文件下载开始')
+    downloadManager(processedFilesInfo)
     messageCenter
       .requestDownloadFiles({
         filesInfo: processedFilesInfo,
         downloadDir: settings.downloadDir,
       })
-      .then(data => {
-        if (data.success) {
-          notification.success({
-            message: '文件下载成功',
-            description: (
-              <div>
-                在资源管理器中 【
-                <span
-                  className={styles.openInExplorer}
-                  onClick={() => {
-                    messageCenter.requestOpen(settings.downloadDir)
-                  }}
-                >
-                  打开
-                </span>
-                】 文件夹
-              </div>
-            ),
-          })
-        } else if (data.failedFiles.length) {
-          console.log('failedFiles', failedFiles)
-          notification.error({
-            message: '注意',
-            description: '部分文件下载失败',
-            duration: 5,
-          })
-        }
-      })
       .catch(e => {
-        message.success('下载初始化失败2')
+        message.error('请求下载任务失败')
       })
+    // .then(data => {
+    //   if (data.success) {
+    //     notification.success({
+    //       message: '文件下载成功',
+    //       description: (
+    //         <div>
+    //           在资源管理器中 【
+    //           <span
+    //             className={styles.openInExplorer}
+    //             onClick={() => {
+    //               messageCenter.requestOpen(settings.downloadDir)
+    //             }}
+    //           >
+    //             打开
+    //           </span>
+    //           】 文件夹
+    //         </div>
+    //       ),
+    //     })
+    //   } else if (data.failedFiles.length) {
+    //     console.log('failedFiles', failedFiles)
+    //     notification.error({
+    //       message: '注意',
+    //       description: '部分文件下载失败',
+    //       duration: 5,
+    //     })
+    //   }
+    // })
+    // .catch(e => {
+    //   message.success('下载初始化失败2')
+    // })
   }
 
   // 点击工具栏的下载，这是批量下载
@@ -511,13 +515,11 @@ export default function StorageManage() {
   }, [currentBucket])
 
   useEffect(() => {
-    renderUploadManager()
     // 1天刷新 token
     let interval = setInterval(() => {
       ensureTokenAvailable()
     }, 1000 * 3600 * 24)
     return () => {
-      destroyUploadManager()
       clearInterval(interval)
     }
   }, [])

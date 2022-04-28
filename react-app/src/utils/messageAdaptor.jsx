@@ -1,6 +1,5 @@
 import React from 'react'
 import { vscodeApi } from './index'
-import globalConfig from '../../../src/globalConfig'
 import { notification } from 'antd'
 import loading from '../Components/Loading'
 
@@ -38,8 +37,7 @@ export default function messageAdaptor(
       if (msg.uniqueId === uniqueId) {
         window.removeEventListener('message', listener)
         clearTimeout(timer)
-        globalConfig.showMessageProgress &&
-          LogO(`page receive message, time cost: ${Date.now() - timeStart}ms`, { msg })
+        __DEV__ && LogO(`page receive message, time cost: ${Date.now() - timeStart}ms`, { msg })
         showLoading && loading.hide()
         res(msg.data)
       }
@@ -51,8 +49,7 @@ export default function messageAdaptor(
       uniqueId,
       data,
     })
-    globalConfig.showMessageProgress &&
-      LogO('page send message', { command: serverCommand, uniqueId, data })
+    __DEV__ && LogO('page send message', { command: serverCommand, uniqueId, data })
   })
 }
 

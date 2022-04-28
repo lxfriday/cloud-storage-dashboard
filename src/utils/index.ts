@@ -37,3 +37,16 @@ export function getYuanshenBackImg(returnAll = false) {
     return imgs[Math.floor(Math.random() * imgs.length)]
   }
 }
+
+export function throttle(func: Function, wait: number) {
+  let previous = 0
+  return function throttled(this: any, ...args: any[]) {
+    const ctx = this
+    const now = Date.now()
+    const remain = wait - (now - previous)
+    if (remain <= 0) {
+      func.apply(ctx, args)
+      previous = now
+    }
+  }
+}

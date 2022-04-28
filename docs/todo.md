@@ -2,11 +2,14 @@
 
 ## high priority
 
-- 首页介绍-导流到 github star，bilibili，
+- 多窗口问题
+
+  - 打开多个 云存储管理 窗口的时候，可能会存在两个或多个不同的平台，而由于 server 端是保存有 csp 状态的，所以会导致混乱出错
+  - solve：server 不再保存状态，前端每次传 keys 到 server 端
+
+- 首页介绍-导流到 github star，bilibili
 
   - 包含操作指引
-
-- 如果碰到 home 没办法确定的情况，需要用户指定 home dir
 
 - 文件搜索
 - 文件夹问题
@@ -38,6 +41,4 @@
 
 ## BUG
 
-- 多窗口问题
-  - 打开多个 云存储管理 窗口的时候，可能会存在两个或多个不同的平台，而由于 server 端是保存有 csp 状态的，所以会导致混乱出错
-  - solve：server 不再保存状态，前端每次传 keys 到 server 端
+- 如果碰到 home 没办法确定的情况，需要用户指定 home dir
