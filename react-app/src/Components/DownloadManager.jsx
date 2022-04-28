@@ -62,19 +62,28 @@ function DownloadManager() {
       if (msg.command === messageCommands.downloadManager_progress) {
         const { id, percentage } = msg.data
         // console.log('progress info', msg.data)
+        progressManager = {
+          ...progressManager,
+          [id]: percentage,
+        }
         if (Number(percentage) === 100) {
-          delete progressManager[id]
-          removeTask(id)
-        } else {
-          progressManager = {
-            ...progressManager,
-            [id]: percentage,
-          }
+          setTimeout(() => {
+            delete progressManager[id]
+            removeTask(id)
+            setProgressInfo({ ...progressManager })
+
+            if (!tasks.length) {
+              message.success('下载任务已执行完成')
+            }
+          }, 1500)
         }
+        //  else {
+        //   progressManager = {
+        //     ...progressManager,
+        //     [id]: percentage,
+        //   }
+        // }
         setProgressInfo({ ...progressManager })
-        if (!tasks.length) {
-          message.success('下载任务已执行完成')
-        }
       }
     }
 
@@ -120,7 +129,6 @@ function DownloadManager() {
     }
   }, [])
 
-  // console.log('progressInfo', progressInfo, tasks)
   return (
     <Fragment>
       {tasks.length && (
