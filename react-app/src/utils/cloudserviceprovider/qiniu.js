@@ -33,7 +33,7 @@ export function upload({ file, key, token, resourcePrefix, shouldCopy, shouldSho
       },
       complete(res) {
         const targetUrl = `${resourcePrefix}${res.key}`
-        shouldCopy && copy(targetUrl)
+        shouldCopy && copy(encodeURI(targetUrl))
         shouldShowMsg && debouncedMessageSuccess('上传成功，已复制到剪切板')
 
         resolve(res)

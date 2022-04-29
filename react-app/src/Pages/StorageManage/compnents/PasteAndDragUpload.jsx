@@ -106,10 +106,26 @@ export default function PasteAndDragUpload({
       })
   }
 
+  function handleUploadScreenshot(file) {
+    csp
+      .upload({
+        file: file,
+        key: `${pendingUploadPrefix}${generateRandomResourceName(file.name, false)}`,
+        token: uploadToken,
+        resourcePrefix,
+        shouldCopy: true,
+        shouldShowMsg: true,
+      })
+      .catch(e => {
+        message.error('截图上传失败')
+      })
+  }
+
   function handlePaste(e) {
     const { items } = e.clipboardData
     const fileEntries = []
     const dirEntries = []
+    let screentshotFile = null
 
     for (let i = 0; i < items.length; i++) {
       const item = items[i]
@@ -118,15 +134,22 @@ export default function PasteAndDragUpload({
         // 防止拖入一些非文件的东西
         const item = items[i]
         const e = item.webkitGetAsEntry()
-        if (e.isDirectory) {
-          dirEntries.push(e)
+        if (e === null) {
+          // 截图粘贴上传
+          screentshotFile = item.getAsFile()
         } else {
-          fileEntries.push(e)
+          if (e.isDirectory) {
+            dirEntries.push(e)
+          } else {
+            fileEntries.push(e)
+          }
         }
       }
     }
 
-    if (fileEntries.length || dirEntries.length) {
+    if (screentshotFile) {
+      handleUploadScreenshot(screentshotFile)
+    } else if (fileEntries.length || dirEntries.length) {
       Promise.all([...fileEntries, ...dirEntries].map(entry => scanEntry(entry))).then(r => {
         // 把获得的数组抹平
         const fileList = r.flat(1000)
@@ -137,8 +160,8 @@ export default function PasteAndDragUpload({
         }))
 
         setPendingResourceList(newPendingReourceList)
-        setPendingResourceNotiModalVisible(true)
       })
+      setPendingResourceNotiModalVisible(true)
     } else {
       message.error('粘贴的内容不支持上传')
     }
@@ -215,7 +238,7 @@ export default function PasteAndDragUpload({
       document.removeEventListener('drop', handleDrop)
       window.removeEventListener('paste', handlePaste)
     }
-  }, [])
+  }, [uploadToken, resourcePrefix])
   return (
     <Fragment>
       <Modal
