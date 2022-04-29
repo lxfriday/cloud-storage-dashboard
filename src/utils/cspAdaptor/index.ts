@@ -24,3 +24,5 @@ export default function cspAdaptor(cspInfo: cspInfoType) {
   const qiniu = new Qiniu(cspInfo.ak, cspInfo.sk, cspInfo.bucket)
   return qiniu
 }
+
+export interface CSPAdaptorType extends Qiniu {}

@@ -6,6 +6,7 @@ import * as fsManager from './utils/fsManager'
 import * as utils from './utils'
 import * as boot from './utils/boot'
 import * as downloadManager from './utils/downloadManager'
+import syncBucket from './utils/syncBucket'
 
 export default function messageController(
   panel: vscode.WebviewPanel,
@@ -202,6 +203,14 @@ export default function messageController(
             postMessage({
               uniqueId: message.uniqueId,
             })
+            return
+          }
+          case MESSAGE_COMMANDS.syncBucket: {
+            const csp = cspAdaptor(message.cspInfo)
+            postMessage({
+              uniqueId: message.uniqueId,
+            })
+            syncBucket(csp)
             return
           }
         }

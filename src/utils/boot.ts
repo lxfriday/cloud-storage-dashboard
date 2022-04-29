@@ -57,8 +57,9 @@ if (process.platform === 'win32') {
 
 const extFolderName = '.vscode-cloud-storage-dashboard' // 扩展相关的文件存储的文件夹名
 const extSettingFileName = 'settings.json' // 配置文件
-const extPath = path.join(homePath, extFolderName) // 扩展文件夹绝对路径
-const settingsPath = path.join(extPath, extSettingFileName) // 配置文件绝对路径
+
+export const extPath = path.join(homePath, extFolderName) // 扩展文件夹绝对路径
+export const settingsPath = path.join(extPath, extSettingFileName) // 配置文件绝对路径
 
 const resetNeededBaseSettings = {
   forceHTTPS: false, // 使用 https

@@ -264,3 +264,14 @@ export function requestCancelDownload(id) {
     false
   )
 }
+
+export function requestSyncBucket() {
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.syncBucket,
+      data: {},
+      cspInfo: getCSPInfo(),
+    },
+    false
+  )
+}

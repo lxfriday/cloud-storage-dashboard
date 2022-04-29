@@ -495,6 +495,7 @@ export default function StorageManage() {
     }
   }, [currentBucket])
   useEffect(() => {
+    messageCenter.requestSyncBucket()
     return () => {
       marker = ''
       dispatch(updateBucketAction(''))

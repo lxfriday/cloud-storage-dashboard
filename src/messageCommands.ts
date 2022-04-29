@@ -22,4 +22,5 @@ export default {
   downloadManager_progress: 'downloadManager_progress',
   downloadManager_cancel: 'downloadManager_cancel',
   downloadManager_error: 'downloadManager_error',
+  syncBucket: 'syncBucket',
 }

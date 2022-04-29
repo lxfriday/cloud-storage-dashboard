@@ -4,24 +4,10 @@ import * as dayjs from 'dayjs'
 
 import * as Request from '../request'
 import * as boot from '../boot'
-
-// ---------------------------------------------------
-import qiniuKeys from './qiniu.keys'
-// export default {
-//   ak: '',
-//   sk: '',
-// }
-// ---------------------------------------------------
+import syncBucket from '../syncBucket'
 
 function notiTpl(msg: string) {
   return `七牛：${msg}`
-}
-
-export const qiniuConfig = {
-  ak: qiniuKeys.ak,
-  sk: qiniuKeys.sk,
-  bucket: 'storage',
-  // imgDomain: 'https://qiniu1.lxfriday.xyz/',
 }
 
 const urls = {
@@ -80,6 +66,54 @@ class Qiniu {
     const putPolicy = new qiniu.rs.PutPolicy(options)
     const uploadToken = putPolicy.uploadToken(<qiniu.auth.digest.Mac>this.qiniuMac)
     return uploadToken
+  }
+
+  // 本地同步用的
+  getResourceListForSync(
+    marker: string
+  ): Promise<{ list: Array<any>; reachEnd: boolean; marker: string }> {
+    const bucketManager = new qiniu.rs.BucketManager(
+      <qiniu.auth.digest.Mac>this.qiniuMac,
+      new qiniu.conf.Config()
+    )
+    const options = {
+      prefix: '',
+      marker,
+    }
+    return new Promise((resolve, reject) => {
+      bucketManager.listPrefix(this.bucket, options, (respErr, respBody, respInfo) => {
+        if (respBody.error) {
+          console.log('getResourceListForSync error', respBody.error)
+          resolve({
+            list: [],
+            reachEnd: true,
+            marker: '',
+          })
+        }
+
+        if (respBody) {
+          if (respBody.marker) {
+            resolve({
+              list: respBody.items,
+              // 文件夹，会自动带上尾缀 /
+              // ['testfoler/', '/']
+              reachEnd: false,
+              marker: respBody.marker,
+            })
+          } else {
+            // 如果加载完了 respBody.marker 没有值，服务端不会返回这个字段
+            resolve({
+              list: respBody.items,
+              reachEnd: true,
+              marker: '',
+            })
+          }
+        } else {
+          console.log('respInfo', respInfo)
+          vscode.window.showErrorMessage(notiTpl('未知错误，资源列表加载失败'))
+        }
+      })
+    })
   }
 
   // fromBegin 是否从头加载
