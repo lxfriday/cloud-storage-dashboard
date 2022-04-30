@@ -57,16 +57,32 @@ export default function syncBucket(csp: CSPAdaptorType, postMessage: postMessage
     if (!fs.existsSync(bucketSyncPath)) {
       console.log('没有本地同步文件，开始同步 bucket 信息', bucketSyncPath)
       sync(csp, marker, [], postMessage)
+      // 通知前端，后端要开始同步 bucket 信息了
+      postMessage({
+        command: messageCommands.syncBucket_startSyncing,
+        data: {
+          bucket: csp.bucket,
+        },
+      })
     } else {
       const bucketData = JSON.parse(fs.readFileSync(bucketSyncPath).toString())
+      // 已经生成的 bucket data 过期了，需要重新同步 bucket 信息
       if (
         typeof bucketData.createdTime === 'number' &&
         Date.now() - bucketData.createdTime > expiredTime
       ) {
         console.log('有本地同步文件，但是过期了，开始同步 bucket 信息', bucketSyncPath)
         sync(csp, marker, [], postMessage)
+        // 通知前端，后端要开始同步 bucket 信息了
+        postMessage({
+          command: messageCommands.syncBucket_startSyncing,
+          data: {
+            bucket: csp.bucket,
+          },
+        })
       } else {
         console.log('不会执行同步的', bucketSyncPath, bucketData.createdTime)
+        // 把 bucket 内的文件夹信息发送到前端
         postMessage({
           command: messageCommands.syncBucket_folderInfo,
           data: {
@@ -92,6 +108,7 @@ function sync(
       sync(csp, res.marker, files, postMessage)
     } else {
       const dir = genBucketDir(files)
+      // 获取到 dir 的每个 key 都是 set，需要处理为数组，否则无法被 JSON.stringify 处理
       const processedDir: dirType = {}
       Object.keys(dir).forEach(k => {
         processedDir[k] = [...dir[k]]
@@ -103,6 +120,13 @@ function sync(
         data: {
           bucket: csp.bucket,
           dir: processedDir,
+        },
+      })
+      // bucket 同步完成，告知前端
+      postMessage({
+        command: messageCommands.syncBucket_endSyncing,
+        data: {
+          bucket: csp.bucket,
         },
       })
     }

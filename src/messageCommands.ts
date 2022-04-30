@@ -25,4 +25,6 @@ export default {
   syncBucket: 'syncBucket',
   syncBucket_folderInfo: 'syncBucket_folderInfo',
   syncBucket_searchFile: 'syncBucket_searchFile',
+  syncBucket_startSyncing: 'syncBucket_startSyncing',
+  syncBucket_endSyncing: 'syncBucket_endSyncing',
 }

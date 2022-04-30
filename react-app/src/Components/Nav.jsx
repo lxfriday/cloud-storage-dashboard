@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import Login from '../Components/Login'
 import { initSettings, logout } from '../store/settings'
 import * as messageCenter from '../utils/messageCenter'
+import messageCommands from '../../../src/messageCommands'
 import styles from './Nav.module.less'
 
 const { SubMenu } = Menu
@@ -23,6 +24,8 @@ export default function Nav({ children }) {
   const [hasInitialized, setHasInitialized] = useState(false)
   const [backImg, setBackImg] = useState()
   const [bucketList, setBucketList] = useState([])
+  // 后台是否正在同步数据
+  const [isSyncing, setIsSyncing] = useState(false)
   const dispatch = useDispatch()
   const hasloggedIn = !!currentCSP
 
@@ -55,8 +58,27 @@ export default function Nav({ children }) {
       .catch(e => {
         message.error('获取初始配置信息失败', String(e))
       })
+
+    function startSyncing(ev) {
+      const msg = ev.data
+      if (msg.command === messageCommands.syncBucket_startSyncing) {
+        setIsSyncing(true)
+      }
+    }
+    function endSyncing(ev) {
+      const msg = ev.data
+      if (msg.command === messageCommands.syncBucket_endSyncing) {
+        setIsSyncing(false)
+      }
+    }
+
+    window.addEventListener('message', startSyncing)
+    window.addEventListener('message', endSyncing)
+
     return () => {
       clearTimeout(timer)
+      window.removeEventListener('message', startSyncing)
+      window.removeEventListener('message', endSyncing)
     }
   }, [])
 
@@ -139,6 +161,11 @@ export default function Nav({ children }) {
             </Menu>
           </div>
           <div className={styles.sideBottomWrapper}>
+            {isSyncing && (
+              <div className={styles.isSyncing}>
+                <Spin size="small" style={{ marginRight: 10 }} /> bucket 数据同步中
+              </div>
+            )}
             <Menu style={{ width: 180 }} mode="inline" theme="light" selectedKeys={[]}>
               <Menu.Item key="changeCSP" icon={<LogoutOutlined />} onClick={handleChangeCSP}>
                 {currentCSP.nickname}(切换)
