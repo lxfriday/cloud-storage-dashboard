@@ -483,6 +483,8 @@ export default function StorageManage() {
             if (!res.data.length) {
               message.error('没有搜索到结果')
             } else {
+              setSelectedKeys([])
+              setSelectedFolders([])
               setUploadFolders([])
               setCommonPrefixList([])
               setShowSearchResult(true)
