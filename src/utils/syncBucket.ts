@@ -31,7 +31,7 @@ export function searchFile(
       if (_.key.toLowerCase().includes(keyword)) {
         res.push(_)
       }
-      if (res.length >= 100) {
+      if (res.length >= 1000) {
         break
       }
     }
