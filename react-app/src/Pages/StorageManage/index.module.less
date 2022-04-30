@@ -20,6 +20,25 @@
   }
 
   .bucketToolsWrapper {
+    display: flex;
+    align-items: center;
+    .searchWrapper {
+      margin-left: 10px;
+      background-color: #111;
+
+      input {
+        background-color: transparent;
+        color: #ccc;
+
+        &::placeholder {
+          color: #666;
+        }
+      }
+      button {
+        background-color: #111;
+        color: #ccc !important;
+      }
+    }
     button {
       background-color: #111;
       color: #ccc;

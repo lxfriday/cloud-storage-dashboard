@@ -23,4 +23,6 @@ export default {
   downloadManager_cancel: 'downloadManager_cancel',
   downloadManager_error: 'downloadManager_error',
   syncBucket: 'syncBucket',
+  syncBucket_folderInfo: 'syncBucket_folderInfo',
+  syncBucket_searchFile: 'syncBucket_searchFile',
 }

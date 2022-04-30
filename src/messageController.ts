@@ -6,7 +6,7 @@ import * as fsManager from './utils/fsManager'
 import * as utils from './utils'
 import * as boot from './utils/boot'
 import * as downloadManager from './utils/downloadManager'
-import syncBucket from './utils/syncBucket'
+import syncBucket, { searchFile } from './utils/syncBucket'
 
 export default function messageController(
   panel: vscode.WebviewPanel,
@@ -210,7 +210,17 @@ export default function messageController(
             postMessage({
               uniqueId: message.uniqueId,
             })
-            syncBucket(csp)
+            syncBucket(csp, postMessage)
+            return
+          }
+          case MESSAGE_COMMANDS.syncBucket_searchFile: {
+            const csp = cspAdaptor(message.cspInfo)
+            const res = searchFile(csp, message.data.keyword)
+
+            postMessage({
+              uniqueId: message.uniqueId,
+              data: res,
+            })
             return
           }
         }

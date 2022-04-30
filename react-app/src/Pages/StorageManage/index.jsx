@@ -31,6 +31,7 @@ import {
 } from '../../utils'
 import cloudserviceprovider from '../../utils/cloudserviceprovider'
 import { updateBucketAction } from '../../store/storageManage'
+import messageCommands from '../../../../src/messageCommands'
 
 const { Option } = Select
 
@@ -39,6 +40,7 @@ const csp = cloudserviceprovider[providerName]
 let marker = '' // 分页标记
 
 let isLoadingResource = false // 是否正在加载资源
+let isSearching = false // 是否正在搜索中
 
 export default function StorageManage() {
   const dispatch = useDispatch()
@@ -75,6 +77,10 @@ export default function StorageManage() {
   // 图片预览是否显示
   let [imgPreviewVisible, setImgPreviewVisible] = useState(false)
   let [imgPreviewIndex, setImgPreviewIndex] = useState(0)
+  let [syncBucketFolderInfo, setSyncBucketFolderInfo] = useState({})
+  let [searchValue, setSearchValue] = useState('')
+  // 对应的就是取消搜索
+  let [showSearchResult, setShowSearchResult] = useState(false)
 
   let [searchParams] = useSearchParams()
   const currentBucket = searchParams.get('space')
@@ -97,9 +103,9 @@ export default function StorageManage() {
     if (!isLoadingResource) {
       isLoadingResource = true
       marker = ''
-      setResourceList([])
-      setUploadFolders([]) // 需要，否则点击返回上次层的时候，返回的图标会保留
-      setCommonPrefixList([])
+      // setResourceList([])
+      // setUploadFolders([]) // 需要，否则点击返回上次层的时候，返回的图标会保留
+      // setCommonPrefixList([])
       setSelectedKeys([])
       setSelectedFolders([])
       messageCenter
@@ -460,6 +466,41 @@ export default function StorageManage() {
     handleDownloadFiles(downloadFilesInfo)
   }
 
+  function handleSearch() {
+    if (!isSearching) {
+      const keyword = searchValue.trim().toLowerCase()
+      if (!keyword.length) {
+        message.error('请输入内容之后再搜索')
+        return
+      }
+      isSearching = true
+      // 搜索的时候，默认直接回到最顶层目录
+
+      messageCenter
+        .requestSyncBucketSearchFile(keyword)
+        .then(res => {
+          if (res.success) {
+            if (!res.data.length) {
+              message.error('没有搜索到结果')
+            } else {
+              setUploadFolders([])
+              setCommonPrefixList([])
+              setShowSearchResult(true)
+              setResourceList(res.data)
+            }
+          } else {
+            message.error(res.msg)
+            console.log('搜索失败', res)
+          }
+        })
+        .finally(() => {
+          isSearching = false
+        })
+    } else {
+      message.error('正在搜索中，请稍后')
+    }
+  }
+
   useEffect(async () => {
     dispatch(updateBucketAction(currentBucket))
     // 打开一个 bucket 的时候，更新 localside bucket
@@ -494,8 +535,28 @@ export default function StorageManage() {
       message.error(e)
     }
   }, [currentBucket])
+
+  useEffect(() => {
+    // 同步 bucket 文件夹信息之后，会接收的 message
+    function syncBucketFolderInfoToPage(ev) {
+      const msg = ev.data
+      if (msg.command === messageCommands.syncBucket_folderInfo) {
+        setSyncBucketFolderInfo({
+          ...syncBucketFolderInfo,
+          [msg.data.bucket]: msg.data.dir,
+        })
+      }
+    }
+
+    window.addEventListener('message', syncBucketFolderInfoToPage)
+    return () => {
+      window.removeEventListener('message', syncBucketFolderInfoToPage)
+    }
+  }, [syncBucketFolderInfo])
+
   useEffect(() => {
     messageCenter.requestSyncBucket()
+    isSearching = false
     return () => {
       marker = ''
       dispatch(updateBucketAction(''))
@@ -520,6 +581,32 @@ export default function StorageManage() {
         )
       )}`
     : ''
+
+  const currentBucketFolderInfo = syncBucketFolderInfo[currentBucket]
+  // commonPrefixList 是请求服务端直接返回的 文件夹信息
+  // realCommonPrefixList 是合并了 commonPrefixList 以及 后端同步得到的文件夹信息 之后的文件夹信息
+  let realCommonPrefixList = [...commonPrefixList]
+  const currentPathArr = uploadFolders // 以数组形式表示的当前路径
+  if (currentBucketFolderInfo) {
+    // 处于顶层目录
+    if (!currentPathArr.length) {
+      realCommonPrefixList = [
+        ...new Set([
+          ...realCommonPrefixList,
+          ...currentBucketFolderInfo['_default_cloudStorageDashboardTopKey'],
+        ]),
+      ]
+    } else {
+      // 处于某一层的文件夹中的时候
+      const currentPathStr = currentPathArr.join('')
+      const currentPathFolders = !!currentBucketFolderInfo[currentPathStr]
+        ? currentBucketFolderInfo[currentPathStr]
+        : []
+      realCommonPrefixList = [...new Set([...realCommonPrefixList, ...currentPathFolders])]
+    }
+  }
+
+  realCommonPrefixList = showSearchResult ? [] : realCommonPrefixList
 
   return (
     <Fragment>
@@ -626,6 +713,31 @@ export default function StorageManage() {
             onClick={() => handleRefresh(uploadFolders)}
             icon={<SyncOutlined style={{ fontSize: '20px' }} />}
           ></Button>
+          <span className={styles.searchWrapper}>
+            <Input.Search
+              placeholder="在这里搜索"
+              value={searchValue}
+              onChange={e => setSearchValue(e.target.value)}
+              onSearch={handleSearch}
+              onPressEnter={handleSearch}
+              style={{ width: 200 }}
+            />
+          </span>
+          {showSearchResult && (
+            <Button
+              type="primary"
+              size="small"
+              danger
+              onClick={() => {
+                setSearchValue('')
+                setResourceList([])
+                setShowSearchResult(false)
+                handleRefresh(uploadFolders)
+              }}
+            >
+              取消搜索
+            </Button>
+          )}
         </div>
       </div>
       <div className={styles.navToolsWrapper}>
@@ -742,7 +854,7 @@ export default function StorageManage() {
       </div>
       <ResourceList
         uploadFolder={uploadFolders.join('')}
-        commonPrefixList={commonPrefixList}
+        commonPrefixList={realCommonPrefixList}
         selectedKeys={selectedKeys}
         selectedFolders={selectedFolders}
         resourceList={resourceList}

@@ -275,3 +275,15 @@ export function requestSyncBucket() {
     false
   )
 }
+
+export function requestSyncBucketSearchFile(keyword) {
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.syncBucket_searchFile,
+      data: { keyword },
+      cspInfo: getCSPInfo(),
+    },
+    true,
+    20000
+  )
+}
