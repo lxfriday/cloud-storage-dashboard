@@ -562,6 +562,10 @@ export default function StorageManage() {
     return () => {
       marker = ''
       dispatch(updateBucketAction(''))
+      setSearchValue('')
+      setShowSearchResult(false)
+      setSelectedKeys([])
+      setSelectedFolders([])
     }
   }, [currentBucket])
 
