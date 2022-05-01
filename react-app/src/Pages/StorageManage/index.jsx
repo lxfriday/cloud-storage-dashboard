@@ -723,7 +723,7 @@ export default function StorageManage() {
           <Dropdown
             overlay={
               <Menu>
-                <Menu.Item onClick={() => messageCenter.requestSyncBucket(true)}>
+                <Menu.Item onClick={() => messageCenter.requestSyncBucket(true)} key="forceSync">
                   强制同步本地 bucket 信息
                 </Menu.Item>
               </Menu>
