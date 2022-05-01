@@ -31,6 +31,7 @@ import {
   getDownloadFilesInfo,
 } from '../../utils'
 import cloudserviceprovider from '../../utils/cloudserviceprovider'
+import notiSyncBucket from '../../utils/notiSyncBucket'
 import { updateBucketAction } from '../../store/storageManage'
 import messageCommands from '../../../../src/messageCommands'
 
@@ -74,7 +75,9 @@ export default function StorageManage() {
   // 带尾 /
   let [selectedFolders, setSelectedFolders] = useState([])
 
-  let [bucketOverviewInfo, setBucketOverviewInfo] = useState({ count: 0, space: 0 })
+  let [bucketOverviewInfo, setBucketOverviewInfo] = useState({
+    // currentbucket: { count: 0, space: 0 },
+  })
   // 图片预览是否显示
   let [imgPreviewVisible, setImgPreviewVisible] = useState(false)
   let [imgPreviewIndex, setImgPreviewIndex] = useState(0)
@@ -132,7 +135,6 @@ export default function StorageManage() {
           setResourceList(nRList)
           setIsResourceListReachEnd(data.reachEnd)
         })
-      handleGetOverviewInfo()
     }
   }
 
@@ -236,6 +238,7 @@ export default function StorageManage() {
         })
         setSelectedKeys(nSelectedKeys)
         setResourceList(rList)
+        notiSyncBucket()
       } else if (data.result === 'partdeleted') {
         message.error('部分文件删除成功')
         handleRefresh(uploadFolders)
@@ -248,16 +251,6 @@ export default function StorageManage() {
   // 工具条中点击删除，删除选中的文件
   function handleDeleteSelectedFiles() {
     handleDeleteFiles(selectedKeys)
-  }
-
-  function handleGetOverviewInfo() {
-    messageCenter.requestGetOverviewInfo().then(overviewInfo => {
-      // {count: 2457, space: 1373368131}
-      setBucketOverviewInfo({
-        count: overviewInfo.count,
-        space: getFileSize(overviewInfo.space),
-      })
-    })
   }
 
   // 双击图片点击了预览，or右键点击了预览
@@ -316,6 +309,7 @@ export default function StorageManage() {
           if (data.success) {
             copyFormattedBySettings(settings.copyFormat, encodeURI(`${resourcePrefix}${key}`))
             message.success('资源抓取成功，已复制到剪切板')
+            notiSyncBucket()
           } else {
             message.error('资源抓取失败 ' + data.msg)
           }
@@ -334,14 +328,13 @@ export default function StorageManage() {
   }
 
   function handleRenameResource({ originalKey, newKey, op }) {
-    console.log({ originalKey, newKey, op })
     messageCenter
       .requestMoveBucketFiles([{ originalKey, newKey }])
       .then(data => {
-        console.log('handleRenameResource data', data)
         if (data.result === 'allmoved') {
           message.success((op === 'move' ? '移动' : '重命名') + '文件成功')
           handleRefresh(uploadFolders)
+          notiSyncBucket()
         } else {
           message.error((op === 'move' ? '移动' : '重命名') + '文件失败')
         }
@@ -533,7 +526,6 @@ export default function StorageManage() {
       setCommonPrefixList(resourceListResponse.commonPrefixes)
       setResourceList(resourceListResponse.list)
       setIsResourceListReachEnd(resourceListResponse.reachEnd)
-      handleGetOverviewInfo()
     } catch (e) {
       message.error(e)
     }
@@ -548,6 +540,13 @@ export default function StorageManage() {
           ...syncBucketFolderInfo,
           [msg.data.bucket]: msg.data.dir,
         })
+        setBucketOverviewInfo({
+          [currentBucket]: {
+            count: msg.data.count > 100000 ? '10w+' : msg.data.count,
+            space: getFileSize(msg.data.totalSize),
+          },
+          ...bucketOverviewInfo,
+        })
       }
     }
 
@@ -555,7 +554,7 @@ export default function StorageManage() {
     return () => {
       window.removeEventListener('message', syncBucketFolderInfoToPage)
     }
-  }, [syncBucketFolderInfo])
+  }, [syncBucketFolderInfo, currentBucket, bucketOverviewInfo])
 
   useEffect(() => {
     messageCenter.requestSyncBucket()
@@ -873,7 +872,10 @@ export default function StorageManage() {
             )}
           </div>
           <div className={styles.infoWrapper}>
-            {bucketOverviewInfo.count} 个文件 / {bucketOverviewInfo.space} 存储空间
+            {bucketOverviewInfo[currentBucket] ? bucketOverviewInfo[currentBucket].count : '?'}{' '}
+            个文件 /{' '}
+            {bucketOverviewInfo[currentBucket] ? bucketOverviewInfo[currentBucket].space : '?'}{' '}
+            存储空间
           </div>
         </div>
       </div>

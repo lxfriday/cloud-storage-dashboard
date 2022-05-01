@@ -13,6 +13,7 @@ const syncDirPath = path.resolve(extPath, syncDirName)
 const syncSettingsPath = path.resolve(extPath, syncSettingsFileName) // sync 配置文件地址
 const maxFilesLength = 100000 // 文件信息最多存储10w条，防止存储过多出现问题
 
+let totalSize = 0 // bucket 占用空间
 let isSyncing = false
 let marker = ''
 const expiredTime = 1000 * 60 * 60 // 1 h => 3600 000 毫秒
@@ -71,6 +72,7 @@ export default function syncBucket(
       resolve({
         success: true,
       })
+      totalSize = 0
       const { fileName, fullFileName } = getSyncFileName(csp)
       const bucketSyncPath = path.resolve(syncDirPath, fullFileName)
       if (!fs.existsSync(bucketSyncPath)) {
@@ -106,6 +108,8 @@ export default function syncBucket(
             data: {
               bucket: csp.bucket,
               dir: syncSettings[fileName].dir,
+              count: syncSettings[fileName].count,
+              totalSize: syncSettings[fileName].totalSize,
             },
           })
         }
@@ -143,6 +147,8 @@ function sync(
         data: {
           bucket: csp.bucket,
           dir: processedDir,
+          count: files.length,
+          totalSize,
         },
       })
       // bucket 同步完成，告知前端
@@ -174,6 +180,7 @@ function genBucketDir(files: fileType[]) {
     [cloudStorageDashboardTopKey]: new Set<string>(),
   }
   for (const _ of files) {
+    totalSize += _.fsize
     const folders = _.key.split('/').slice(0, -1)
     if (folders.length) {
       bucketDir[cloudStorageDashboardTopKey].add(`${folders[0]}/`)
@@ -201,6 +208,8 @@ function saveSyncData(csp: CSPAdaptorType, files: fileType[], dir: any) {
             createdTime: Date.now(),
             dir,
             bucketDataFile: fullFileName,
+            count: files.length,
+            totalSize,
           },
         },
         null,
@@ -216,6 +225,8 @@ function saveSyncData(csp: CSPAdaptorType, files: fileType[], dir: any) {
       createdTime: Date.now(),
       dir,
       bucketDataFile: fullFileName,
+      count: files.length,
+      totalSize,
     }
     fs.writeFileSync(syncSettingsPath, JSON.stringify(syncSettingsData, null, 2))
   }

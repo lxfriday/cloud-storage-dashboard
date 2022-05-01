@@ -4,11 +4,11 @@
 import React, { useEffect, Fragment, useState, useRef } from 'react'
 import { InboxOutlined, DeleteOutlined } from '@ant-design/icons'
 import { Modal, Input, message } from 'antd'
-import copy from 'copy-text-to-clipboard'
 import { useSelector } from 'react-redux'
 
 import styles from './PasteAndDragUpload.module.less'
 import { generateRandomResourceName, copyFormattedBySettings } from '../../../utils'
+import notiSyncBucket from '../../../utils/notiSyncBucket'
 
 // 扫描 entry 对应的文件，或者扫描 entry 对应的文件夹中的所有文件及子文件夹中的所有文件
 function scanEntry(entry) {
@@ -95,6 +95,8 @@ export default function PasteAndDragUpload({
             ? '全部上传成功，所有资源已复制到剪切板，刷新之后在列表可见'
             : '上传成功，已复制到剪切板，刷新之后在列表可见'
         )
+
+        notiSyncBucket()
       })
       .catch(res => {
         if (res.hasError) {
@@ -115,6 +117,9 @@ export default function PasteAndDragUpload({
         resourcePrefix,
         shouldCopy: true,
         shouldShowMsg: true,
+      })
+      .then(data => {
+        notiSyncBucket()
       })
       .catch(e => {
         message.error('截图上传失败')

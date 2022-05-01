@@ -7,6 +7,7 @@ import { DeleteOutlined } from '@ant-design/icons'
 import { useSelector } from 'react-redux'
 
 import { generateRandomResourceName, copyFormattedBySettings } from '../../../utils'
+import notiSyncBucket from '../../../utils/notiSyncBucket'
 import styles from './SelectUpload.module.less'
 
 export default function SelectUpload({
@@ -77,6 +78,7 @@ export default function SelectUpload({
             ? '全部上传成功，所有资源已复制到剪切板，刷新之后在列表可见'
             : '上传成功，已复制到剪切板，刷新之后在列表可见'
         )
+        notiSyncBucket()
       })
       .catch(res => {
         if (res.hasError) {

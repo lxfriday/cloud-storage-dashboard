@@ -1,10 +1,10 @@
 import { v4 as uuidv4 } from 'uuid'
 import copy from 'copy-text-to-clipboard'
+import filesize from 'filesize'
 
 import imageExtensions from './fileExtensions/imageExtensions'
 import videoExtensions from './fileExtensions/videoExtensions'
 import audioExtensions from './fileExtensions/audioExtensions'
-import filesize from 'filesize'
 
 export const vscodeApi = acquireVsCodeApi()
 
