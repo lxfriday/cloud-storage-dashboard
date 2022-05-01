@@ -18,10 +18,10 @@ type cspInfoType = {
 
 export default function cspAdaptor(cspInfo: cspInfoType) {
   if (cspInfo.csp === 'qiniu') {
-    const qiniu = new Qiniu(cspInfo.ak, cspInfo.sk, cspInfo.bucket)
+    const qiniu = new Qiniu(cspInfo.ak, cspInfo.sk, cspInfo.bucket, cspInfo.nickname, cspInfo.csp)
     return qiniu
   }
-  const qiniu = new Qiniu(cspInfo.ak, cspInfo.sk, cspInfo.bucket)
+  const qiniu = new Qiniu(cspInfo.ak, cspInfo.sk, cspInfo.bucket, cspInfo.nickname, cspInfo.csp)
   return qiniu
 }
 

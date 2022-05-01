@@ -4,7 +4,6 @@ import * as dayjs from 'dayjs'
 
 import * as Request from '../request'
 import * as boot from '../boot'
-import syncBucket from '../syncBucket'
 
 function notiTpl(msg: string) {
   return `七牛：${msg}`
@@ -23,6 +22,8 @@ class Qiniu {
   // base config
   ak: string = ''
   sk: string = ''
+  nickname: string = ''
+  csp: string = '' // csp id
   bucket: string = ''
   expires: number = 604800
   returnBody: string =
@@ -31,9 +32,11 @@ class Qiniu {
   // img list config
   qiniuMac: qiniu.auth.digest.Mac | null = null
 
-  constructor(ak: string, sk: string, bucket: string) {
+  constructor(ak: string, sk: string, bucket: string, nickname: string = '', csp: string = '') {
     this.ak = ak
     this.sk = sk
+    this.nickname = nickname
+    this.csp = csp
     this.bucket = bucket
     this.qiniuMac = new qiniu.auth.digest.Mac(ak, sk)
   }

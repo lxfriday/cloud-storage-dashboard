@@ -1,13 +1,16 @@
 // 用来同步 bucket 内的文件信息
 // 把 bucket 内的文件信息下载到本地，方便做所有文件夹和搜索
 import * as path from 'path'
+import { createHash } from 'crypto'
 import * as fs from 'fs'
 import { CSPAdaptorType } from './cspAdaptor'
 import { extPath } from './boot'
 import messageCommands from '../messageCommands'
 
 const syncDirName = 'sync'
+const syncSettingsFileName = 'syncSettings.json'
 const syncDirPath = path.resolve(extPath, syncDirName)
+const syncSettingsPath = path.resolve(extPath, syncSettingsFileName) // sync 配置文件地址
 const maxFilesLength = 100000 // 文件信息最多存储10w条，防止存储过多出现问题
 
 let isSyncing = false
@@ -15,13 +18,21 @@ let marker = ''
 const expiredTime = 1000 * 60 * 60 // 1 h => 3600 000 毫秒
 // const expiredTime = 1000 // 1s => 需要新生成文件的时候使用这个值
 
+function getSyncFileName(csp: CSPAdaptorType): { fileName: string; fullFileName: string } {
+  const fileName = createHash('sha256')
+    .update(`${csp.bucket} ${csp.ak} ${csp.sk} ${csp.nickname} ${csp.csp}`)
+    .digest('hex')
+  return { fileName, fullFileName: `${fileName}.json` }
+}
+
 export function searchFile(
   csp: CSPAdaptorType,
   keyword: string
 ): { success: boolean; data: fileType[]; msg: string } {
-  const bucketSyncPath = path.resolve(syncDirPath, `${csp.bucket}.json`)
+  const { fileName, fullFileName } = getSyncFileName(csp)
+  const bucketSyncPath = path.resolve(syncDirPath, fullFileName)
   if (fs.existsSync(bucketSyncPath)) {
-    const { files } = JSON.parse(fs.readFileSync(bucketSyncPath).toString())
+    const files = JSON.parse(fs.readFileSync(bucketSyncPath).toString())
     const res: fileType[] = []
 
     const startTime = Date.now()
@@ -42,7 +53,6 @@ export function searchFile(
       msg: '',
     }
   } else {
-    console.log('没有本地同步文件，取消搜索')
     return {
       success: false,
       msg: 'bucket 内文件信息统计中，请稍后再试',
@@ -61,9 +71,9 @@ export default function syncBucket(
       resolve({
         success: true,
       })
-      const bucketSyncPath = path.resolve(syncDirPath, `${csp.bucket}.json`)
+      const { fileName, fullFileName } = getSyncFileName(csp)
+      const bucketSyncPath = path.resolve(syncDirPath, fullFileName)
       if (!fs.existsSync(bucketSyncPath)) {
-        console.log('没有本地同步文件，开始同步 bucket 信息', bucketSyncPath)
         sync(csp, marker, [], postMessage)
         // 通知前端，后端要开始同步 bucket 信息了
         postMessage({
@@ -73,18 +83,14 @@ export default function syncBucket(
           },
         })
       } else {
-        const bucketData = JSON.parse(fs.readFileSync(bucketSyncPath).toString())
+        const syncSettings = JSON.parse(fs.readFileSync(syncSettingsPath).toString())
         // 已经生成的 bucket data 过期了，需要重新同步 bucket 信息
         if (
           forceSync ||
-          (!forceSync &&
-            typeof bucketData.createdTime === 'number' &&
-            Date.now() - bucketData.createdTime > expiredTime)
+          Date.now() -
+            Number(!!syncSettings[fileName].createdTime ? syncSettings[fileName].createdTime : 0) >
+            expiredTime
         ) {
-          console.log(
-            '有本地同步文件，但是过期了（或者强制同步），开始同步 bucket 信息',
-            bucketSyncPath
-          )
           sync(csp, marker, [], postMessage)
           // 通知前端，后端要开始同步 bucket 信息了
           postMessage({
@@ -94,13 +100,12 @@ export default function syncBucket(
             },
           })
         } else {
-          console.log('不会执行同步的', bucketSyncPath, bucketData.createdTime)
           // 把 bucket 内的文件夹信息发送到前端
           postMessage({
             command: messageCommands.syncBucket_folderInfo,
             data: {
               bucket: csp.bucket,
-              dir: bucketData.dir,
+              dir: syncSettings[fileName].dir,
             },
           })
         }
@@ -131,7 +136,7 @@ function sync(
       Object.keys(dir).forEach(k => {
         processedDir[k] = [...dir[k]]
       })
-      saveSyncData(csp.bucket, files, processedDir)
+      saveSyncData(csp, files, processedDir)
       isSyncing = false
       postMessage({
         command: messageCommands.syncBucket_folderInfo,
@@ -180,13 +185,42 @@ function genBucketDir(files: fileType[]) {
   return bucketDir
 }
 
-function saveSyncData(bucket: string, files: fileType[], dir: any) {
+function saveSyncData(csp: CSPAdaptorType, files: fileType[], dir: any) {
+  const { fileName, fullFileName } = getSyncFileName(csp)
   if (!fs.existsSync(syncDirPath)) {
     fs.mkdirSync(syncDirPath)
   }
-  const bucketSyncPath = path.resolve(syncDirPath, `${bucket}.json`)
-  console.log('dir', dir)
-  fs.writeFileSync(bucketSyncPath, JSON.stringify({ dir, files, createdTime: Date.now() }))
+  if (!fs.existsSync(syncSettingsPath)) {
+    // 不存在同步配置文件，表示第一次执行同步任务，则需要首次写入同步配置信息
+    fs.writeFileSync(
+      syncSettingsPath,
+      JSON.stringify(
+        {
+          [fileName]: {
+            bucket: csp.bucket,
+            createdTime: Date.now(),
+            dir,
+            bucketDataFile: fullFileName,
+          },
+        },
+        null,
+        2
+      )
+    )
+  } else {
+    // 如果存在同步配置文件，则添加对应的 bucket 同步配置信息
+    const syncSettingsData = JSON.parse(fs.readFileSync(syncSettingsPath).toString())
+
+    syncSettingsData[fileName] = {
+      bucket: csp.bucket,
+      createdTime: Date.now(),
+      dir,
+      bucketDataFile: fullFileName,
+    }
+    fs.writeFileSync(syncSettingsPath, JSON.stringify(syncSettingsData, null, 2))
+  }
+  const bucketSyncPath = path.resolve(syncDirPath, fullFileName)
+  fs.writeFileSync(bucketSyncPath, JSON.stringify(files))
 }
 
 type fileType = {
