@@ -5,6 +5,7 @@
 </div>
 
 ![1](https://raw.githubusercontent.com/lxfriday/cloud-storage-dashboard/main/assets/screenshots/1.png)
+![5](https://raw.githubusercontent.com/lxfriday/cloud-storage-dashboard/main/assets/screenshots/5.png)
 ![2](https://raw.githubusercontent.com/lxfriday/cloud-storage-dashboard/main/assets/screenshots/2.png)
 ![3](https://raw.githubusercontent.com/lxfriday/cloud-storage-dashboard/main/assets/screenshots/3.png)
 ![4](https://raw.githubusercontent.com/lxfriday/cloud-storage-dashboard/main/assets/screenshots/4.png)
