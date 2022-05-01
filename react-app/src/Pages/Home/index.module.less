@@ -1,3 +1,29 @@
 .wrapper {
-  color: #fff;
+  color: transparent;
+  display: flex;
+  justify-content: center;
+  position: relative;
+
+  .mdWrapper {
+    margin: 50px 0;
+    padding: 0 20px;
+    background-color: #fff;
+    width: 740px;
+
+    :global {
+      .wmde-markdown {
+        background-color: #fff;
+      }
+    }
+  }
+
+  .sideToolsWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    position: fixed;
+    width: 200px;
+    right: 0px;
+    top: 20px;
+  }
 }

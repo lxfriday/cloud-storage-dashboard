@@ -1,34 +1,31 @@
-// import React, { useEffect } from 'react'
-// import { Button } from 'antd'
-// import { useSelector, useDispatch } from 'react-redux'
-
-// import { incremented, decremented } from '../../store/count'
-// import styles from './index.module.less'
-
-// export default function index(...args) {
-//   const counter = useSelector(state => state.counter.value)
-//   const displatch = useDispatch()
-
-//   console.log('args', args)
-
-//   useEffect(() => {
-//     return () => {
-//       console.log('unmount')
-//     }
-//   }, [])
-//   return (
-//     <div className={styles.wrapper}>
-//       <div>{counter}</div>
-//       <div>
-//         <Button onClick={() => displatch(incremented())}>increment</Button>
-//         <Button onClick={() => displatch(decremented())}>decrement</Button>
-//       </div>
-//     </div>
-//   )
-// }
 import React from 'react'
+import { Button } from 'antd'
+import { GithubFilled } from '@ant-design/icons'
+import MDEditor from '@uiw/react-md-editor'
+
+import { requestOpen } from '../../utils/messageCenter'
 import styles from './index.module.less'
+import README from '../../../../README.md?raw'
+
+const openUrls = {
+  bilibili: () => requestOpen('https://space.bilibili.com/15445514'),
+  github: () => requestOpen('https://github.com/lxfriday'),
+}
 
 export default function index() {
-  return <div>index</div>
+  return (
+    <div className={styles.wrapper}>
+      <div className={styles.mdWrapper}>
+        <MDEditor.Markdown source={README}></MDEditor.Markdown>
+      </div>
+      <div className={styles.sideToolsWrapper}>
+        <Button type="dashed" onClick={openUrls.bilibili}>
+          📺 云影同学 yunyuv
+        </Button>
+        <Button type="dashed" style={{ marginTop: 3 }} onClick={openUrls.github}>
+          <GithubFilled style={{ fontSize: 15 }} /> 云影同学 yunyuv
+        </Button>
+      </div>
+    </div>
+  )
 }
