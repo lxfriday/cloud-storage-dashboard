@@ -173,7 +173,7 @@ function genBucketDir(files: fileType[]) {
   let bucketDir: bucketDirType = {
     [cloudStorageDashboardTopKey]: new Set<string>(),
   }
-  files.forEach(_ => {
+  for (const _ of files) {
     const folders = _.key.split('/').slice(0, -1)
     if (folders.length) {
       bucketDir[cloudStorageDashboardTopKey].add(`${folders[0]}/`)
@@ -181,7 +181,7 @@ function genBucketDir(files: fileType[]) {
         genDir(folders, bucketDir)
       }
     }
-  })
+  }
   return bucketDir
 }
 
