@@ -51,27 +51,19 @@ export function searchFile(
   }
 }
 
-export default function syncBucket(csp: CSPAdaptorType, postMessage: postMessageType) {
-  if (!isSyncing) {
-    const bucketSyncPath = path.resolve(syncDirPath, `${csp.bucket}.json`)
-    if (!fs.existsSync(bucketSyncPath)) {
-      console.log('没有本地同步文件，开始同步 bucket 信息', bucketSyncPath)
-      sync(csp, marker, [], postMessage)
-      // 通知前端，后端要开始同步 bucket 信息了
-      postMessage({
-        command: messageCommands.syncBucket_startSyncing,
-        data: {
-          bucket: csp.bucket,
-        },
+export default function syncBucket(
+  csp: CSPAdaptorType,
+  postMessage: postMessageType,
+  forceSync: boolean = false // 用户自己想要强制执行同步，强制执行需要忽略过期时间的限制
+): Promise<{ success: boolean }> {
+  return new Promise((resolve, reject) => {
+    if (!isSyncing) {
+      resolve({
+        success: true,
       })
-    } else {
-      const bucketData = JSON.parse(fs.readFileSync(bucketSyncPath).toString())
-      // 已经生成的 bucket data 过期了，需要重新同步 bucket 信息
-      if (
-        typeof bucketData.createdTime === 'number' &&
-        Date.now() - bucketData.createdTime > expiredTime
-      ) {
-        console.log('有本地同步文件，但是过期了，开始同步 bucket 信息', bucketSyncPath)
+      const bucketSyncPath = path.resolve(syncDirPath, `${csp.bucket}.json`)
+      if (!fs.existsSync(bucketSyncPath)) {
+        console.log('没有本地同步文件，开始同步 bucket 信息', bucketSyncPath)
         sync(csp, marker, [], postMessage)
         // 通知前端，后端要开始同步 bucket 信息了
         postMessage({
@@ -81,18 +73,44 @@ export default function syncBucket(csp: CSPAdaptorType, postMessage: postMessage
           },
         })
       } else {
-        console.log('不会执行同步的', bucketSyncPath, bucketData.createdTime)
-        // 把 bucket 内的文件夹信息发送到前端
-        postMessage({
-          command: messageCommands.syncBucket_folderInfo,
-          data: {
-            bucket: csp.bucket,
-            dir: bucketData.dir,
-          },
-        })
+        const bucketData = JSON.parse(fs.readFileSync(bucketSyncPath).toString())
+        // 已经生成的 bucket data 过期了，需要重新同步 bucket 信息
+        if (
+          forceSync ||
+          (!forceSync &&
+            typeof bucketData.createdTime === 'number' &&
+            Date.now() - bucketData.createdTime > expiredTime)
+        ) {
+          console.log(
+            '有本地同步文件，但是过期了（或者强制同步），开始同步 bucket 信息',
+            bucketSyncPath
+          )
+          sync(csp, marker, [], postMessage)
+          // 通知前端，后端要开始同步 bucket 信息了
+          postMessage({
+            command: messageCommands.syncBucket_startSyncing,
+            data: {
+              bucket: csp.bucket,
+            },
+          })
+        } else {
+          console.log('不会执行同步的', bucketSyncPath, bucketData.createdTime)
+          // 把 bucket 内的文件夹信息发送到前端
+          postMessage({
+            command: messageCommands.syncBucket_folderInfo,
+            data: {
+              bucket: csp.bucket,
+              dir: bucketData.dir,
+            },
+          })
+        }
       }
+    } else {
+      resolve({
+        success: false,
+      })
     }
-  }
+  })
 }
 
 function sync(

@@ -265,11 +265,14 @@ export function requestCancelDownload(id) {
   )
 }
 
-export function requestSyncBucket() {
+// forceSync => boolean 是否忽略过期时间强制执行同步
+export function requestSyncBucket(forceSync) {
   return messageAdaptor(
     {
       serverCommand: MESSAGE_COMMANDS.syncBucket,
-      data: {},
+      data: {
+        forceSync: !!forceSync,
+      },
       cspInfo: getCSPInfo(),
     },
     false

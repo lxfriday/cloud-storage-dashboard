@@ -50,3 +50,22 @@ export function throttle(func: Function, wait: number) {
     }
   }
 }
+
+export function debounce(func: Function, wait: number, immediate: boolean = false) {
+  let timeout: NodeJS.Timeout | null
+  return function debounced(this: any, ...args: any[]) {
+    const ctx = this
+    if (timeout) clearTimeout(timeout)
+    if (immediate) {
+      const callNow = !timeout
+      timeout = setTimeout(() => {
+        timeout = null
+      }, wait)
+      if (callNow) func.apply(ctx, args)
+    } else {
+      timeout = setTimeout(() => {
+        func.apply(ctx, args)
+      }, wait)
+    }
+  }
+}

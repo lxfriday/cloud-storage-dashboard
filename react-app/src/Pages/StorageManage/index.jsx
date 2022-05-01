@@ -1,6 +1,6 @@
 import React, { useEffect, useState, Fragment } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Button, Select, message, Modal, Image, Input, notification } from 'antd'
+import { Button, Select, message, Modal, Image, Input, notification, Menu, Dropdown } from 'antd'
 import {
   FileOutlined,
   SyncOutlined,
@@ -9,6 +9,7 @@ import {
   ExclamationCircleOutlined,
   HomeFilled,
   FolderOpenOutlined,
+  EllipsisOutlined,
 } from '@ant-design/icons'
 import copy from 'copy-text-to-clipboard'
 import classnames from 'classnames'
@@ -719,6 +720,23 @@ export default function StorageManage() {
             onClick={() => handleRefresh(uploadFolders)}
             icon={<SyncOutlined style={{ fontSize: '20px' }} />}
           ></Button>
+
+          <Dropdown
+            overlay={
+              <Menu>
+                <Menu.Item onClick={() => messageCenter.requestSyncBucket(true)}>
+                  强制同步本地 bucket 信息
+                </Menu.Item>
+              </Menu>
+            }
+            placement="bottom"
+          >
+            <Button
+              title="更多操作"
+              icon={<EllipsisOutlined style={{ fontSize: '20px' }} />}
+            ></Button>
+          </Dropdown>
+
           <span className={styles.searchWrapper}>
             <Input.Search
               placeholder="在这里搜索"
@@ -727,6 +745,7 @@ export default function StorageManage() {
               onSearch={handleSearch}
               onPressEnter={handleSearch}
               style={{ width: 200 }}
+              onPaste={e => e.stopPropagation()}
             />
           </span>
           {showSearchResult && (

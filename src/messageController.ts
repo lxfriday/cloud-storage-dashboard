@@ -210,7 +210,7 @@ export default function messageController(
             postMessage({
               uniqueId: message.uniqueId,
             })
-            syncBucket(csp, postMessage)
+            syncBucket(csp, postMessage, message.data.forceSync)
             return
           }
           case MESSAGE_COMMANDS.syncBucket_searchFile: {
