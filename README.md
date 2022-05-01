@@ -5,6 +5,11 @@
   <p>😻 😻 😻 在 VSCode 上也能管理你的云存储啦！！！</p>
 </div>
 
+![1](https://raw.githubusercontent.com/lxfriday/cloud-storage-dashboard/main/assets/screenshots/1.png)
+![2](https://raw.githubusercontent.com/lxfriday/cloud-storage-dashboard/main/assets/screenshots/2.png)
+![3](https://raw.githubusercontent.com/lxfriday/cloud-storage-dashboard/main/assets/screenshots/3.png)
+![4](https://raw.githubusercontent.com/lxfriday/cloud-storage-dashboard/main/assets/screenshots/4.png)
+
 ## 平台支持情况
 
 - ✔️ 七牛云
@@ -77,11 +82,19 @@
 
 ### 关于文件夹
 
-由于各云平台存储文件的时候采用的是 k-v 存储结构，实际上是不存在文件夹概念的，为了方便管理，也给出了解决方案，就是哎 key 中使用 `/` 来区分文件夹，注意这只是管理层面的区分。那么依据 `/` 就有可以拆分出一层一层的虚拟文件夹。
+由于各云平台存储文件的时候采用的是 k-v 存储结构，实际上是不存在文件夹概念的，为了方便管理，也给出了解决方案，就是 key 中使用 `/` 来区分文件夹，注意这只是管理层面的区分。那么依据 `/` 就有可以拆分出一层一层的虚拟文件夹。
 
 对于七牛而言，每次获取文件信息的时候最多只会返回 1000 条数据，而其返回的文件夹信息是依据这 1000 条数据分析得到的文件夹，所以是不完整的，因为才引入了 **本地 bucket 同步** 的概念。本地 bucket 同步会最多同步 bucket 内 10w 条文件信息，并且存储在本地，从这 10w 条数据中分析出 bucket 内的文件夹概念，再返回给前端，来显示出更完善的文件夹。
 
 **本地 bucket 同步**只是扩大了分析样本的数量，如果 bucket 内的文件量大于 10w 条，依然会可能会存在文件夹不对的情况。
+
+### 关于创建、变更或者删除文件之后搜索会出现不同步的情况
+
+上面提到了搜索的原理，简而言之本地会存储 bucket 内的文件信息，如果创建变更删除文件，本地同步的 bucket 信息没那么快同步下来，默认策略是隔 1 个小时会同步一次 bucket。
+
+**当然**如果你想要立即获得最新的搜索信息，你可以把鼠标放到搜索条左边的三个点，然后点击 **强制同步本地 bucket 信息**，来让扩展后台立即执行对 bucket 内文件的同步。
+
+同步的时候，左下角会提示你是否正在进行同步，等同步进行完成之后再搜索就可以获得最新的 bucket 内文件信息了。
 
 ## 源码开发
 
@@ -105,8 +118,9 @@
 react-app
 
 - react
-- antd
+- react-router
 - redux
+- antd
 
 ### 关于扩展端和 react-app 协同工作
 
