@@ -10,7 +10,7 @@ import { NavLink } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 
 import Login from '../Components/Login'
-import { initSettings, logout } from '../store/settings'
+import { initSettings, logout, setHasLoginTrue } from '../store/settings'
 import * as messageCenter from '../utils/messageCenter'
 import messageCommands from '../../../src/messageCommands'
 import styles from './Nav.module.less'
@@ -20,6 +20,7 @@ const { SubMenu } = Menu
 export default function Nav({ children }) {
   const backImgs = useSelector(state => state.settings.customBackImgs)
   const currentCSP = useSelector(state => state.settings.currentCSP)
+  const hasLogin = useSelector(state => state.settings.hasLogin)
   // 是否已经初始化了，用于在获取到登录信息之前做过渡
   const [hasInitialized, setHasInitialized] = useState(false)
   const [backImg, setBackImg] = useState()
@@ -27,7 +28,6 @@ export default function Nav({ children }) {
   // 后台是否正在同步数据
   const [isSyncing, setIsSyncing] = useState(false)
   const dispatch = useDispatch()
-  const hasloggedIn = !!currentCSP
 
   function handleChangeCSP() {
     dispatch(logout())
@@ -41,14 +41,39 @@ export default function Nav({ children }) {
         if (data.success) {
           // 加定时器只是为了让 loading 稳定显示1秒，免得页面 render 太快，loading 就闪了一下，体验不好
           timer = setTimeout(() => {
-            setHasInitialized(true)
-            dispatch(initSettings(data.settings))
             if (data.settings.customBackImgs.length) {
               setBackImg(
                 data.settings.customBackImgs[
                   Math.floor(Math.random() * data.settings.customBackImgs.length)
                 ]
               )
+            }
+            dispatch(initSettings(data.settings))
+            if (!!data.settings.currentCSP && Object.keys(data.settings.currentCSP).length > 0) {
+              // 如果 currentCSP 有值，则尝试用 currentCSP 去登录，检测 key 是否正确
+              messageCenter
+                .requestLogin(data.settings.currentCSP)
+                .then(data2 => {
+                  if (data2.success) {
+                    dispatch(setHasLoginTrue())
+                    dispatch(initSettings(data2.settings))
+                    message.success('登录成功')
+                  } else {
+                    notification.error({
+                      message: '提示',
+                      description: '登录失败，本地密钥已失效',
+                    })
+                  }
+                })
+                .catch(e => {
+                  message.error('登录失败，本地密钥已失效')
+                })
+                .finally(() => {
+                  setHasInitialized(true)
+                })
+            } else {
+              // 如果没有 currentCSP 则不会去请求登录校验，仅仅是初始化好了，会显示登录界面
+              setHasInitialized(true)
             }
           }, 1000)
         } else {
@@ -83,7 +108,7 @@ export default function Nav({ children }) {
   }, [])
 
   useEffect(() => {
-    if (hasloggedIn) {
+    if (hasLogin) {
       // 获取 bucket 列表
       messageCenter
         .requestGetBucketList()
@@ -94,7 +119,7 @@ export default function Nav({ children }) {
           message.error('bucket 列表获取失败')
         })
     }
-  }, [hasloggedIn])
+  }, [hasLogin])
 
   useEffect(() => {
     let interval = null
@@ -117,7 +142,7 @@ export default function Nav({ children }) {
     )
   }
 
-  if (hasloggedIn) {
+  if (hasLogin) {
     return (
       <div className={styles.wrapper}>
         <div className={styles.sideWrapper}>

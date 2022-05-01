@@ -5,7 +5,7 @@ import classnames from 'classnames'
 import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
-import { initSettings } from '../store/settings'
+import { initSettings, setHasLoginTrue } from '../store/settings'
 import loadParticlesJS from '../utils/particle'
 import * as messageCenter from '../utils/messageCenter'
 import styles from './Login.module.less'
@@ -87,12 +87,13 @@ export default function Login() {
           navigate('/')
           message.success('登录成功')
           dispatch(initSettings(data.settings))
+          dispatch(setHasLoginTrue())
           // 这里注意，虽然没有注册为 / 的路由，但是会 fallback 到 * 对应的页面，也就是 首页
           // setIsLoading(false) 不需要
         } else {
           notification.error({
             message: '提示',
-            description: '登录失败，请检查 ak、sk：' + data.msg,
+            description: '登录失败：' + data.msg,
           })
           setIsLoading(false)
         }

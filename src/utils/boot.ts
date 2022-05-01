@@ -170,6 +170,31 @@ export function resetSettings() {
 export function login(cspInfo: currentCSPType) {
   try {
     const oldSettings: baseSettingsType = JSON.parse(fs.readFileSync(settingsPath).toString())
+    const newUsedCSPs = []
+    for (const _ of oldSettings.usedCSPs) {
+      // 如果nickname 相同，但是ak、sk、csp有一个不同，则认为是一个新的登录，而新的登录的nickname重复了，所以登录失败
+      if (
+        _.nickname === cspInfo.nickname &&
+        (_.ak !== cspInfo.ak || _.sk !== cspInfo.sk || _.csp !== cspInfo.csp)
+      ) {
+        return {
+          success: false,
+          msg: 'nickname 已存在',
+          settings: {},
+        }
+      }
+      // 如果 nickname、ak、sk、csp一模一样，则认为是在已登录中直接登录的
+      if (
+        !(
+          _.nickname === cspInfo.nickname &&
+          _.ak === cspInfo.ak &&
+          _.sk === cspInfo.sk &&
+          _.csp === cspInfo.csp
+        )
+      ) {
+        newUsedCSPs.push(_)
+      }
+    }
 
     const currentCSP = {
       ak: cspInfo.ak,
@@ -180,23 +205,7 @@ export function login(cspInfo: currentCSPType) {
 
     const loginSettings = {
       currentCSP,
-      usedCSPs: [
-        ...oldSettings.usedCSPs
-          .map(_ => {
-            // 新输入的 ak sk csp 和已登录过的完全一致，则认为重复登录，把旧的删掉
-            if (
-              _.ak === cspInfo.ak &&
-              _.sk === cspInfo.sk &&
-              _.csp === cspInfo.csp &&
-              _.nickname === cspInfo.nickname
-            ) {
-              return null
-            }
-            return _
-          })
-          .filter(_ => !!_),
-        currentCSP,
-      ],
+      usedCSPs: [...newUsedCSPs, currentCSP],
     }
 
     const settings = {
@@ -204,11 +213,17 @@ export function login(cspInfo: currentCSPType) {
       ...loginSettings,
     }
     fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2))
-    return settings
+    return {
+      success: true,
+      settings,
+      msg: '',
+    }
   } catch (e) {
-    console.log('保存登录信息失败')
-    vscode.window.showErrorMessage(notiTpl('保存登录信息失败：' + String(e)))
-    return {}
+    return {
+      success: false,
+      settings: {},
+      msg: `保存登录信息失败：${String(e)}`,
+    }
   }
 }
 

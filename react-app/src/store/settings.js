@@ -3,6 +3,7 @@ import { createSlice } from '@reduxjs/toolkit'
 const settingsSlice = createSlice({
   name: 'settings',
   initialState: {
+    hasLogin: false,
     forceHTTPS: false, // 使用 https
     uploadUseOrignalFileName: false, // 上传时使用原文件名
     deleteWithoutConfirm: false, // 删除时不需要确认
@@ -38,11 +39,14 @@ const settingsSlice = createSlice({
       Object.keys(payload).forEach(k => (state[k] = payload[k]))
     },
     logout: state => {
-      state.currentCSP = null
+      state.hasLogin = false
+    },
+    setHasLoginTrue: state => {
+      state.hasLogin = true
     },
   },
 })
 
-export const { updateSettings, initSettings, logout } = settingsSlice.actions
+export const { updateSettings, initSettings, logout, setHasLoginTrue } = settingsSlice.actions
 
 export default settingsSlice.reducer

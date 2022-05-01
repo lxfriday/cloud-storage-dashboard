@@ -49,14 +49,12 @@ class Qiniu {
       return {
         success: false,
         msg: res.error,
+        settings: {},
       }
     }
     // 把登录信息保存在本地
-    const settings = boot.login(cspInfo)
-    return {
-      success: true,
-      settings,
-    }
+    const loginRes = boot.login(cspInfo)
+    return loginRes
   }
 
   // 上传用的 token
