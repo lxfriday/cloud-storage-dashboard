@@ -1,6 +1,6 @@
 import React from 'react'
 import { Button } from 'antd'
-import { GithubFilled } from '@ant-design/icons'
+import { GithubFilled, CodeOutlined } from '@ant-design/icons'
 import MDEditor from '@uiw/react-md-editor'
 
 import { requestOpen } from '../../utils/messageCenter'
@@ -10,6 +10,7 @@ import README from '../../../../README.md?raw'
 const openUrls = {
   bilibili: () => requestOpen('https://space.bilibili.com/15445514'),
   github: () => requestOpen('https://github.com/lxfriday'),
+  repo: () => requestOpen('https://github.com/lxfriday/cloud-storage-dashboard'),
 }
 
 export default function index() {
@@ -24,6 +25,9 @@ export default function index() {
         </Button>
         <Button type="dashed" style={{ marginTop: 3 }} onClick={openUrls.github}>
           <GithubFilled style={{ fontSize: 15 }} /> 云影同学 yunyuv
+        </Button>
+        <Button type="dashed" style={{ marginTop: 3 }} onClick={openUrls.repo}>
+          <CodeOutlined style={{ fontSize: 15 }} /> 项目地址
         </Button>
       </div>
     </div>
