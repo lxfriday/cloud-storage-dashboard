@@ -1,7 +1,6 @@
-<div style="text-align:center">
+<div align="center">
   <h1>云存储管理</h1>
   <img src="https://raw.githubusercontent.com/lxfriday/cloud-storage-dashboard/main/assets/logo_64x64.png" />
-
   <p>😻 😻 😻 在 VSCode 上也能管理你的云存储啦！！！</p>
 </div>
 
@@ -40,6 +39,9 @@
   - 进度管理
   - 取消上传、下载
 - 文件操作
+  - 批量选择
+    - 单击文件就可以选中某个文件
+    - 右键文件，点击全选，则可以选中文件夹下的所有文件
   - 重命名
   - 移动
   - 删除
