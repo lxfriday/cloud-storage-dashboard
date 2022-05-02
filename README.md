@@ -1,14 +1,14 @@
 <div align="center">
   <h1>云存储管理</h1>
-  <img src="https://raw.githubusercontent.com/lxfriday/cloud-storage-dashboard/main/assets/logo_64x64.png" />
+  <img src="https://gitee.com/lxfriday/vscode-cloud-storage-dashboard/raw/main/assets/logo_64x64.png" />
   <p>😻 😻 😻 在 VSCode 上也能管理你的云存储啦！！！</p>
 </div>
 
-![1](https://raw.githubusercontent.com/lxfriday/cloud-storage-dashboard/main/assets/screenshots/1.png)
-![5](https://raw.githubusercontent.com/lxfriday/cloud-storage-dashboard/main/assets/screenshots/5.png)
-![2](https://raw.githubusercontent.com/lxfriday/cloud-storage-dashboard/main/assets/screenshots/2.png)
-![3](https://raw.githubusercontent.com/lxfriday/cloud-storage-dashboard/main/assets/screenshots/3.png)
-![4](https://raw.githubusercontent.com/lxfriday/cloud-storage-dashboard/main/assets/screenshots/4.png)
+![1](https://gitee.com/lxfriday/vscode-cloud-storage-dashboard/raw/main/assets/screenshots/1.png)
+![5](https://gitee.com/lxfriday/vscode-cloud-storage-dashboard/raw/main/assets/screenshots/5.png)
+![2](https://gitee.com/lxfriday/vscode-cloud-storage-dashboard/raw/main/assets/screenshots/2.png)
+![3](https://gitee.com/lxfriday/vscode-cloud-storage-dashboard/raw/main/assets/screenshots/3.png)
+![4](https://gitee.com/lxfriday/vscode-cloud-storage-dashboard/raw/main/assets/screenshots/4.png)
 
 ## 平台支持情况
 
