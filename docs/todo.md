@@ -2,8 +2,6 @@
 
 ## high priority
 
-- README 的图片放在 github 上，可能显示不出来
-
 - 按照 大小、创建时间筛选
 - 更改列表显示模式
   - 由 grid 变更为 list（二维变一维）

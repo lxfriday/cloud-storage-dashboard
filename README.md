@@ -138,6 +138,12 @@ react-app
 
 see [todo](https://github.com/lxfriday/cloud-storage-dashboard/blob/main/docs/todo.md)
 
+## Repos
+
+- [Github](https://github.com/lxfriday/cloud-storage-dashboard)
+- [Gitee](https://gitee.com/lxfriday/vscode-cloud-storage-dashboard)
+- [vscode market](https://marketplace.visualstudio.com/items?itemName=lxfriday.cloud-storage-dashboard)
+
 ## 联系
 
 - [📺 云影同学 yunyuv](https://space.bilibili.com/15445514)
