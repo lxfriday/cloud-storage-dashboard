@@ -1,14 +1,14 @@
 <div align="center">
   <h1>云存储管理</h1>
-  <img src="http://qiniu1.lxfriday.xyz/cloud-storage-dashboard/logo_64x64_1651463833294_62879b9e-4f0f-4bcc-9117-8d85a6cb471e.png" />
+  <img src="https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/logo_64x64_1651463833294_62879b9e-4f0f-4bcc-9117-8d85a6cb471e.png" />
   <p>😻 😻 😻 在 VSCode 上也能管理你的云存储啦！！！</p>
 </div>
 
-![1_1651463802394_0df54d48-a692-44f5-bd35-a16ee1c61b10.png](http://qiniu1.lxfriday.xyz/cloud-storage-dashboard/1_1651463802394_0df54d48-a692-44f5-bd35-a16ee1c61b10.png)
-![5_1651463822343_67f932ed-9392-41da-a766-f98614dbd126.png](http://qiniu1.lxfriday.xyz/cloud-storage-dashboard/5_1651463822343_67f932ed-9392-41da-a766-f98614dbd126.png)
-![2_1651463822343_a4acfec8-4219-4227-9899-1012c43595d0.png](http://qiniu1.lxfriday.xyz/cloud-storage-dashboard/2_1651463822343_a4acfec8-4219-4227-9899-1012c43595d0.png)
-![3_1651463822343_8af6a950-ac5b-4bf6-8ecc-7d3d7070008f.png](http://qiniu1.lxfriday.xyz/cloud-storage-dashboard/3_1651463822343_8af6a950-ac5b-4bf6-8ecc-7d3d7070008f.png)
-![4_1651463822343_c771109f-5dc7-4e91-9789-e9259827ca30.png](http://qiniu1.lxfriday.xyz/cloud-storage-dashboard/4_1651463822343_c771109f-5dc7-4e91-9789-e9259827ca30.png)
+![1_1651463802394_0df54d48-a692-44f5-bd35-a16ee1c61b10.png](https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/1_1651463802394_0df54d48-a692-44f5-bd35-a16ee1c61b10.png)
+![5_1651463822343_67f932ed-9392-41da-a766-f98614dbd126.png](https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/5_1651463822343_67f932ed-9392-41da-a766-f98614dbd126.png)
+![2_1651463822343_a4acfec8-4219-4227-9899-1012c43595d0.png](https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/2_1651463822343_a4acfec8-4219-4227-9899-1012c43595d0.png)
+![3_1651463822343_8af6a950-ac5b-4bf6-8ecc-7d3d7070008f.png](https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/3_1651463822343_8af6a950-ac5b-4bf6-8ecc-7d3d7070008f.png)
+![4_1651463822343_c771109f-5dc7-4e91-9789-e9259827ca30.png](https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/4_1651463822343_c771109f-5dc7-4e91-9789-e9259827ca30.png)
 
 ## 平台支持情况
 
