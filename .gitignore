@@ -2,9 +2,7 @@ out
 dist
 node_modules
 .vscode-test/
-*.vsix
 *.keys.ts
-/eg/
-/react-app-dist/
+eg/
+react-app-dist/
 port.dev.*
-/eg
