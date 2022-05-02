@@ -243,7 +243,7 @@ export default function PasteAndDragUpload({
       document.removeEventListener('drop', handleDrop)
       window.removeEventListener('paste', handlePaste)
     }
-  }, [uploadToken, resourcePrefix])
+  }, [uploadToken, resourcePrefix, pendingUploadPrefix])
   return (
     <Fragment>
       <Modal
