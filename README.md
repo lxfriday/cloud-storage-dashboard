@@ -10,6 +10,23 @@
 ![3_1651463822343_8af6a950-ac5b-4bf6-8ecc-7d3d7070008f.png](https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/3_1651463822343_8af6a950-ac5b-4bf6-8ecc-7d3d7070008f.png)
 ![4_1651463822343_c771109f-5dc7-4e91-9789-e9259827ca30.png](https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/4_1651463822343_c771109f-5dc7-4e91-9789-e9259827ca30.png)
 
+## 安装
+
+- [Github](https://github.com/lxfriday/cloud-storage-dashboard)
+- [vscode market](https://marketplace.visualstudio.com/items?itemName=lxfriday.cloud-storage-dashboard)
+
+扩展商店搜索 **云存储管理**，点击安装。
+
+![安装](http://qiniu1.lxfriday.xyz/cloud-storage-dashboard/1651465520037_0cfc4ecb-f0a6-4c98-be61-26f94f4d38c5.png)
+
+## 使用
+
+首次使用需要输入七牛云平台的 ak、sk：
+
+![](http://qiniu1.lxfriday.xyz/cloud-storage-dashboard/1651466210765_55bb19de-46ee-4dfb-8f1f-26b404a9c1ed.png)
+
+输入正确的 sk、sk 之后，点击进入七牛云即可进入管理页面。
+
 ## 平台支持情况
 
 - ✔️ 七牛云
