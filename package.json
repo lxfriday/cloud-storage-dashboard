@@ -1,8 +1,8 @@
 {
   "name": "cloud-storage-dashboard",
   "displayName": "云存储管理",
-  "description": "a vscode extexsion for cloud storage management",
-  "version": "1.1.1",
+  "description": "一个用来管理云存储的vscode扩展",
+  "version": "1.1.2",
   "license": "MIT",
   "publisher": "lxfriday",
   "icon": "assets/logo-large.png",
