@@ -17,13 +17,13 @@
 
 扩展商店搜索 **云存储管理**，点击安装。
 
-![安装](http://qiniu1.lxfriday.xyz/cloud-storage-dashboard/1651465520037_0cfc4ecb-f0a6-4c98-be61-26f94f4d38c5.png)
+![安装](https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/1651465520037_0cfc4ecb-f0a6-4c98-be61-26f94f4d38c5.png)
 
 ## 使用
 
 首次使用需要输入七牛云平台的 ak、sk：
 
-![](http://qiniu1.lxfriday.xyz/cloud-storage-dashboard/1651466210765_55bb19de-46ee-4dfb-8f1f-26b404a9c1ed.png)
+![](https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/1651466210765_55bb19de-46ee-4dfb-8f1f-26b404a9c1ed.png)
 
 输入正确的 sk、sk 之后，点击进入七牛云即可进入管理页面。
 
