@@ -5,6 +5,7 @@ import React, { useEffect, Fragment, useState, useRef } from 'react'
 import { InboxOutlined, DeleteOutlined } from '@ant-design/icons'
 import { Modal, Input, message } from 'antd'
 import { useSelector } from 'react-redux'
+import copy from 'copy-text-to-clipboard'
 
 import styles from './PasteAndDragUpload.module.less'
 import { generateRandomResourceName, copyFormattedBySettings } from '../../../utils'
@@ -115,10 +116,13 @@ export default function PasteAndDragUpload({
         key: `${pendingUploadPrefix}${generateRandomResourceName(file.name, false)}`,
         token: uploadToken,
         resourcePrefix,
-        shouldCopy: true,
+        shouldCopy: false,
         shouldShowMsg: true,
       })
       .then(data => {
+        const targetUrl = `${resourcePrefix}${data.key}`
+        copy(settings.copyFormat === 'url' ? encodeURI(targetUrl) : `![](${encodeURI(targetUrl)})`)
+
         notiSyncBucket()
       })
       .catch(e => {
@@ -243,7 +247,7 @@ export default function PasteAndDragUpload({
       document.removeEventListener('drop', handleDrop)
       window.removeEventListener('paste', handlePaste)
     }
-  }, [uploadToken, resourcePrefix, pendingUploadPrefix])
+  }, [uploadToken, resourcePrefix, pendingUploadPrefix, settings.copyFormat])
   return (
     <Fragment>
       <Modal
