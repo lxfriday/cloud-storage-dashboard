@@ -130,6 +130,23 @@ export default function Settings() {
         />
       </div>
       <div className={styles.itemWrapper}>
+        <span className={styles.noti}>
+          启用 bucket 同步提示
+          <span className={styles.eg}>
+            (文件发生变动之后，会自动提示是否需要同步本地 bucket 信息，方便搜索和文件夹分析)
+          </span>
+        </span>
+        <Switch
+          checked={settings.enableNotiSyncBucket}
+          onChange={checked => {
+            handleSave({
+              k: 'enableNotiSyncBucket',
+              v: checked,
+            })
+          }}
+        />
+      </div>
+      <div className={styles.itemWrapper}>
         <span className={styles.noti}>复制到剪切板的格式</span>
         <Radio.Group
           onChange={e => {

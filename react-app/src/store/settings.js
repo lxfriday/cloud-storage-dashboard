@@ -7,6 +7,7 @@ const settingsSlice = createSlice({
     forceHTTPS: false, // 使用 https
     uploadUseOrignalFileName: false, // 上传时使用原文件名
     deleteWithoutConfirm: false, // 删除时不需要确认
+    enableNotiSyncBucket: true, // 启用bucket同步提示
     copyFormat: 'url', // 复制到剪切板的格式，url或者 markdown img
     imagePreviewSuffix: '', // 文件预览后缀
     downloadDir: '', // 文件下载的目录

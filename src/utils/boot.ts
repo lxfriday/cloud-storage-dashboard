@@ -5,13 +5,8 @@
  * 如果文件夹不存在则创建，如果配置文件不存在则创建
  */
 import * as path from 'path'
-import * as vscode from 'vscode'
 import * as fs from 'fs'
 import * as utils from './index'
-
-function notiTpl(msg: string) {
-  return `扩展初始化失败：${msg}`
-}
 
 type copyFormatType = 'url' | 'markdown'
 
@@ -26,6 +21,7 @@ type baseSettingsType = {
   forceHTTPS: boolean
   uploadUseOrignalFileName: boolean
   deleteWithoutConfirm: boolean
+  enableNotiSyncBucket: boolean
   copyFormat: copyFormatType
   imagePreviewSuffix: string
   downloadDir: string
@@ -39,6 +35,7 @@ type updateSettingsParamsType = {
   forceHTTPS?: boolean
   uploadUseOrignalFileName?: boolean
   deleteWithoutConfirm?: boolean
+  enableNotiSyncBucket?: boolean
   copyFormat?: copyFormatType
   imagePreviewSuffix?: string
   downloadDir?: string
@@ -65,6 +62,7 @@ const resetNeededBaseSettings = {
   forceHTTPS: false, // 使用 https
   uploadUseOrignalFileName: false, // 上传时使用原文件名
   deleteWithoutConfirm: false, // 删除时不需要确认
+  enableNotiSyncBucket: true,
   copyFormat: <copyFormatType>'url', // 复制到剪切板的格式，url或者 markdown img
   imagePreviewSuffix: '?imageView2/1/w/85/h/85/format/webp/q/10', // 文件预览后缀
   downloadDir: '', // 文件下载的目录
