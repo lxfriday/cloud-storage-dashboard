@@ -6,9 +6,9 @@
 
 ![1_1651463802394_0df54d48-a692-44f5-bd35-a16ee1c61b10.png](https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/1_1651463802394_0df54d48-a692-44f5-bd35-a16ee1c61b10.png)
 ![5_1651463822343_67f932ed-9392-41da-a766-f98614dbd126.png](https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/5_1651463822343_67f932ed-9392-41da-a766-f98614dbd126.png)
-![1651591361617_1595e0ad-0edb-4518-9da3-25bc620056b8.png](http://qiniu1.lxfriday.xyz/cloud-storage-dashboard/1651591361617_1595e0ad-0edb-4518-9da3-25bc620056b8.png)
+![1651591361617_1595e0ad-0edb-4518-9da3-25bc620056b8.png](https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/1651591361617_1595e0ad-0edb-4518-9da3-25bc620056b8.png)
 ![3_1651463822343_8af6a950-ac5b-4bf6-8ecc-7d3d7070008f.png](https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/3_1651463822343_8af6a950-ac5b-4bf6-8ecc-7d3d7070008f.png)
-![1651591447078_1f01fdca-7f7a-453c-adf1-aafb7d3c04bb.png](http://qiniu1.lxfriday.xyz/cloud-storage-dashboard/1651591447078_1f01fdca-7f7a-453c-adf1-aafb7d3c04bb.png)
+![1651591447078_1f01fdca-7f7a-453c-adf1-aafb7d3c04bb.png](https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/1651591447078_1f01fdca-7f7a-453c-adf1-aafb7d3c04bb.png)
 
 ## 安装
 
@@ -17,7 +17,7 @@
 
 扩展商店搜索 **Cloud Storage Dashboard**，点击安装。
 
-![安装](http://qiniu1.lxfriday.xyz/cloud-storage-dashboard/1651591284301_80424be3-c6c3-43a9-bef6-d73b1cfe92ab.png)
+![安装](https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/1651591284301_80424be3-c6c3-43a9-bef6-d73b1cfe92ab.png)
 
 ## 使用
 
