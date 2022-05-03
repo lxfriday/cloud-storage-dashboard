@@ -255,8 +255,8 @@ export default function StorageManage() {
 
   // 双击图片点击了预览，or右键点击了预览
   function handlePreviewAsImg(ind) {
-    setImgPreviewVisible(true)
     setImgPreviewIndex(ind)
+    setImgPreviewVisible(true)
   }
 
   // 预览视频
@@ -922,7 +922,10 @@ export default function StorageManage() {
           }}
         >
           {resourceList.map(resourceInfo => (
-            <Image key={resourceInfo.key} src={encodeURI(resourcePrefix + resourceInfo.key)} />
+            <Image
+              key={Math.random() * 100000000}
+              src={encodeURI(resourcePrefix + resourceInfo.key)}
+            />
           ))}
         </Image.PreviewGroup>
       </div>

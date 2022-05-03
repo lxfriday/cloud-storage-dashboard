@@ -121,8 +121,7 @@ export default function PasteAndDragUpload({
       })
       .then(data => {
         const targetUrl = `${resourcePrefix}${data.key}`
-        copy(settings.copyFormat === 'url' ? encodeURI(targetUrl) : `![](${encodeURI(targetUrl)})`)
-
+        copyFormattedBySettings(settings.copyFormat, targetUrl)
         notiSyncBucket()
       })
       .catch(e => {
