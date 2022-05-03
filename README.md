@@ -1,23 +1,23 @@
 <div align="center">
-  <h1>云存储管理</h1>
+  <h1>Cloud Storage Dashboard 云存储管理</h1>
   <img src="https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/logo_64x64_1651463833294_62879b9e-4f0f-4bcc-9117-8d85a6cb471e.png" />
   <p>😻 😻 😻 在 VSCode 上也能管理你的云存储啦！！！</p>
 </div>
 
 ![1_1651463802394_0df54d48-a692-44f5-bd35-a16ee1c61b10.png](https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/1_1651463802394_0df54d48-a692-44f5-bd35-a16ee1c61b10.png)
 ![5_1651463822343_67f932ed-9392-41da-a766-f98614dbd126.png](https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/5_1651463822343_67f932ed-9392-41da-a766-f98614dbd126.png)
-![2_1651463822343_a4acfec8-4219-4227-9899-1012c43595d0.png](https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/2_1651463822343_a4acfec8-4219-4227-9899-1012c43595d0.png)
+![1651591361617_1595e0ad-0edb-4518-9da3-25bc620056b8.png](http://qiniu1.lxfriday.xyz/cloud-storage-dashboard/1651591361617_1595e0ad-0edb-4518-9da3-25bc620056b8.png)
 ![3_1651463822343_8af6a950-ac5b-4bf6-8ecc-7d3d7070008f.png](https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/3_1651463822343_8af6a950-ac5b-4bf6-8ecc-7d3d7070008f.png)
-![4_1651463822343_c771109f-5dc7-4e91-9789-e9259827ca30.png](https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/4_1651463822343_c771109f-5dc7-4e91-9789-e9259827ca30.png)
+![1651591447078_1f01fdca-7f7a-453c-adf1-aafb7d3c04bb.png](http://qiniu1.lxfriday.xyz/cloud-storage-dashboard/1651591447078_1f01fdca-7f7a-453c-adf1-aafb7d3c04bb.png)
 
 ## 安装
 
 - [Github](https://github.com/lxfriday/cloud-storage-dashboard)
 - [vscode market](https://marketplace.visualstudio.com/items?itemName=lxfriday.cloud-storage-dashboard)
 
-扩展商店搜索 **云存储管理**，点击安装。
+扩展商店搜索 **Cloud Storage Dashboard**，点击安装。
 
-![安装](https://qiniu1.lxfriday.xyz/cloud-storage-dashboard/1651465520037_0cfc4ecb-f0a6-4c98-be61-26f94f4d38c5.png)
+![安装](http://qiniu1.lxfriday.xyz/cloud-storage-dashboard/1651591284301_80424be3-c6c3-43a9-bef6-d73b1cfe92ab.png)
 
 ## 使用
 
