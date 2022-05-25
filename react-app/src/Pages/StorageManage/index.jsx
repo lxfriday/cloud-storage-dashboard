@@ -93,8 +93,8 @@ export default function StorageManage() {
   function ensureTokenAvailable() {
     messageCenter
       .requestGenerateUploadToken()
-      .then(data => {
-        setUploadToken(data)
+      .then(res => {
+        setUploadToken(res.data)
       })
       .catch(err => {
         message.error('token 获取失败')
@@ -118,22 +118,29 @@ export default function StorageManage() {
           prefix: prefixes.join(''),
           marker: '',
         })
-        .then(data => {
-          isLoadingResource = false
-          marker = data.marker
-          setUploadFolders([...prefixes])
-          setPendingUploadPrefix(prefixes.join(''))
-          setCommonPrefixList(data.commonPrefixes)
-          const nRList = []
+        .then(res => {
+          if (res.success) {
+            const { data } = res
+            marker = data.marker
+            setUploadFolders([...prefixes])
+            setPendingUploadPrefix(prefixes.join(''))
+            setCommonPrefixList(data.commonPrefixes)
+            const nRList = []
 
-          data.list.forEach(r => {
-            // 七牛在网页端创建文件夹的时候，会自动创建一个空文件占位，把它删掉
-            if (r.mimeType !== 'application/qiniu-object-manager') {
-              nRList.push(r)
-            }
-          })
-          setResourceList(nRList)
-          setIsResourceListReachEnd(data.reachEnd)
+            data.list.forEach(r => {
+              // 七牛在网页端创建文件夹的时候，会自动创建一个空文件占位，把它删掉
+              if (r.mimeType !== 'application/qiniu-object-manager') {
+                nRList.push(r)
+              }
+            })
+            setResourceList(nRList)
+            setIsResourceListReachEnd(data.reachEnd)
+          } else {
+            message.error('资源列表加载失败：' + res.msg)
+          }
+        })
+        .finally(() => {
+          isLoadingResource = false
         })
     }
   }
@@ -148,13 +155,20 @@ export default function StorageManage() {
           prefix: uploadFolders.join(''),
           marker,
         })
-        .then(data => {
+        .then(res => {
+          if (res.success) {
+            const { data } = res
+            marker = data.marker
+            // 对已有的 commonprefixes 和新传过来的 commonprefixes 做合并，去重
+            setCommonPrefixList([...new Set([...commonPrefixList, ...data.commonPrefixes])])
+            setResourceList([...resourceList, ...data.list])
+            setIsResourceListReachEnd(data.reachEnd)
+          } else {
+            message.error('资源列表加载失败：' + res.msg)
+          }
+        })
+        .finally(() => {
           isLoadingResource = false
-          marker = data.marker
-          // 对已有的 commonprefixes 和新传过来的 commonprefixes 做合并，去重
-          setCommonPrefixList([...new Set([...commonPrefixList, ...data.commonPrefixes])])
-          setResourceList([...resourceList, ...data.list])
-          setIsResourceListReachEnd(data.reachEnd)
         })
     }
   }
@@ -221,8 +235,9 @@ export default function StorageManage() {
 
   // 删除一个和删除多个文件都走这个函数
   function handleDeleteFiles(keys) {
-    messageCenter.requestDeleteBucketFiles(keys).then(data => {
-      if (data.result === 'alldeleted') {
+    messageCenter.requestDeleteBucketFiles(keys).then(res => {
+      const { data } = res
+      if (data === 'alldeleted') {
         message.success('删除成功')
         const rList = []
         resourceList.forEach(r => {
@@ -239,7 +254,7 @@ export default function StorageManage() {
         setSelectedKeys(nSelectedKeys)
         setResourceList(rList)
         notiSyncBucket()
-      } else if (data.result === 'partdeleted') {
+      } else if (data === 'partdeleted') {
         message.error('部分文件删除成功')
         handleRefresh(uploadFolders)
       } else {
@@ -329,14 +344,16 @@ export default function StorageManage() {
 
   function handleRenameResource({ originalKey, newKey, op }) {
     messageCenter
-      .requestMoveBucketFiles([{ originalKey, newKey }])
-      .then(data => {
-        if (data.result === 'allmoved') {
+      .requestMoveBucketFile({ originalKey, newKey })
+      .then(res => {
+        if (res.success) {
           message.success((op === 'move' ? '移动' : '重命名') + '文件成功')
           handleRefresh(uploadFolders)
           notiSyncBucket()
         } else {
-          message.error((op === 'move' ? '移动' : '重命名') + '文件失败')
+          res.msg
+            ? message.error((op === 'move' ? '移动' : '重命名') + '文件失败：' + res.msg)
+            : message.error((op === 'move' ? '移动' : '重命名') + '文件失败')
         }
       })
       .catch(e => {
@@ -350,11 +367,11 @@ export default function StorageManage() {
     const fileUrls = selectedKeys.map(k => resourcePrefix + k)
     messageCenter
       .requestRefreshFiles(fileUrls)
-      .then(data => {
-        if (data.success) {
-          message.success('文件 CDN 刷新成功，今日文件刷新限额剩余 ' + data.urlSurplusDay)
+      .then(res => {
+        if (res.success) {
+          message.success('文件 CDN 刷新成功，今日文件刷新限额剩余 ' + res.data.leftCount)
         } else {
-          message.error('文件 CDN 刷新失败：' + data.msg)
+          message.error('文件 CDN 刷新失败：' + res.msg)
         }
       })
       .catch(e => {
@@ -367,11 +384,11 @@ export default function StorageManage() {
   function handleRefreshResource(url) {
     messageCenter
       .requestRefreshFiles([url])
-      .then(data => {
-        if (data.success) {
-          message.success('文件 CDN 刷新成功，今日文件刷新限额剩余 ' + data.urlSurplusDay)
+      .then(res => {
+        if (res.success) {
+          message.success('文件 CDN 刷新成功，今日文件刷新限额剩余 ' + res.data.leftCount)
         } else {
-          message.error('文件 CDN 刷新失败：' + data.msg)
+          message.error('文件 CDN 刷新失败：' + res.msg)
         }
       })
       .catch(e => {
@@ -385,11 +402,11 @@ export default function StorageManage() {
     const dirUrl = resourcePrefix + realDirPath
     messageCenter
       .requestRefreshDirs([dirUrl])
-      .then(data => {
-        if (data.success) {
-          message.success('文件夹 CDN 刷新成功，今日文件夹刷新限额剩余 ' + data.dirSurplusDay)
+      .then(res => {
+        if (res.success) {
+          message.success('文件夹 CDN 刷新成功，今日文件夹刷新限额剩余 ' + res.data.leftCount)
         } else {
-          message.error('文件夹 CDN 刷新失败：' + data.msg)
+          message.error('文件夹 CDN 刷新失败：' + res.msg)
         }
       })
       .catch(e => {
@@ -402,11 +419,11 @@ export default function StorageManage() {
     const realDirUrls = selectedFolders.map(f => resourcePrefix + uploadFolders.join('') + f)
     messageCenter
       .requestRefreshDirs(realDirUrls)
-      .then(data => {
-        if (data.success) {
-          message.success('文件夹 CDN 刷新成功，今日文件夹刷新限额剩余 ' + data.dirSurplusDay)
+      .then(res => {
+        if (res.success) {
+          message.success('文件夹 CDN 刷新成功，今日文件夹刷新限额剩余 ' + res.data.leftCount)
         } else {
-          message.error('文件夹 CDN 刷新失败：' + data.msg)
+          message.error('文件夹 CDN 刷新失败：' + res.msg)
         }
       })
       .catch(e => {
@@ -505,13 +522,18 @@ export default function StorageManage() {
     setCommonPrefixList([])
     setPendingUploadPrefix('')
     try {
-      const bucketDomains = await messageCenter.requestGetBucketDomains()
-      setBucketDomainInfo({
-        bucketDomains: bucketDomains,
-        selectBucketDomain: bucketDomains[0] || '',
-      })
-      const utoken = await messageCenter.requestGenerateUploadToken()
-      setUploadToken(utoken)
+      const bucketDomainsRes = await messageCenter.requestGetBucketDomains()
+      if (bucketDomainsRes.success) {
+        setBucketDomainInfo({
+          bucketDomains: bucketDomainsRes.data,
+          selectBucketDomain: bucketDomainsRes.data[0] || '',
+        })
+      } else {
+        message.error('bucket domain 获取失败：' + bucketDomainsRes.msg)
+      }
+
+      const getUploadTokenRes = await messageCenter.requestGenerateUploadToken()
+      setUploadToken(getUploadTokenRes.data)
 
       isLoadingResource = true
       // 从根目录加载，prefix 为空
@@ -521,11 +543,15 @@ export default function StorageManage() {
         prefix: '',
         marker: '',
       })
+      if (resourceListResponse.success) {
+        marker = resourceListResponse.data.marker
+        setCommonPrefixList(resourceListResponse.data.commonPrefixes)
+        setResourceList(resourceListResponse.data.list)
+        setIsResourceListReachEnd(resourceListResponse.data.reachEnd)
+      } else {
+        message.error('资源列表获取失败：' + resourceListResponse.msg)
+      }
       isLoadingResource = false
-      marker = resourceListResponse.marker
-      setCommonPrefixList(resourceListResponse.commonPrefixes)
-      setResourceList(resourceListResponse.list)
-      setIsResourceListReachEnd(resourceListResponse.reachEnd)
     } catch (e) {
       message.error(e)
     }

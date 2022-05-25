@@ -1,11 +1,13 @@
 // 用来同步 bucket 内的文件信息
 // 把 bucket 内的文件信息下载到本地，方便做所有文件夹和搜索
 import * as path from 'path'
+import * as vscode from 'vscode'
 import { createHash } from 'crypto'
 import * as fs from 'fs'
 import { CSPAdaptorType } from './cspAdaptor'
 import { extPath } from './boot'
 import messageCommands from '../messageCommands'
+import { resourceListItemType } from './cspAdaptor/cspAdaptor.common'
 
 const syncDirName = 'sync'
 const syncSettingsFileName = 'syncSettings.json'
@@ -29,17 +31,17 @@ function getSyncFileName(csp: CSPAdaptorType): { fileName: string; fullFileName:
 export function searchFile(
   csp: CSPAdaptorType,
   keyword: string
-): { success: boolean; data: fileType[]; msg: string } {
+): { success: boolean; data: resourceListItemType[]; msg: string } {
   const { fileName, fullFileName } = getSyncFileName(csp)
   const bucketSyncPath = path.resolve(syncDirPath, fullFileName)
   if (fs.existsSync(bucketSyncPath)) {
     const files = JSON.parse(fs.readFileSync(bucketSyncPath).toString())
-    const res: fileType[] = []
+    const res: resourceListItemType[] = []
 
     const startTime = Date.now()
     console.log('search start')
 
-    for (const _ of <fileType[]>files) {
+    for (const _ of <resourceListItemType[]>files) {
       if (_.key.toLowerCase().includes(keyword)) {
         res.push(_)
       }
@@ -125,39 +127,45 @@ export default function syncBucket(
 function sync(
   csp: CSPAdaptorType,
   marker: string,
-  files: fileType[],
+  files: resourceListItemType[],
   postMessage: postMessageType
 ) {
   isSyncing = true
   csp.getResourceListForSync(marker).then(res => {
-    files = [...files, ...res.list]
-    if (files.length < maxFilesLength && !res.reachEnd) {
-      sync(csp, res.marker, files, postMessage)
+    if (res.success && res.data) {
+      const { data } = res
+      files = [...files, ...data.list]
+      if (files.length < maxFilesLength && !data.reachEnd) {
+        sync(csp, data.marker, files, postMessage)
+      } else {
+        const dir = genBucketDir(files)
+        // 获取到 dir 的每个 key 都是 set，需要处理为数组，否则无法被 JSON.stringify 处理
+        const processedDir: dirType = {}
+        Object.keys(dir).forEach(k => {
+          processedDir[k] = [...dir[k]]
+        })
+        saveSyncData(csp, files, processedDir)
+        isSyncing = false
+        postMessage({
+          command: messageCommands.syncBucket_folderInfo,
+          data: {
+            bucket: csp.bucket,
+            dir: processedDir,
+            count: files.length,
+            totalSize,
+          },
+        })
+        // bucket 同步完成，告知前端
+        postMessage({
+          command: messageCommands.syncBucket_endSyncing,
+          data: {
+            bucket: csp.bucket,
+          },
+        })
+      }
     } else {
-      const dir = genBucketDir(files)
-      // 获取到 dir 的每个 key 都是 set，需要处理为数组，否则无法被 JSON.stringify 处理
-      const processedDir: dirType = {}
-      Object.keys(dir).forEach(k => {
-        processedDir[k] = [...dir[k]]
-      })
-      saveSyncData(csp, files, processedDir)
       isSyncing = false
-      postMessage({
-        command: messageCommands.syncBucket_folderInfo,
-        data: {
-          bucket: csp.bucket,
-          dir: processedDir,
-          count: files.length,
-          totalSize,
-        },
-      })
-      // bucket 同步完成，告知前端
-      postMessage({
-        command: messageCommands.syncBucket_endSyncing,
-        data: {
-          bucket: csp.bucket,
-        },
-      })
+      res.msg && vscode.window.showErrorMessage('本地同步出现错误：' + res.msg)
     }
   })
 }
@@ -174,7 +182,7 @@ function genDir(folders: string[], bucketDir: bucketDirType) {
   }
 }
 
-function genBucketDir(files: fileType[]) {
+function genBucketDir(files: resourceListItemType[]) {
   const cloudStorageDashboardTopKey = '_default_cloudStorageDashboardTopKey'
   let bucketDir: bucketDirType = {
     [cloudStorageDashboardTopKey]: new Set<string>(),
@@ -192,7 +200,7 @@ function genBucketDir(files: fileType[]) {
   return bucketDir
 }
 
-function saveSyncData(csp: CSPAdaptorType, files: fileType[], dir: any) {
+function saveSyncData(csp: CSPAdaptorType, files: resourceListItemType[], dir: any) {
   const { fileName, fullFileName } = getSyncFileName(csp)
   if (!fs.existsSync(syncDirPath)) {
     fs.mkdirSync(syncDirPath)
@@ -241,7 +249,7 @@ type fileType = {
   md5: string
   mimeType: string
   putTime: number
-  folders: string[]
+  // folders: string[]
 }
 
 type bucketDirType = {

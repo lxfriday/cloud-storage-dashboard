@@ -87,8 +87,9 @@ export default function messageController(
           }
           case MESSAGE_COMMANDS.generateUploadToken: {
             const csp = cspAdaptor(message.cspInfo)
+            const generateUploadTokenRes = await csp.generateUploadToken()
             postMessage({
-              data: csp.generateUploadToken(),
+              data: generateUploadTokenRes,
               uniqueId: message.uniqueId,
             })
             return
@@ -133,12 +134,12 @@ export default function messageController(
             })
             return
           }
-          case MESSAGE_COMMANDS.moveBucketFiles: {
+          case MESSAGE_COMMANDS.moveBucketFile: {
             const csp = cspAdaptor(message.cspInfo)
-            const moveBucketFilesRes = await csp.moveBucketFiles(message.data.keysInfoList)
+            const moveBucketFileRes = await csp.moveBucketFile(message.data.keysInfo)
             postMessage({
               uniqueId: message.uniqueId,
-              data: moveBucketFilesRes,
+              data: moveBucketFileRes,
             })
             return
           }

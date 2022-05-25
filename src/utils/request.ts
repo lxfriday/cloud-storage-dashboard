@@ -17,6 +17,14 @@ axios.interceptors.request.use(function (config) {
   return config
 })
 
+axios.interceptors.response.use(function (res) {
+  if (res.status >= 200 && res.status < 300) {
+    return { success: true, data: res.data }
+  } else {
+    return { success: false, msg: res.data.error || res.data.error_code }
+  }
+})
+
 export function qiniuGet(
   { url, params, config }: requestParam,
   getAuthorization: (url: string) => string
@@ -35,9 +43,14 @@ export function qiniuGet(
       authorization: getAuthorization(url),
     },
   }
-  return axios(url, { method: 'GET', ...config }).then(res => {
-    return res.data
-  })
+  return axios(url, { method: 'GET', ...config })
+    .then(res => {
+      console.log('qniuGet', res)
+      return res
+    })
+    .catch(e => {
+      return e
+    })
 }
 
 export function get({ url, params, config }: requestParam) {

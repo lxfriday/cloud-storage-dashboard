@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Menu, message, Spin } from 'antd'
+import { Menu, message, notification, Spin } from 'antd'
 import {
   FolderOpenOutlined,
   SettingOutlined,
@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from 'react-redux'
 
 import Login from '../Components/Login'
 import { initSettings, logout, setHasLoginTrue } from '../store/settings'
+import { updateBucketListAction } from '../store/storageManage'
 import * as messageCenter from '../utils/messageCenter'
 import messageCommands from '../../../src/messageCommands'
 import styles from './Nav.module.less'
@@ -21,10 +22,10 @@ export default function Nav({ children }) {
   const backImgs = useSelector(state => state.settings.customBackImgs)
   const currentCSP = useSelector(state => state.settings.currentCSP)
   const hasLogin = useSelector(state => state.settings.hasLogin)
+  const bucketList = useSelector(state => state.storageManage.bucketList)
   // 是否已经初始化了，用于在获取到登录信息之前做过渡
   const [hasInitialized, setHasInitialized] = useState(false)
   const [backImg, setBackImg] = useState()
-  const [bucketList, setBucketList] = useState([])
   // 后台是否正在同步数据
   const [isSyncing, setIsSyncing] = useState(false)
   const dispatch = useDispatch()
@@ -37,36 +38,32 @@ export default function Nav({ children }) {
     let timer = null
     messageCenter
       .requestGetSettings()
-      .then(data => {
-        if (data.success) {
+      .then(res => {
+        if (res.success) {
+          const { data: settings } = res
           // 加定时器只是为了让 loading 稳定显示1秒，免得页面 render 太快，loading 就闪了一下，体验不好
           timer = setTimeout(() => {
-            if (data.settings.customBackImgs.length) {
+            if (settings.customBackImgs.length) {
               setBackImg(
-                data.settings.customBackImgs[
-                  Math.floor(Math.random() * data.settings.customBackImgs.length)
-                ]
+                settings.customBackImgs[Math.floor(Math.random() * settings.customBackImgs.length)]
               )
             }
-            dispatch(initSettings(data.settings))
-            if (!!data.settings.currentCSP && Object.keys(data.settings.currentCSP).length > 0) {
+            dispatch(initSettings(settings))
+            if (!!settings.currentCSP && Object.keys(settings.currentCSP).length > 0) {
               // 如果 currentCSP 有值，则尝试用 currentCSP 去登录，检测 key 是否正确
               messageCenter
-                .requestLogin(data.settings.currentCSP)
-                .then(data2 => {
-                  if (data2.success) {
+                .requestLogin(settings.currentCSP)
+                .then(res2 => {
+                  if (res2.success) {
                     dispatch(setHasLoginTrue())
-                    dispatch(initSettings(data2.settings))
+                    dispatch(initSettings(res2.data))
                     message.success('登录成功')
                   } else {
                     notification.error({
                       message: '提示',
-                      description: '登录失败，本地密钥已失效',
+                      description: '登录失败：' + res2.msg,
                     })
                   }
-                })
-                .catch(e => {
-                  message.error('登录失败，本地密钥已失效')
                 })
                 .finally(() => {
                   setHasInitialized(true)
@@ -77,7 +74,7 @@ export default function Nav({ children }) {
             }
           }, 1000)
         } else {
-          message.error('获取初始配置信息失败')
+          message.error('获取初始配置信息失败：' + res.msg)
         }
       })
       .catch(e => {
@@ -112,8 +109,12 @@ export default function Nav({ children }) {
       // 获取 bucket 列表
       messageCenter
         .requestGetBucketList()
-        .then(data => {
-          setBucketList(data)
+        .then(res => {
+          if (res.success) {
+            dispatch(updateBucketListAction(res.data))
+          } else {
+            message.error('bucket 列表获取失败：' + res.msg)
+          }
         })
         .catch(() => {
           message.error('bucket 列表获取失败')
@@ -164,13 +165,13 @@ export default function Nav({ children }) {
                 </NavLink>
               </Menu.Item>
               <SubMenu key="sub1" icon={<FolderOpenOutlined />} title="存储空间">
-                {bucketList.map(bk => (
-                  <Menu.Item key={bk}>
+                {bucketList.map(({ name }) => (
+                  <Menu.Item key={name}>
                     <NavLink
-                      to={`/storagemanage?space=${bk}`}
+                      to={`/storagemanage?space=${name}`}
                       className={({ isActive }) => (isActive ? styles.navLinkActive : undefined)}
                     >
-                      {bk}
+                      {name}
                     </NavLink>
                   </Menu.Item>
                 ))}

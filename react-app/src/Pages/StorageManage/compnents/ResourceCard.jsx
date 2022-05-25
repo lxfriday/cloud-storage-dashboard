@@ -96,7 +96,6 @@ export default function ResourceCard({
 
   // 文件详情
   function handlePressDetail() {
-    const d = new Date(+`${putTime}`.substr(0, 13))
     Modal.info({
       title: '文件详情',
       icon: <ExclamationCircleOutlined />,
@@ -106,7 +105,7 @@ export default function ResourceCard({
           <p>文件大小：{getFileSize(fsize)}</p>
           <p>Etag：{hash}</p>
           <p>mime：{mimeType}</p>
-          <p>创建时间：{getFullTime(d)}</p>
+          <p>创建时间：{putTime}</p>
         </div>
       ),
       width: 750,

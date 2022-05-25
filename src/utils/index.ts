@@ -69,3 +69,13 @@ export function debounce(func: Function, wait: number, immediate: boolean = fals
     }
   }
 }
+
+export function getFullTime(t: Date) {
+  // 2017/9/16 09:40:22
+  // 补全 时分秒的前导0
+  return `${t.getFullYear()}/${t.getMonth() + 1}/${t.getDate()} ${
+    t.getHours() < 10 ? `0${t.getHours()}` : t.getHours()
+  }:${t.getMinutes() < 10 ? `0${t.getMinutes()}` : t.getMinutes()}:${
+    t.getSeconds() < 10 ? `0${t.getSeconds()}` : t.getSeconds()
+  }`
+}

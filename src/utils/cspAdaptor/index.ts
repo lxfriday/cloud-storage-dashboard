@@ -6,6 +6,7 @@ type cspInfoType = {
   sk: string
   csp: string
   nickname: string // current login nickname
+  region: string
 }
 
 // const cspInfo = {
@@ -18,10 +19,24 @@ type cspInfoType = {
 
 export default function cspAdaptor(cspInfo: cspInfoType) {
   if (cspInfo.csp === 'qiniu') {
-    const qiniu = new Qiniu(cspInfo.ak, cspInfo.sk, cspInfo.bucket, cspInfo.nickname, cspInfo.csp)
+    const qiniu = new Qiniu({
+      ak: cspInfo.ak,
+      sk: cspInfo.sk,
+      bucket: cspInfo.bucket,
+      nickname: cspInfo.nickname,
+      csp: cspInfo.csp,
+      region: cspInfo.region,
+    })
     return qiniu
   }
-  const qiniu = new Qiniu(cspInfo.ak, cspInfo.sk, cspInfo.bucket, cspInfo.nickname, cspInfo.csp)
+  const qiniu = new Qiniu({
+    ak: cspInfo.ak,
+    sk: cspInfo.sk,
+    bucket: cspInfo.bucket,
+    nickname: cspInfo.nickname,
+    csp: cspInfo.csp,
+    region: cspInfo.region,
+  })
   return qiniu
 }
 

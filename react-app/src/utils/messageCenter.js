@@ -10,7 +10,8 @@ function getCSPInfo() {
   let _ = !!currentCSP ? currentCSP : {}
   return {
     ..._,
-    bucket: storageManage.bucket,
+    bucket: storageManage.selectBucketInfo.bucket,
+    region: storageManage.selectBucketInfo.region,
   }
 }
 
@@ -71,12 +72,12 @@ export function requestDeleteBucketFiles(keysList) {
 }
 
 // 移动或者重命名资源，都走这个接口
-export function requestMoveBucketFiles(keysInfoList) {
+export function requestMoveBucketFile(keysInfo) {
   return messageAdaptor(
     {
-      serverCommand: MESSAGE_COMMANDS.moveBucketFiles,
+      serverCommand: MESSAGE_COMMANDS.moveBucketFile,
       data: {
-        keysInfoList,
+        keysInfo,
       },
       cspInfo: getCSPInfo(),
     },

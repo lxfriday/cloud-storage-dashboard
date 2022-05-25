@@ -115,7 +115,7 @@ export function getSettings() {
     const settings: baseSettingsType = JSON.parse(fs.readFileSync(settingsPath).toString())
     return {
       success: true,
-      settings,
+      data: settings,
     }
   } catch (e) {
     return {
@@ -213,14 +213,12 @@ export function login(cspInfo: currentCSPType) {
     fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2))
     return {
       success: true,
-      settings,
-      msg: '',
+      data: settings,
     }
   } catch (e) {
     return {
       success: false,
-      settings: {},
-      msg: `保存登录信息失败：${String(e)}`,
+      msg: String(e),
     }
   }
 }

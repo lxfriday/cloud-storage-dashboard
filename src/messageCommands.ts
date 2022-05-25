@@ -9,7 +9,7 @@ export default {
   open: 'open',
   readPaths: 'readPaths',
   fetchResourceToBucket: 'fetchResourceToBucket',
-  moveBucketFiles: 'moveBucketFiles',
+  moveBucketFile: 'moveBucketFile',
   refreshFiles: 'refreshFiles',
   refreshDirs: 'refreshDirs',
   showOpenDialog: 'showOpenDialog',

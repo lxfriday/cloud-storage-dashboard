@@ -4,6 +4,12 @@ import * as dayjs from 'dayjs'
 
 import * as Request from '../request'
 import * as boot from '../boot'
+import {
+  constructorParamsType,
+  resourceListItemType,
+  resourceListDataType,
+  CSPAdaptor,
+} from './cspAdaptor.common'
 
 function notiTpl(msg: string) {
   return `七牛：${msg}`
@@ -18,7 +24,7 @@ const urls = {
   spaceLine: 'https://api.qiniu.com/v6/space_line', //统计文件空间(低频存储)
 }
 
-class Qiniu {
+class Qiniu extends CSPAdaptor {
   // base config
   ak: string = ''
   sk: string = ''
@@ -32,24 +38,24 @@ class Qiniu {
   // img list config
   qiniuMac: qiniu.auth.digest.Mac | null = null
 
-  constructor(ak: string, sk: string, bucket: string, nickname: string = '', csp: string = '') {
-    this.ak = ak
-    this.sk = sk
-    this.nickname = nickname
-    this.csp = csp
-    this.bucket = bucket
-    this.qiniuMac = new qiniu.auth.digest.Mac(ak, sk)
+  constructor(params: constructorParamsType) {
+    super(params)
+    this.ak = params.ak
+    this.sk = params.sk
+    this.nickname = params.nickname
+    this.csp = params.csp
+    this.bucket = params.bucket
+    this.qiniuMac = new qiniu.auth.digest.Mac(params.ak, params.sk)
   }
 
   // 登录，通过请求一个接口看是否成功来决定登录是否成功
   // 登录的时候有一个很重要的事情：设置当前的 ak、sk
-  async login(cspInfo: { csp: string; ak: string; sk: string; nickname: string }) {
+  public async login(cspInfo: { csp: string; ak: string; sk: string; nickname: string }) {
     const res = await this.getBucketList()
-    if (res.error) {
+    if (!res.success) {
       return {
         success: false,
-        msg: res.error,
-        settings: {},
+        msg: res.msg,
       }
     }
     // 把登录信息保存在本地
@@ -58,7 +64,10 @@ class Qiniu {
   }
 
   // 上传用的 token
-  generateUploadToken() {
+  public async generateUploadToken(): Promise<{
+    success: boolean
+    data: string
+  }> {
     const options = {
       scope: this.bucket,
       expires: this.expires,
@@ -66,13 +75,22 @@ class Qiniu {
     }
     const putPolicy = new qiniu.rs.PutPolicy(options)
     const uploadToken = putPolicy.uploadToken(<qiniu.auth.digest.Mac>this.qiniuMac)
-    return uploadToken
+    return {
+      success: true,
+      data: uploadToken,
+    }
   }
 
   // 本地同步用的
-  getResourceListForSync(
-    marker: string
-  ): Promise<{ list: Array<any>; reachEnd: boolean; marker: string }> {
+  public getResourceListForSync(marker: string): Promise<{
+    success: boolean
+    data?: {
+      list: resourceListItemType[]
+      reachEnd: boolean
+      marker: string
+    }
+    msg?: string
+  }> {
     const bucketManager = new qiniu.rs.BucketManager(
       <qiniu.auth.digest.Mac>this.qiniuMac,
       new qiniu.conf.Config()
@@ -83,46 +101,63 @@ class Qiniu {
     }
     return new Promise((resolve, reject) => {
       bucketManager.listPrefix(this.bucket, options, (respErr, respBody, respInfo) => {
-        if (respBody.error) {
-          console.log('getResourceListForSync error', respBody.error)
+        if (respErr) {
           resolve({
-            list: [],
-            reachEnd: true,
-            marker: '',
+            success: false,
+            msg: String(respErr),
           })
+          return
         }
 
         if (respBody) {
+          const list: resourceListItemType[] = []
+          ;(<any[]>respBody.items).forEach(_ => {
+            list.push({
+              fsize: _.fsize,
+              hash: _.hash,
+              key: _.key,
+              md5: _.md5,
+              putTime: new Date(+`${_.putTime}`.slice(0, 13)).toLocaleString(),
+              mimeType: _.mimeType,
+            })
+          })
           if (respBody.marker) {
             resolve({
-              list: respBody.items,
-              // 文件夹，会自动带上尾缀 /
-              // ['testfoler/', '/']
-              reachEnd: false,
-              marker: respBody.marker,
+              success: true,
+              data: {
+                list,
+                // 文件夹，会自动带上尾缀 /
+                // ['testfoler/', '/']
+                reachEnd: false,
+                marker: respBody.marker,
+              },
             })
           } else {
             // 如果加载完了 respBody.marker 没有值，服务端不会返回这个字段
             resolve({
-              list: respBody.items,
-              reachEnd: true,
-              marker: '',
+              success: true,
+              data: {
+                list,
+                reachEnd: true,
+                marker: '',
+              },
             })
           }
-        } else {
-          console.log('respInfo', respInfo)
-          vscode.window.showErrorMessage(notiTpl('未知错误，资源列表加载失败'))
         }
       })
     })
   }
 
   // fromBegin 是否从头加载
-  getResourceList(
+  public getResourceList(
     fromBegin: boolean,
     prefix: string,
     marker: string
-  ): Promise<{ list: Array<any>; reachEnd: boolean; commonPrefixes: string[]; marker: string }> {
+  ): Promise<{
+    success: boolean
+    msg?: string
+    data?: resourceListDataType
+  }> {
     const bucketManager = new qiniu.rs.BucketManager(
       <qiniu.auth.digest.Mac>this.qiniuMac,
       new qiniu.conf.Config()
@@ -135,20 +170,12 @@ class Qiniu {
     }
     return new Promise((resolve, reject) => {
       bucketManager.listPrefix(this.bucket, options, (respErr, respBody, respInfo) => {
-        // console.log('listPrefix', {
-        //   bucket: this.bucket,
-        //   options,
-        //   respBody,
-        // })
-
-        if (respBody.error) {
-          vscode.window.showErrorMessage(notiTpl(respBody.error))
+        if (respErr) {
           resolve({
-            list: [],
-            commonPrefixes: [],
-            reachEnd: true,
-            marker: '',
+            success: false,
+            msg: String(respErr),
           })
+          return
         }
 
         // 依据 prefix 从 commonPrefixes 中分离出当前的 folders
@@ -166,65 +193,125 @@ class Qiniu {
         if (respBody) {
           // 加载成之后
           // 更新标记点
+          const list: resourceListItemType[] = []
+          ;(<any[]>respBody.items).forEach(_ => {
+            list.push({
+              fsize: _.fsize,
+              hash: _.hash,
+              key: _.key,
+              md5: _.md5,
+              putTime: new Date(+`${_.putTime}`.slice(0, 13)).toLocaleString(),
+              mimeType: _.mimeType,
+            })
+          })
           if (respBody.marker) {
             resolve({
-              list: respBody.items,
-              // 文件夹，会自动带上尾缀 /
-              // ['testfoler/', '/']
-              commonPrefixes: extractCurrentFolders(respBody.commonPrefixes),
-              reachEnd: false,
-              marker: respBody.marker,
+              success: true,
+              data: {
+                list,
+                // 文件夹，会自动带上尾缀 /
+                // ['testfoler/', '/']
+                commonPrefixes: extractCurrentFolders(respBody.commonPrefixes),
+                reachEnd: false,
+                marker: respBody.marker,
+              },
             })
           } else {
             // 如果加载完了 respBody.marker 没有值，服务端不会返回这个字段
             resolve({
-              list: respBody.items,
-              commonPrefixes: extractCurrentFolders(respBody.commonPrefixes),
-              reachEnd: true,
-              marker: '',
+              success: true,
+              data: {
+                list,
+                commonPrefixes: extractCurrentFolders(respBody.commonPrefixes),
+                reachEnd: true,
+                marker: '',
+              },
             })
           }
-        } else {
-          console.log('respInfo', respInfo)
-          vscode.window.showErrorMessage(notiTpl('未知错误，资源列表加载失败'))
         }
       })
     })
   }
 
   // 获取用户的 bucket 列表
-  getBucketList() {
-    return Request.qiniuGet(
-      {
-        url: urls.buckets,
-      },
-      this.generateHTTPAuthorization
-    )
+  public async getBucketList(): Promise<{
+    success: boolean
+    data?: { name: string; region: string }[]
+    msg?: string
+  }> {
+    try {
+      const res = await Request.qiniuGet(
+        {
+          url: urls.buckets,
+        },
+        this.generateHTTPAuthorization
+      )
+      if (res.success) {
+        const bucketList: string[] = res.data
+        return {
+          success: true,
+          data: bucketList.map(_ => ({
+            name: _,
+            region: '',
+          })),
+        }
+      } else {
+        return {
+          success: false,
+          msg: res.msg,
+        }
+      }
+    } catch (e) {
+      return {
+        success: false,
+        msg: String(e),
+      }
+    }
   }
 
   // 获取 bucket 对应的 domains
-  getBucketDomains() {
-    const bucket = this.bucket
-    return Request.qiniuGet(
-      {
-        url: urls.domains,
-        params: {
-          tbl: bucket,
+  public async getBucketDomains(): Promise<{ success: boolean; data?: string[]; msg?: string }> {
+    try {
+      const bucket = this.bucket
+      const res = await Request.qiniuGet(
+        {
+          url: urls.domains,
+          params: {
+            tbl: bucket,
+          },
         },
-      },
-      this.generateHTTPAuthorization
-    )
+        this.generateHTTPAuthorization
+      )
+      if (res.success) {
+        return {
+          success: true,
+          data: res.data,
+        }
+      } else {
+        return {
+          success: false,
+          msg: res.msg,
+        }
+      }
+    } catch (e) {
+      return {
+        success: false,
+        msg: String(e),
+      }
+    }
   }
 
   // 要作为参数传递，所以是箭头函数
-  generateHTTPAuthorization = (url: string) => {
+  private generateHTTPAuthorization = (url: string) => {
     return qiniu.util.generateAccessToken(<qiniu.auth.digest.Mac>this.qiniuMac, url)
   }
 
   // 删除 bucket 中的文件
   // 删除单个文件和多个文件都走这个接口
   // ref https://developer.qiniu.com/kodo/1289/nodejs
-  deleteBucketFiles(keysList: string[]) {
+  public deleteBucketFiles(
+    keysList: string[]
+  ): Promise<{ success: boolean; data?: 'alldeleted' | 'partdeleted' | 'error'; msg?: string }> {
     const bucketManager = new qiniu.rs.BucketManager(
       <qiniu.auth.digest.Mac>this.qiniuMac,
       new qiniu.conf.Config()
@@ -234,15 +321,18 @@ class Qiniu {
 
     return new Promise((resolve, reject) => {
       bucketManager.batch(deleteOperations, function (respErr, respBody, respInfo) {
-        if (respBody.error) {
-          vscode.window.showErrorMessage(notiTpl(respBody.error))
-          resolve({ result: 'error' }) // 不成功
+        if (respErr) {
+          resolve({ success: true, data: 'error', msg: String(respErr) }) // 不成功
         } else {
-          // // 200 is success, 298 is part success
-          if (respInfo.statusCode === 200) {
-            resolve({ result: 'alldeleted' }) // 不成功
+          if (respBody.error) {
+            resolve({ success: true, data: 'error' }) // 不成功
           } else {
-            resolve({ result: 'partdeleted' }) // 不成功
+            // // 200 is success, 298 is part success
+            if (respInfo.statusCode === 200) {
+              resolve({ success: true, data: 'alldeleted' }) // 不成功
+            } else {
+              resolve({ success: true, data: 'partdeleted' }) // 不成功
+            }
           }
         }
       })
@@ -253,7 +343,13 @@ class Qiniu {
   // 用到了非 sdk 地址，官方文档也没有
   // ref https://github.com/willnewii/qiniuClient/blob/9e7b707dab0978790a754a1ebe17496d67704b03/src/renderer/cos/qiniu.js#L9
   // ref https://github.com/willnewii/qiniuClient/blob/9e7b707dab/src/renderer/cos/qiniuBucket.js#L73
-  getOverviewInfo() {
+  public getOverviewInfo(): Promise<{
+    success: boolean
+    data: {
+      count: number
+      space: number
+    }
+  }> {
     const formatStr = 'YYYYMMDD000000'
     let day = dayjs()
     let param = `?bucket=${this.bucket}&begin=${day
@@ -268,22 +364,34 @@ class Qiniu {
       Promise.all(requests)
         .then(result => {
           res({
-            count: result[0].datas[0] || result[1].datas[0],
-            space: result[2].datas[0] || result[3].datas[0],
+            success: true,
+            data: {
+              count: result[0].datas[0] || result[1].datas[0],
+              space: result[2].datas[0] || result[3].datas[0],
+            },
           })
         })
         .catch(error => {
           res({
-            count: 0,
-            space: 0,
+            success: true,
+            data: {
+              count: 0,
+              space: 0,
+            },
           })
         })
     })
   }
 
   // 抓取网络资源到空间
-  fetchResourceToBucket(url: string, key: string) {
-    return new Promise<{ success: boolean; msg: string }>((res, rej) => {
+  public fetchResourceToBucket(
+    url: string,
+    key: string
+  ): Promise<{
+    success: boolean
+    msg?: string
+  }> {
+    return new Promise((res, rej) => {
       const bucketManager = new qiniu.rs.BucketManager(
         <qiniu.auth.digest.Mac>this.qiniuMac,
         new qiniu.conf.Config()
@@ -292,16 +400,15 @@ class Qiniu {
         if (err) {
           res({
             success: false,
-            msg: '抓取网络资源出现错误',
+            msg: String(err),
           })
         } else {
           if (respInfo.statusCode === 200) {
             res({
               success: true,
-              msg: '',
             })
           } else {
-            console.log('fetchResourceToBucket !== 200', respInfo)
+            // 抓取出现 404 的时候会走到这里
             res({
               success: false,
               msg: respBody.error,
@@ -313,27 +420,35 @@ class Qiniu {
   }
 
   // 批量移动或者重命名，移动和重命名是同一个操作，只是对 key 做重命名而已
-  moveBucketFiles(keysInfoList: { originalKey: string; newKey: string }[]) {
+  public moveBucketFile(keysInfo: { originalKey: string; newKey: string }): Promise<{
+    success: boolean
+    msg?: string
+  }> {
     const bucketManager = new qiniu.rs.BucketManager(
       <qiniu.auth.digest.Mac>this.qiniuMac,
       new qiniu.conf.Config()
     )
 
-    const moveOperations = keysInfoList.map(({ originalKey, newKey }) =>
-      qiniu.rs.moveOp(this.bucket, originalKey, this.bucket, newKey)
-    )
+    const moveOperations = [
+      qiniu.rs.moveOp(this.bucket, keysInfo.originalKey, this.bucket, keysInfo.newKey),
+    ]
 
-    return new Promise<{ result: string; msg: string }>((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       bucketManager.batch(moveOperations, function (respErr, respBody, respInfo) {
-        if (respBody.error) {
-          vscode.window.showErrorMessage(notiTpl(respBody.error))
-          resolve({ result: 'error', msg: respBody.error }) // 不成功
+        if (respErr) {
+          resolve({ success: false, msg: String(respErr) }) // 不成功
         } else {
-          // // 200 is success, 298 is part success
-          if (respInfo.statusCode === 200) {
-            resolve({ result: 'allmoved', msg: '' }) // 全部成功
+          if (respBody && respBody[0] && respBody[0].data && respBody[0].data.error) {
+            // 重命名失败都会走这里
+            resolve({ success: false, msg: respBody[0].data.error }) // 不成功
           } else {
-            resolve({ result: 'partmoved', msg: '' }) // 部分成功
+            // // 200 is success, 298 is part success
+            resolve({ success: true }) // 全部成功
+            // if (respInfo.statusCode === 200) {
+            //   resolve({ success: true, data: 'allmoved' }) // 全部成功
+            // } else {
+            //   resolve({ success: true, data: 'partmoved' }) // 部分成功
+            // }
           }
         }
       })
@@ -344,21 +459,35 @@ class Qiniu {
   // ref https://developer.qiniu.com/kodo/1289/nodejs#fusion-refresh-urls
   // https://developer.qiniu.com/dcdn/10755/dcdn-cache-refresh-with-the-query
 
-  refreshFiles(fileUrls: string[]) {
+  public refreshFiles(fileUrls: string[]): Promise<{
+    success: boolean
+    msg?: string
+    data?: {
+      leftCount: number // 剩余可刷新余额
+    }
+  }> {
     const cdnManager = new qiniu.cdn.CdnManager(<qiniu.auth.digest.Mac>this.qiniuMac)
     return new Promise((resolve, reject) => {
       cdnManager.refreshUrls(fileUrls, function (err, respBody, respInfo) {
-        if (respBody.code === 200) {
-          resolve({
-            success: true,
-            msg: '刷新成功',
-            urlSurplusDay: respBody.urlSurplusDay, // 每日剩余的 url 刷新限额（文件）
-          })
-        } else {
+        if (err) {
           resolve({
             success: false,
-            msg: respBody.error,
+            msg: String(err),
           })
+        } else {
+          if (respBody && respBody.code === 200) {
+            resolve({
+              success: true,
+              data: {
+                leftCount: respBody.urlSurplusDay, // 每日剩余的 url 刷新限额（文件）
+              },
+            })
+          } else {
+            resolve({
+              success: false,
+              msg: respBody.error,
+            })
+          }
         }
       })
     })
@@ -366,22 +495,35 @@ class Qiniu {
 
   // 按照链接刷新文件夹，最多10个
   // ref https://developer.qiniu.com/kodo/1289/nodejs#fusion-refresh-dirs
-  refreshDirs(dirUrls: string[]) {
-    console.log('refreshDirs', dirUrls)
+  public refreshDirs(dirUrls: string[]): Promise<{
+    success: boolean
+    msg?: string
+    data?: {
+      leftCount: number // 剩余可刷新余额
+    }
+  }> {
     const cdnManager = new qiniu.cdn.CdnManager(<qiniu.auth.digest.Mac>this.qiniuMac)
     return new Promise((resolve, reject) => {
       cdnManager.refreshDirs(dirUrls, function (err, respBody, respInfo) {
-        if (respBody.code === 200) {
-          resolve({
-            success: true,
-            msg: '刷新成功',
-            dirSurplusDay: respBody.dirSurplusDay, // 每日剩余的 url 刷新限额（文件）
-          })
-        } else {
+        if (err) {
           resolve({
             success: false,
-            msg: respBody.error,
+            msg: String(err),
           })
+        } else {
+          if (respBody.code === 200) {
+            resolve({
+              success: true,
+              data: {
+                leftCount: respBody.dirSurplusDay,
+              },
+            })
+          } else {
+            resolve({
+              success: false,
+              msg: respBody.error,
+            })
+          }
         }
       })
     })

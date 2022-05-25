@@ -82,25 +82,21 @@ export default function Login() {
         ...submitCSPInfo,
         ...trimmedKeys,
       })
-      .then(data => {
-        if (data.success) {
+      .then(res => {
+        if (res.success) {
           navigate('/')
           message.success('登录成功')
-          dispatch(initSettings(data.settings))
+          dispatch(initSettings(res.data))
           dispatch(setHasLoginTrue())
           // 这里注意，虽然没有注册为 / 的路由，但是会 fallback 到 * 对应的页面，也就是 首页
           // setIsLoading(false) 不需要
         } else {
+          setIsLoading(false)
           notification.error({
             message: '提示',
-            description: '登录失败：' + data.msg,
+            description: '登录失败：' + res.msg,
           })
-          setIsLoading(false)
         }
-      })
-      .catch(e => {
-        message.error('登录失败：' + String(e))
-        setIsLoading(false)
       })
   }
 
