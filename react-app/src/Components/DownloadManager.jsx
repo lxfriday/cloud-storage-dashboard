@@ -6,6 +6,7 @@ import Draggable from 'react-draggable'
 import * as messageCenter from '../utils/messageCenter'
 import messageCommands from '../../../src/messageCommands'
 import styles from './DownloadManager.module.less'
+import { store } from '../store'
 
 let tasks = []
 let progressManager = {}
@@ -73,7 +74,27 @@ function DownloadManager() {
             setProgressInfo({ ...progressManager })
 
             if (!tasks.length) {
-              message.success('下载任务已执行完成')
+              const {
+                settings: { downloadDir },
+              } = store.getState()
+              notification.success({
+                key: 'uniquekey', // 会重复弹出，添加key之后就不会了
+                message: '下载任务已执行完成',
+                description: (
+                  <div>
+                    <span
+                      style={{ cursor: 'pointer', color: 'blue' }}
+                      onClick={() => {
+                        messageCenter.requestOpen(downloadDir)
+                        notification.destroy()
+                      }}
+                    >
+                      【打开】
+                    </span>
+                    下载文件夹
+                  </div>
+                ),
+              })
             }
           }, 1500)
         }
