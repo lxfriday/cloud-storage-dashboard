@@ -166,11 +166,35 @@ class Tencent extends CSPAdaptor {
     })
   }
 
-  public async getBucketDomains(): Promise<{ success: boolean; data: string[] }> {
-    return {
-      success: true,
-      data: [`${this.bucket}.cos.${this.region}.myqcloud.com`, `${this.bucket}.file.myqcloud.com`],
-    }
+  public getBucketDomains(): Promise<{ success: boolean; data?: string[]; msg?: string }> {
+    return new Promise((res, rej) => {
+      this.cdn.DescribeDomains({}, (err, data) => {
+        if (err) {
+          res({
+            success: false,
+            msg: String(err),
+          })
+        } else {
+          const domain = [
+            `${this.bucket}.cos.${this.region}.myqcloud.com`,
+            `${this.bucket}.file.myqcloud.com`,
+          ]
+          data.Domains.forEach(_ => {
+            if (_.Cname && _.Cname.length) {
+              _.Domain && domain.push(_.Domain)
+            }
+          })
+          res({
+            success: true,
+            data: domain,
+          })
+        }
+      })
+    })
+    // return {
+    //   success: true,
+    //   data: [`${this.bucket}.cos.${this.region}.myqcloud.com`, `${this.bucket}.file.myqcloud.com`],
+    // }
   }
 
   // 本地同步用的

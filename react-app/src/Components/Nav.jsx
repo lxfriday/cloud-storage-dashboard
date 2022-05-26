@@ -170,6 +170,8 @@ export default function Nav({ children }) {
                     <NavLink
                       to={`/storagemanage?space=${name}`}
                       className={({ isActive }) => (isActive ? styles.navLinkActive : undefined)}
+                      title={name}
+                      style={{ fontSize: 12 }}
                     >
                       {name}
                     </NavLink>
