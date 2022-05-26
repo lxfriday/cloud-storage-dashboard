@@ -36,6 +36,10 @@ export abstract class CSPAdaptor {
     data?: any
   }>
 
+  // 生成上传用的token或者其他凭据，data只会是字符串，所有csp上传实现都会该接口生成上传需要的凭据或者key
+  // 依据 csp 平台的不同，token可能是直接是一个token字符串，或者是一个 JSON 字符串，返回到前端之后前端依据自己的平台处理，前后端需要对应上
+  // qiniu: token字符串
+  // tencent：JSON 字符串
   public abstract generateUploadToken(): Promise<{
     success: boolean
     data?: string
