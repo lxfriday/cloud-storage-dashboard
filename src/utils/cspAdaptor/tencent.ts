@@ -52,7 +52,7 @@ class Tencent extends CSPAdaptor {
     if (!res.success) {
       return {
         success: false,
-        msg: '登录失败，请检查密钥',
+        msg: res.msg,
       }
     }
     // 把登录信息保存在本地

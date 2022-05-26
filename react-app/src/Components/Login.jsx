@@ -16,11 +16,16 @@ const csps = [
     name: '七牛云',
     enable: true,
     keysUrl: 'https://portal.qiniu.com/user/key',
+    akName: 'ACCESS_KEY',
+    skName: 'SECRET_KEY',
   },
   {
     id: 'tencent',
     name: '腾讯云',
     enable: true,
+    keysUrl: 'https://console.cloud.tencent.com/cam/capi',
+    akName: 'SecretId',
+    skName: 'SecretKey',
   },
   {
     id: 'aliyun',
@@ -70,10 +75,10 @@ export default function Login() {
       message.error('请填写 别名')
       return
     } else if (!trimmedKeys.ak.length) {
-      message.error('请填写 ACCESS_KEY')
+      message.error(`请填写 ${selectedCSP.akName}`)
       return
     } else if (!trimmedKeys.sk.length) {
-      message.error('请填写 SECRET_KEY')
+      message.error(`请填写 ${selectedCSP.skName}`)
       return
     }
     setIsLoading(true)
@@ -102,7 +107,6 @@ export default function Login() {
 
   // 从已登录的列表中，删除条记录
   function handleDeleteUsedCSP(deleteCSPInfo) {
-    console.log('deleteCSPInfo', deleteCSPInfo)
     setIsLoading(true)
     messageCenter
       .requestDeleteUsedCSP(deleteCSPInfo)
@@ -213,11 +217,13 @@ export default function Login() {
                 />
               </div>
               <div className={styles.inputItem}>
-                <span className={styles.title}>ACCESS_KEY</span>
+                <span className={styles.title}>{selectedCSP && selectedCSP.akName}</span>
                 <Input
                   type="text"
                   value={cspInfo.ak}
-                  placeholder="这里输入 AK"
+                  placeholder={`这里输入 ${
+                    selectedCSP && selectedCSP.akName ? selectedCSP.akName : 'ak'
+                  }`}
                   onChange={e =>
                     setCspInfo({
                       ...cspInfo,
@@ -227,11 +233,13 @@ export default function Login() {
                 />
               </div>
               <div className={styles.inputItem}>
-                <span className={styles.title}>SECRET_KEY</span>
+                <span className={styles.title}>{selectedCSP && selectedCSP.skName}</span>
                 <Input
                   type="text"
                   value={cspInfo.sk}
-                  placeholder="这里输入 SK"
+                  placeholder={`这里输入 ${
+                    selectedCSP && selectedCSP.skName ? selectedCSP.skName : 'sk'
+                  }`}
                   onChange={e =>
                     setCspInfo({
                       ...cspInfo,
