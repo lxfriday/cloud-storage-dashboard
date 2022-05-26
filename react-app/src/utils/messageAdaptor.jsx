@@ -55,12 +55,3 @@ export default function messageAdaptor(
 }
 
 // ------------------------------------------------------------
-// export function requestGenerateUploadToken(data) {
-//   return messageAdaptor({
-//     serverCommand: MESSAGE_COMMANDS.generateUploadToken,
-//     data: {
-//       ...providerInfo,
-//       ...data,
-//     },
-//   })
-// }

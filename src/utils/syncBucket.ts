@@ -31,7 +31,7 @@ function getSyncFileName(csp: CSPAdaptorType): { fileName: string; fullFileName:
 export function searchFile(
   csp: CSPAdaptorType,
   keyword: string
-): { success: boolean; data: resourceListItemType[]; msg: string } {
+): { success: boolean; data?: resourceListItemType[]; msg?: string } {
   const { fileName, fullFileName } = getSyncFileName(csp)
   const bucketSyncPath = path.resolve(syncDirPath, fullFileName)
   if (fs.existsSync(bucketSyncPath)) {
@@ -53,13 +53,11 @@ export function searchFile(
     return {
       success: true,
       data: res,
-      msg: '',
     }
   } else {
     return {
       success: false,
       msg: 'bucket 内文件信息统计中，请稍后再试',
-      data: [],
     }
   }
 }

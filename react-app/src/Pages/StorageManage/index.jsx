@@ -37,8 +37,6 @@ import messageCommands from '../../../../src/messageCommands'
 
 const { Option } = Select
 
-const providerName = 'qiniu'
-const csp = cloudserviceprovider[providerName]
 let marker = '' // 分页标记
 
 let isLoadingResource = false // 是否正在加载资源
@@ -47,6 +45,8 @@ let isSearching = false // 是否正在搜索中
 export default function StorageManage() {
   const dispatch = useDispatch()
   const settings = useSelector(state => state.settings)
+  const csp = cloudserviceprovider[settings.currentCSP.csp]
+
   let [bucketDomainInfo, setBucketDomainInfo] = useState({
     bucketDomains: [],
     selectBucketDomain: '',
@@ -66,8 +66,6 @@ export default function StorageManage() {
   // 从网络上直接拉取资源到 bucket，目标 url
   let [fetchFromUrlTargetUrl, setFetchFromUrlTargetUrl] = useState('')
   let [fetchFromUrlModalVisible, setFetchFromUrlModalVisible] = useState(false)
-
-  let [uploadToken, setUploadToken] = useState('')
   // 选中的资源 key
   let [selectedKeys, setSelectedKeys] = useState([])
 
@@ -88,18 +86,6 @@ export default function StorageManage() {
 
   let [searchParams] = useSearchParams()
   const currentBucket = searchParams.get('space')
-
-  // 上传的时候 token 都从这里拿
-  function ensureTokenAvailable() {
-    messageCenter
-      .requestGenerateUploadToken()
-      .then(res => {
-        setUploadToken(res.data)
-      })
-      .catch(err => {
-        message.error('token 获取失败')
-      })
-  }
 
   function handleRefresh(prefixes = []) {
     // 刷新列表
@@ -369,7 +355,10 @@ export default function StorageManage() {
       .requestRefreshFiles(fileUrls)
       .then(res => {
         if (res.success) {
-          message.success('文件 CDN 刷新成功，今日文件刷新限额剩余 ' + res.data.leftCount)
+          const { data } = res
+          data && data.leftCount
+            ? message.success('文件 CDN 刷新成功，今日文件刷新限额剩余 ' + data.leftCount)
+            : message.success('文件 CDN 刷新成功')
         } else {
           message.error('文件 CDN 刷新失败：' + res.msg)
         }
@@ -386,7 +375,10 @@ export default function StorageManage() {
       .requestRefreshFiles([url])
       .then(res => {
         if (res.success) {
-          message.success('文件 CDN 刷新成功，今日文件刷新限额剩余 ' + res.data.leftCount)
+          const { data } = res
+          data && data.leftCount
+            ? message.success('文件 CDN 刷新成功，今日文件刷新限额剩余 ' + data.leftCount)
+            : message.success('文件 CDN 刷新成功')
         } else {
           message.error('文件 CDN 刷新失败：' + res.msg)
         }
@@ -404,7 +396,10 @@ export default function StorageManage() {
       .requestRefreshDirs([dirUrl])
       .then(res => {
         if (res.success) {
-          message.success('文件夹 CDN 刷新成功，今日文件夹刷新限额剩余 ' + res.data.leftCount)
+          const { data } = res
+          data && data.leftCount
+            ? message.success('文件夹 CDN 刷新成功，今日文件夹刷新限额剩余 ' + data.leftCount)
+            : message.success('文件夹 CDN 刷新成功')
         } else {
           message.error('文件夹 CDN 刷新失败：' + res.msg)
         }
@@ -421,7 +416,10 @@ export default function StorageManage() {
       .requestRefreshDirs(realDirUrls)
       .then(res => {
         if (res.success) {
-          message.success('文件夹 CDN 刷新成功，今日文件夹刷新限额剩余 ' + res.data.leftCount)
+          const { data } = res
+          data && data.leftCount
+            ? message.success('文件夹 CDN 刷新成功，今日文件夹刷新限额剩余 ' + data.leftCount)
+            : message.success('文件夹 CDN 刷新成功')
         } else {
           message.error('文件夹 CDN 刷新失败：' + res.msg)
         }
@@ -532,9 +530,6 @@ export default function StorageManage() {
         message.error('bucket domain 获取失败：' + bucketDomainsRes.msg)
       }
 
-      const getUploadTokenRes = await messageCenter.requestGenerateUploadToken()
-      setUploadToken(getUploadTokenRes.data)
-
       isLoadingResource = true
       // 从根目录加载，prefix 为空
 
@@ -594,16 +589,6 @@ export default function StorageManage() {
       setSelectedFolders([])
     }
   }, [currentBucket])
-
-  useEffect(() => {
-    // 1天刷新 token
-    let interval = setInterval(() => {
-      ensureTokenAvailable()
-    }, 1000 * 3600 * 24)
-    return () => {
-      clearInterval(interval)
-    }
-  }, [])
 
   const fetchFromUrlGeneratedKey = isUrl(fetchFromUrlTargetUrl)
     ? `${pendingUploadPrefix}${encodeURIComponent(
@@ -676,7 +661,6 @@ export default function StorageManage() {
       <PasteAndDragUpload
         currentBucket={currentBucket}
         csp={csp}
-        uploadToken={uploadToken}
         resourcePrefix={resourcePrefix}
         pendingUploadPrefix={pendingUploadPrefix}
         handleSetPendingUploadPrefix={e => setPendingUploadPrefix(e.target.value)}
@@ -700,7 +684,6 @@ export default function StorageManage() {
             isDirectory={false}
             multiple={true}
             csp={csp}
-            uploadToken={uploadToken}
             resourcePrefix={resourcePrefix}
             pendingUploadPrefix={pendingUploadPrefix}
             handleSetPendingUploadPrefix={e => setPendingUploadPrefix(e.target.value)}
@@ -714,7 +697,6 @@ export default function StorageManage() {
           <SelectUpload
             isDirectory={true}
             csp={csp}
-            uploadToken={uploadToken}
             resourcePrefix={resourcePrefix}
             pendingUploadPrefix={pendingUploadPrefix}
             handleSetPendingUploadPrefix={e => setPendingUploadPrefix(e.target.value)}

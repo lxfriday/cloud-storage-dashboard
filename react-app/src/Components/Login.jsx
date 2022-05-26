@@ -18,9 +18,9 @@ const csps = [
     keysUrl: 'https://portal.qiniu.com/user/key',
   },
   {
-    id: 'tencentcloud',
-    name: '腾讯云(?)',
-    enable: false,
+    id: 'tencent',
+    name: '腾讯云',
+    enable: true,
   },
   {
     id: 'aliyun',

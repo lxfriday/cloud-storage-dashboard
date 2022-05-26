@@ -28,6 +28,7 @@ export default function ResourceCard({
   isSvg,
   fsize,
   hash,
+  md5,
   url,
   mimeType,
   putTime,
@@ -103,8 +104,9 @@ export default function ResourceCard({
         <div>
           <p>文件路径：{fkey}</p>
           <p>文件大小：{getFileSize(fsize)}</p>
-          <p>Etag：{hash}</p>
-          <p>mime：{mimeType}</p>
+          {!!hash && <p>Etag：{hash}</p>}
+          {!!md5 && <p>md5：{md5}</p>}
+          {!!mimeType && <p>mime：{mimeType}</p>}
           <p>创建时间：{putTime}</p>
         </div>
       ),

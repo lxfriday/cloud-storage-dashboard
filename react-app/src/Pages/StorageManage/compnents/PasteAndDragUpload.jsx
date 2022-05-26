@@ -60,7 +60,6 @@ function scanEntry(entry) {
 export default function PasteAndDragUpload({
   currentBucket,
   csp,
-  uploadToken,
   resourcePrefix,
   pendingUploadPrefix,
   handleSetPendingUploadPrefix,
@@ -79,30 +78,29 @@ export default function PasteAndDragUpload({
         csp.upload({
           file: pr.file,
           key: `${pfx}${pr.relativeDir}${pr.fname}`,
-          token: uploadToken,
           resourcePrefix,
         })
       )
     )
       .then(res => {
-        const uploadedResourceLinks = res.map(resourceInfo =>
-          encodeURI(resourcePrefix + resourceInfo.key)
+        const uploadedResourceLinks = []
+        res.forEach(
+          resourceInfo =>
+            resourceInfo.key &&
+            uploadedResourceLinks.push(encodeURI(resourcePrefix + resourceInfo.key))
         )
-
-        copyFormattedBySettings(settings.copyFormat, uploadedResourceLinks)
-
-        message.success(
-          res.length > 1
-            ? '全部上传成功，所有资源已复制到剪切板，刷新之后在列表可见'
-            : '上传成功，已复制到剪切板，刷新之后在列表可见'
-        )
-
-        notiSyncBucket()
+        if (uploadedResourceLinks.length) {
+          copyFormattedBySettings(settings.copyFormat, uploadedResourceLinks)
+          message.success(
+            uploadedResourceLinks.length > 1
+              ? '全部上传成功，所有资源已复制到剪切板，刷新之后在列表可见'
+              : '上传成功，已复制到剪切板，刷新之后在列表可见'
+          )
+          notiSyncBucket()
+        }
       })
       .catch(res => {
-        if (res.hasError) {
-          message.error(`上传失败 ${res.msg}`)
-        }
+        message.error(`上传失败 ${res}`)
       })
       .finally(() => {
         setPendingResourceList([])
@@ -114,18 +112,19 @@ export default function PasteAndDragUpload({
       .upload({
         file: file,
         key: `${pendingUploadPrefix}${generateRandomResourceName(file.name, false)}`,
-        token: uploadToken,
         resourcePrefix,
         shouldCopy: false,
         shouldShowMsg: true,
       })
-      .then(data => {
-        const targetUrl = `${resourcePrefix}${data.key}`
-        copyFormattedBySettings(settings.copyFormat, targetUrl)
-        notiSyncBucket()
+      .then(res => {
+        if (res.key) {
+          const targetUrl = `${resourcePrefix}${res.key}`
+          copyFormattedBySettings(settings.copyFormat, targetUrl)
+          notiSyncBucket()
+        }
       })
-      .catch(e => {
-        message.error('截图上传失败')
+      .catch(res => {
+        message.error(`截图上传失败 ${res}`)
       })
   }
 
@@ -246,7 +245,7 @@ export default function PasteAndDragUpload({
       document.removeEventListener('drop', handleDrop)
       window.removeEventListener('paste', handlePaste)
     }
-  }, [uploadToken, resourcePrefix, pendingUploadPrefix, settings.copyFormat])
+  }, [resourcePrefix, pendingUploadPrefix, settings.copyFormat])
   return (
     <Fragment>
       <Modal

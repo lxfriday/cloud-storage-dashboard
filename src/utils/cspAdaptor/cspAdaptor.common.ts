@@ -38,7 +38,8 @@ export abstract class CSPAdaptor {
 
   public abstract generateUploadToken(): Promise<{
     success: boolean
-    data: string
+    data?: string
+    msg?: string
   }>
 
   public abstract getBucketList(): Promise<{
@@ -94,7 +95,7 @@ export abstract class CSPAdaptor {
     success: boolean
     msg?: string
     data?: {
-      leftCount: number // 剩余可刷新余额
+      leftCount: number | string // 剩余可刷新余额
     }
   }>
 
@@ -102,7 +103,7 @@ export abstract class CSPAdaptor {
     success: boolean
     msg?: string
     data?: {
-      leftCount: number // 剩余可刷新余额
+      leftCount: number | string // 剩余可刷新余额
     }
   }>
 }

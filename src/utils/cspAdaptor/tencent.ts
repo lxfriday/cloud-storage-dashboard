@@ -1,7 +1,9 @@
 import * as COS from 'cos-nodejs-sdk-v5'
 import * as tencentcloud from 'tencentcloud-sdk-nodejs'
+import * as STS from 'qcloud-cos-sts'
+
 import { Client } from 'tencentcloud-sdk-nodejs/tencentcloud/services/cdn/v20180606/cdn_client'
-// import * as boot from '../boot'
+import * as boot from '../boot'
 // @ts-ignore
 import * as lodashTrim from 'lodash.trim'
 import {
@@ -16,6 +18,8 @@ const CdnClient = tencentcloud.cdn.v20180606.Client
 class Tencent extends CSPAdaptor {
   cos: COS
   cdn: Client
+  secretId: string
+  secretKey: string
   bucket: string
   region: string
   constructor(params: constructorParamsType) {
@@ -33,6 +37,8 @@ class Tencent extends CSPAdaptor {
       },
       region: params.region,
     })
+    this.secretId = params.ak
+    this.secretKey = params.sk
     this.bucket = params.bucket
     this.region = params.region
   }
@@ -49,25 +55,93 @@ class Tencent extends CSPAdaptor {
         msg: '登录失败，请检查密钥',
       }
     }
-    return {
-      success: true,
-      data: {},
-    }
-
     // 把登录信息保存在本地
-    // const loginRes = boot.login(cspInfo)
-    // return loginRes
+    const loginRes = boot.login(cspInfo)
+    return loginRes
   }
 
-  // 腾讯云不走 token
+  // https://github.com/tencentyun/qcloud-cos-sts-sdk/blob/master/nodejs/demo/sts-server.js sts
+  // https://cloud.tencent.com/document/product/436/14048 临时密钥生成及使用指引
+  // https://cloud.tencent.com/document/product/436/64960 js sdk
   public async generateUploadToken(): Promise<{
     success: boolean
-    data: string
+    data?: string
+    msg?: string
   }> {
-    return {
-      success: true,
-      data: '',
-    }
+    const that = this
+    return new Promise((res, rej) => {
+      const config = {
+        secretId: that.secretId,
+        secretKey: that.secretKey,
+        proxy: '',
+        durationSeconds: 3600, // 1小时
+
+        // 放行判断相关参数
+        bucket: that.bucket,
+        region: that.region,
+        allowPrefix: '*',
+        // 简单上传和分片，需要以下的权限，其他权限列表请看 https://cloud.tencent.com/document/product/436/31923
+        allowActions: [
+          // 简单上传
+          'name/cos:PutObject',
+          'name/cos:PostObject',
+          // 分片上传
+          'name/cos:InitiateMultipartUpload',
+          'name/cos:ListMultipartUploads',
+          'name/cos:ListParts',
+          'name/cos:UploadPart',
+          'name/cos:CompleteMultipartUpload',
+        ],
+      }
+      const shortBucketName = config.bucket.substr(0, config.bucket.lastIndexOf('-'))
+      const appId = config.bucket.substr(1 + config.bucket.lastIndexOf('-'))
+      const policy = {
+        version: '2.0',
+        statement: [
+          {
+            action: config.allowActions,
+            effect: 'allow',
+            principal: { qcs: ['*'] },
+            resource: [
+              'qcs::cos:' +
+                config.region +
+                ':uid/' +
+                appId +
+                ':prefix//' +
+                appId +
+                '/' +
+                shortBucketName +
+                '/' +
+                config.allowPrefix,
+            ],
+          },
+        ],
+      }
+      STS.getCredential(
+        {
+          secretId: config.secretId,
+          secretKey: config.secretKey,
+          proxy: config.proxy,
+          durationSeconds: config.durationSeconds,
+          policy: policy,
+        },
+        function (err, tempKeys) {
+          if (err) {
+            res({
+              success: false,
+              // @ts-ignore
+              msg: err.Message,
+            })
+          } else {
+            var result = JSON.stringify(tempKeys)
+            res({
+              success: true,
+              data: result,
+            })
+          }
+        }
+      )
+    })
   }
 
   public getBucketList(): Promise<{
@@ -134,7 +208,7 @@ class Tencent extends CSPAdaptor {
                   hash: '',
                   key: _.Key,
                   md5: lodashTrim(_.ETag, '"'),
-                  putTime: _.LastModified,
+                  putTime: new Date(_.LastModified).toLocaleString(),
                   mimeType: '', // 腾讯没有 mime
                 })),
                 reachEnd: data.IsTruncated === 'true' ? false : true,
@@ -318,10 +392,14 @@ class Tencent extends CSPAdaptor {
     })
   }
   // 刷新单个文件
-  // https://cloud.tencent.com/document/product/228/37870
+  // https://cloud.tencent.com/document/product/228/37870 刷新接口
+  // https://cloud.tencent.com/document/product/228/41956 查询额度
   public refreshFiles(fileUrls: string[]): Promise<{
     success: boolean
     msg?: string
+    data?: {
+      leftCount: number | string // 剩余可刷新余额
+    }
   }> {
     return new Promise((res, rej) => {
       this.cdn.PurgeUrlsCache(
@@ -333,11 +411,22 @@ class Tencent extends CSPAdaptor {
           if (err) {
             res({
               success: false,
-              msg: '刷新失败：' + err,
+              msg: String(err),
             })
           } else {
-            res({
-              success: true,
+            this.cdn.DescribePurgeQuota(null, (err2, data2) => {
+              if (err2) {
+                res({
+                  success: true,
+                })
+              } else {
+                res({
+                  success: true,
+                  data: {
+                    leftCount: `${data2.UrlPurge[0].Area}: ${data2.UrlPurge[0].Available}, ${data2.UrlPurge[1].Area}: ${data2.UrlPurge[1].Available}`,
+                  },
+                })
+              }
             })
           }
         }
@@ -350,7 +439,7 @@ class Tencent extends CSPAdaptor {
     success: boolean
     msg?: string
     data?: {
-      leftCount: number
+      leftCount: number | string
     }
   }> {
     return new Promise((res, rej) => {
@@ -364,11 +453,22 @@ class Tencent extends CSPAdaptor {
           if (err) {
             res({
               success: false,
-              msg: '刷新失败：' + err,
+              msg: String(err),
             })
           } else {
-            res({
-              success: true,
+            this.cdn.DescribePurgeQuota(null, (err2, data2) => {
+              if (err2) {
+                res({
+                  success: true,
+                })
+              } else {
+                res({
+                  success: true,
+                  data: {
+                    leftCount: `${data2.PathPurge[0].Area}: ${data2.PathPurge[0].Available}, ${data2.PathPurge[1].Area}: ${data2.PathPurge[1].Available}`,
+                  },
+                })
+              }
             })
           }
         }

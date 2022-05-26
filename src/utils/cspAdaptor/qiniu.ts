@@ -1,5 +1,4 @@
 import * as qiniu from 'qiniu'
-import * as vscode from 'vscode'
 import * as dayjs from 'dayjs'
 
 import * as Request from '../request'
@@ -31,7 +30,7 @@ class Qiniu extends CSPAdaptor {
   nickname: string = ''
   csp: string = '' // csp id
   bucket: string = ''
-  expires: number = 604800
+  expires: number = 604800 // 1周
   returnBody: string =
     '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","etag":"$(etag)","mimeType":"$(mimeType)","ext":"$(ext)"}'
 
@@ -463,7 +462,7 @@ class Qiniu extends CSPAdaptor {
     success: boolean
     msg?: string
     data?: {
-      leftCount: number // 剩余可刷新余额
+      leftCount: number | string // 剩余可刷新余额
     }
   }> {
     const cdnManager = new qiniu.cdn.CdnManager(<qiniu.auth.digest.Mac>this.qiniuMac)
@@ -499,7 +498,7 @@ class Qiniu extends CSPAdaptor {
     success: boolean
     msg?: string
     data?: {
-      leftCount: number // 剩余可刷新余额
+      leftCount: number | string // 剩余可刷新余额
     }
   }> {
     const cdnManager = new qiniu.cdn.CdnManager(<qiniu.auth.digest.Mac>this.qiniuMac)

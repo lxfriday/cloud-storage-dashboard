@@ -237,6 +237,7 @@ const Cell = ({
           fkey={resourceInfo.key}
           fsize={resourceInfo.fsize}
           hash={resourceInfo.hash}
+          md5={resourceInfo.md5}
           mimeType={resourceInfo.mimeType}
           putTime={resourceInfo.putTime}
           url={url}

@@ -1,4 +1,5 @@
 import Qiniu from './qiniu'
+import Tencent from './tencent'
 
 type cspInfoType = {
   bucket: string
@@ -17,19 +18,16 @@ type cspInfoType = {
 //   nickname: '', // current login nickname
 // }
 
+const map = {
+  qiniu: Qiniu,
+  tencent: Tencent,
+}
+
 export default function cspAdaptor(cspInfo: cspInfoType) {
-  if (cspInfo.csp === 'qiniu') {
-    const qiniu = new Qiniu({
-      ak: cspInfo.ak,
-      sk: cspInfo.sk,
-      bucket: cspInfo.bucket,
-      nickname: cspInfo.nickname,
-      csp: cspInfo.csp,
-      region: cspInfo.region,
-    })
-    return qiniu
-  }
-  const qiniu = new Qiniu({
+  // @ts-ignore
+  const CSP = map[cspInfo.csp] || Qiniu
+  // @ts-ignore
+  const csp: Qiniu = new CSP({
     ak: cspInfo.ak,
     sk: cspInfo.sk,
     bucket: cspInfo.bucket,
@@ -37,7 +35,7 @@ export default function cspAdaptor(cspInfo: cspInfoType) {
     csp: cspInfo.csp,
     region: cspInfo.region,
   })
-  return qiniu
+  return csp
 }
 
 export interface CSPAdaptorType extends Qiniu {}
