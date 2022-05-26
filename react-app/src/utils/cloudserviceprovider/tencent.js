@@ -1,4 +1,4 @@
-import * as COS from 'cos-js-sdk-v5'
+import COS from 'cos-js-sdk-v5'
 import { message } from 'antd'
 import copy from 'copy-text-to-clipboard'
 import uploadManager, { registerCancel } from '../../Components/UploadManager'
@@ -72,12 +72,14 @@ export function upload({ file, key, resourcePrefix, shouldCopy, shouldShowMsg })
             }
           )
         } else {
+          console.log(res)
           message.error('获取上传凭证失败' + res.msg)
           resolve({}) // 没有上传成功不给 key
         }
       })
       .catch(err => {
-        message.error('获取上传凭证失败')
+        console.log(err)
+        message.error('获取上传凭证失败' + String(err))
         resolve({}) // 没有上传成功不给 key
       })
   })
