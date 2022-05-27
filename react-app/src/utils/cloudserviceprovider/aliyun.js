@@ -45,14 +45,13 @@ export async function upload({ file, key, resourcePrefix, shouldCopy, shouldShow
             .catch(e => {
               if (e.name !== 'cancel') {
                 message.error('上传出错 ' + e)
-                resolve({})
               }
+              resolve({})
             })
           registerCancel({
             id: key,
             onCancel: () => {
               oss.abortMultipartUpload(abortCheckpoint.name, abortCheckpoint.uploadId)
-              resolve({}) // 没有上传成功不给 key
             },
           })
         } else {
