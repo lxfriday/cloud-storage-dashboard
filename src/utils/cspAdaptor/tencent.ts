@@ -11,6 +11,7 @@ import {
   resourceListItemType,
   resourceListDataType,
   CSPAdaptor,
+  extractCurrentFolders,
 } from './cspAdaptor.common'
 
 const CdnClient = tencentcloud.cdn.v20180606.Client
@@ -223,18 +224,26 @@ class Tencent extends CSPAdaptor {
               msg: err.message,
             })
           } else {
-            console.log(data)
-            res({
-              success: true,
-              data: {
-                list: data.Contents.map(_ => ({
+            const list: resourceListItemType[] = []
+            // 避免文件夹占位符也纳入了统计范围
+            data.Contents.forEach(_ => {
+              // 腾讯云在查询带prefix的列表返回值中，列表第一个是 prefix，要删掉
+              // 查询 prefix 的时候，要带尾 /
+              if (_.Key[_.Key.length - 1] !== '/') {
+                list.push({
                   fsize: +_.Size,
                   hash: '',
                   key: _.Key,
                   md5: lodashTrim(_.ETag, '"'),
                   putTime: new Date(_.LastModified).toLocaleString(),
                   mimeType: '', // 腾讯没有 mime
-                })),
+                })
+              }
+            })
+            res({
+              success: true,
+              data: {
+                list,
                 reachEnd: data.IsTruncated === 'true' ? false : true,
                 // NextMarker 是加载后续的 marker
                 marker: data.NextMarker ? data.NextMarker : '',
@@ -260,7 +269,8 @@ class Tencent extends CSPAdaptor {
           Prefix: prefix,
           Marker: marker,
           // Delimiter = '/' 的时候 commonPrefixes 才会有值
-          Delimiter: prefix[prefix.length - 1] === '/' || prefix === '' ? '/' : '',
+          // Delimiter: prefix[prefix.length - 1] === '/' || prefix === '' ? '/' : '',
+          Delimiter: '/',
         },
         function (err, data) {
           if (err) {
@@ -269,17 +279,6 @@ class Tencent extends CSPAdaptor {
               msg: err.message,
             })
           } else {
-            // 依据 prefix 从 commonPrefixes 中分离出当前的 folders
-            function extractCurrentFolders(cps: string[]) {
-              if (!cps) {
-                return []
-              } else {
-                const pfxReg = new RegExp(prefix)
-                return cps.map(cp => {
-                  return cp.replace(pfxReg, '')
-                })
-              }
-            }
             const list: resourceListItemType[] = []
             data.Contents.forEach(_ => {
               // 腾讯云在查询带prefix的列表返回值中，列表第一个是 prefix，要删掉
@@ -299,7 +298,10 @@ class Tencent extends CSPAdaptor {
               success: true,
               data: {
                 list,
-                commonPrefixes: extractCurrentFolders(data.CommonPrefixes.map(_ => _.Prefix)),
+                commonPrefixes: extractCurrentFolders(
+                  data.CommonPrefixes.map(_ => _.Prefix),
+                  prefix
+                ),
                 reachEnd: data.IsTruncated === 'true' ? false : true,
                 // @ts-ignore
                 marker: data.Marker,
@@ -390,7 +392,7 @@ class Tencent extends CSPAdaptor {
         },
         (copyErr, data) => {
           if (copyErr) {
-            res({ success: false, msg: '移动、重命名文件失败：复制阶段出错，' + copyErr.message })
+            res({ success: false, msg: '复制阶段出错，' + copyErr.message })
           } else {
             /* 删除a/1.jpg */
             this.cos.deleteObject(
@@ -403,7 +405,7 @@ class Tencent extends CSPAdaptor {
                 if (deleteErr) {
                   res({
                     success: false,
-                    msg: '移动、重命名文件失败：删除阶段出错，' + deleteErr.message,
+                    msg: '删除阶段出错，' + deleteErr.message,
                   })
                 } else {
                   res({ success: true })

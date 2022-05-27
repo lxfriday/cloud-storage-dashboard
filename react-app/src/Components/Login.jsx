@@ -29,8 +29,12 @@ const csps = [
   },
   {
     id: 'aliyun',
-    name: '阿里云(?)',
-    enable: false,
+    name: '阿里云',
+    enable: true,
+    keysUrl:
+      'https://ram.console.aliyun.com/manage/ak?spm=a2c8b.20231166.top-nav.dak.6409336a92fYNA',
+    akName: 'accessKeyId',
+    skName: 'accessKeySecret',
   },
   {
     id: 'upyun',

@@ -1,5 +1,6 @@
 import Qiniu from './qiniu'
 import Tencent from './tencent'
+import Aliyun from './aliyun'
 
 type cspInfoType = {
   bucket: string
@@ -21,6 +22,7 @@ type cspInfoType = {
 const map = {
   qiniu: Qiniu,
   tencent: Tencent,
+  aliyun: Aliyun,
 }
 
 export default function cspAdaptor(cspInfo: cspInfoType) {

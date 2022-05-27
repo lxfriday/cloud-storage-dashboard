@@ -23,6 +23,18 @@ export type resourceListDataType = {
   marker: string
 }
 
+// 依据 prefix 从 commonPrefixes 中分离出当前的 folders
+export function extractCurrentFolders(cps: string[], prefix: string) {
+  if (!cps) {
+    return []
+  } else {
+    const pfxReg = new RegExp(prefix)
+    return cps.map(cp => {
+      return cp.replace(pfxReg, '')
+    })
+  }
+}
+
 export abstract class CSPAdaptor {
   constructor(params: constructorParamsType) {}
   public abstract login(cspInfo: {
@@ -48,7 +60,7 @@ export abstract class CSPAdaptor {
 
   public abstract getBucketList(): Promise<{
     success: boolean
-    data?: { name: string; region: string }[]
+    data?: { name: string; region: string; storageClass?: string }[]
     msg?: string
   }>
 
@@ -110,16 +122,4 @@ export abstract class CSPAdaptor {
       leftCount: number | string // 剩余可刷新余额
     }
   }>
-}
-
-// 依据 prefix 从 commonPrefixes 中分离出当前的 folders
-export function extractCurrentFolders(cps: string[], prefix: string) {
-  if (!cps) {
-    return []
-  } else {
-    const pfxReg = new RegExp(prefix)
-    return cps.map(cp => {
-      return cp.replace(pfxReg, '')
-    })
-  }
 }

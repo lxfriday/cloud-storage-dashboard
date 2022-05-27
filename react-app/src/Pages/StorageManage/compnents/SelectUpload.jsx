@@ -32,25 +32,29 @@ export default function SelectUpload({
   }
 
   function onChange(e) {
-    const { files } = e.target
-    // 把设置相对文件夹
-    const fileList = [...files]
-    fileList.forEach(f => {
-      f.relativeDir = f.webkitRelativePath.replace(new RegExp(`${f.name}$`), '')
-    })
-    const newPendingReourceList = fileList.map(f => ({
-      fname: generateRandomResourceName(f.name, settings.uploadUseOrignalFileName),
-      file: f,
-      relativeDir: f.relativeDir,
-    }))
+    try {
+      const { files } = e.target
+      // 把设置相对文件夹
+      const fileList = [...files]
+      fileList.forEach(f => {
+        f.relativeDir = f.webkitRelativePath.replace(new RegExp(`${f.name}$`), '')
+      })
+      const newPendingReourceList = fileList.map(f => ({
+        fname: generateRandomResourceName(f.name, settings.uploadUseOrignalFileName),
+        file: f,
+        relativeDir: f.relativeDir,
+      }))
 
-    if (isDirectory) {
-      // 如何是选择文件夹上传，则会出现弹窗提醒
-      setPendingResourceList(newPendingReourceList)
-      setPendingResourceNotiModalVisible(true)
-    } else {
-      // 如果是选择文件直传，则选择完就马上开始上传
-      handleUpload(pendingUploadPrefix, newPendingReourceList)
+      if (isDirectory) {
+        // 如何是选择文件夹上传，则会出现弹窗提醒
+        setPendingResourceList(newPendingReourceList)
+        setPendingResourceNotiModalVisible(true)
+      } else {
+        // 如果是选择文件直传，则选择完就马上开始上传
+        handleUpload(pendingUploadPrefix, newPendingReourceList)
+      }
+    } catch (e) {
+      message.error('上传失败 ' + e)
     }
   }
 

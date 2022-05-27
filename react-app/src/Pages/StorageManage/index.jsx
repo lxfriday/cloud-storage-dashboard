@@ -244,7 +244,7 @@ export default function StorageManage() {
         message.error('部分文件删除成功')
         handleRefresh(uploadFolders)
       } else {
-        message.error('删除失败')
+        message.error('删除失败：' + res.msg)
       }
     })
   }
