@@ -2,6 +2,9 @@
 
 ## high priority
 
+- 新增一键更新 CORS 规则
+- 私有 bucket、私有 bucket 内文件的读写
+
 - 按照 大小、创建时间筛选
 - 更改列表显示模式
   - 由 grid 变更为 list（二维变一维）
