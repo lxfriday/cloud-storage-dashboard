@@ -4,7 +4,6 @@ import copy from 'copy-text-to-clipboard'
 import uploadManager, { registerCancel } from '../../Components/UploadManager'
 import { debounce } from '../../utils'
 import * as messageCenter from '../messageCenter'
-import { store } from '../../store'
 
 const debouncedMessageSuccess = debounce(message.success, 2000, false)
 const debouncedMessageError = debounce(message.error, 2000, false)
@@ -28,15 +27,13 @@ export function upload({ file, key, resourcePrefix, shouldCopy, shouldShowMsg })
               })
             },
           })
-          const {
-            storageManage: { selectBucketInfo },
-          } = store.getState()
-          cos.putObject(
+          cos.uploadFile(
             {
-              Bucket: selectBucketInfo.bucket,
-              Region: selectBucketInfo.region,
+              Bucket: data.bucket,
+              Region: data.region,
               Key: key,
               Body: file,
+              SliceSize: 1024 * 1024 * 5, // > 5M 使用分片上传
               onProgress: function (progressData) {
                 uploadManager({
                   id: key,

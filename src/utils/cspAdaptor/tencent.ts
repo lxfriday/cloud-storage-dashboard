@@ -134,7 +134,11 @@ class Tencent extends CSPAdaptor {
               msg: err.Message,
             })
           } else {
-            var result = JSON.stringify(tempKeys)
+            var result = JSON.stringify({
+              ...tempKeys,
+              bucket: that.bucket,
+              region: that.region,
+            })
             res({
               success: true,
               data: result,
