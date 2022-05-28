@@ -45,7 +45,7 @@ async function getResourceList() {
       csp: '',
       region: 'ap-guangzhou',
     })
-    const res = await t.getResourceList(false, '', '')
+    const res = await t.getResourceList(false, '', '', false, '')
     console.log('getResourceList', res)
     console.log('getResourceList', res.data?.list)
   } catch (e) {

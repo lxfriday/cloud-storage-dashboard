@@ -79,7 +79,7 @@ async function getResourceList() {
       csp: '',
       region: 'oss-cn-hangzhou',
     })
-    const res = await t.getResourceList(true, '', '')
+    const res = await t.getResourceList(true, '', '', false, '')
     console.log('getResourceList', res.data)
   } catch (e) {
     console.log('catch error', e)

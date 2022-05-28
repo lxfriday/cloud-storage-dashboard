@@ -21,8 +21,7 @@ axios.interceptors.response.use(function (res) {
   if (res.status >= 200 && res.status < 300) {
     return { success: true, data: res.data }
   } else {
-    console.log('qiniu request error', res)
-    return { success: false, msg: res.data.error || res.data.error_code }
+    return { success: false, msg: res.data.error || res.data.error_code, code: res.status }
   }
 })
 
@@ -46,7 +45,6 @@ export function qiniuGet(
   }
   return axios(url, { method: 'GET', ...config })
     .then(res => {
-      console.log('qniuGet', res)
       return res
     })
     .catch(e => {

@@ -10,6 +10,7 @@ import * as lodashTrim from 'lodash.trim'
 import {
   constructorParamsType,
   resourceListItemType,
+  resourceListItemWithSignatureUrlType,
   resourceListDataType,
   CSPAdaptor,
   extractCurrentFolders,
@@ -155,9 +156,9 @@ class Tencent extends CSPAdaptor {
     data?: {
       name: string
       region: string
-      acl?: string
-      isPrivateRead?: boolean
-      isPublicRead?: boolean
+      acl: string
+      isPrivateRead: boolean
+      isPublicRead: boolean
     }[]
     msg?: string
   }> {
@@ -170,7 +171,13 @@ class Tencent extends CSPAdaptor {
             msg: err.message,
           })
         } else {
-          const buckets = data.Buckets.map(_ => ({ name: _.Name, region: _.Location }))
+          const buckets = data.Buckets.map(_ => ({
+            name: _.Name,
+            region: _.Location,
+            acl: '',
+            isPrivateRead: false,
+            isPublicRead: true,
+          }))
           if (usedAsLogin) {
             res({
               success: true,
@@ -320,12 +327,59 @@ class Tencent extends CSPAdaptor {
     })
   }
 
+  public getSignatureUrl(
+    keys: string[],
+    domain: string
+  ): Promise<{ success: boolean; data?: string[]; msg?: string }> {
+    const that = this
+    return new Promise((res, rej) => {
+      Promise.all<Promise<string>[]>(
+        keys.map(_ => {
+          return new Promise((res2, rej2) => {
+            that.cos.getObjectUrl(
+              {
+                Bucket: that.bucket,
+                Region: that.region,
+                Key: _,
+                Sign: true,
+                Expires: 3600,
+              },
+              (err, data) => {
+                if (err) {
+                  rej2(err.message)
+                } else {
+                  res2(data.Url)
+                }
+              }
+            )
+          })
+        })
+      )
+        .then(signatureUrls => {
+          res({
+            success: true,
+            data: signatureUrls,
+          })
+        })
+        .catch(e => {
+          console.log('腾讯云签名url生成失败', e)
+          res({
+            success: false,
+            msg: String(e),
+          })
+        })
+    })
+  }
+
   // https://cloud.tencent.com/document/product/436/64982
   public getResourceList(
     fromBegin: boolean,
     prefix: string,
-    marker: string
+    marker: string,
+    isBucketPrivateRead: boolean,
+    domain: string
   ): Promise<{ success: boolean; data?: resourceListDataType; msg?: string }> {
+    const that = this
     return new Promise((res, rej) => {
       this.cos.getBucket(
         {
@@ -344,7 +398,17 @@ class Tencent extends CSPAdaptor {
               msg: err.message,
             })
           } else {
-            const list: resourceListItemType[] = []
+            const list: resourceListItemWithSignatureUrlType[] = []
+            const resData = {
+              list: list,
+              commonPrefixes: extractCurrentFolders(
+                data.CommonPrefixes.map(_ => _.Prefix),
+                prefix
+              ),
+              reachEnd: data.IsTruncated === 'true' ? false : true,
+              // @ts-ignore
+              marker: data.Marker,
+            }
             data.Contents.forEach(_ => {
               // 腾讯云在查询带prefix的列表返回值中，列表第一个是 prefix，要删掉
               // 查询 prefix 的时候，要带尾 /
@@ -355,23 +419,65 @@ class Tencent extends CSPAdaptor {
                   key: _.Key,
                   md5: lodashTrim(_.ETag, '"'),
                   putTime: new Date(_.LastModified).toLocaleString(),
-                  mimeType: '', // 腾讯没有 mime
+                  mimeType: '', // 腾讯没有 mime+
+                  signatureUrl: '',
                 })
               }
             })
-            res({
-              success: true,
-              data: {
-                list,
-                commonPrefixes: extractCurrentFolders(
-                  data.CommonPrefixes.map(_ => _.Prefix),
-                  prefix
-                ),
-                reachEnd: data.IsTruncated === 'true' ? false : true,
-                // @ts-ignore
-                marker: data.Marker,
-              },
-            })
+            if (!isBucketPrivateRead) {
+              res({
+                success: true,
+                data: {
+                  ...resData,
+                  list,
+                },
+              })
+            } else {
+              Promise.all<Promise<resourceListItemWithSignatureUrlType>[]>(
+                list.map(_ => {
+                  return new Promise((res2, rej2) => {
+                    that.cos.getObjectUrl(
+                      {
+                        Bucket: that.bucket,
+                        Region: that.region,
+                        Key: _.key,
+                        Sign: true,
+                        Expires: 3600,
+                      },
+                      (err2, data2) => {
+                        if (err2) {
+                          rej2(err2.message)
+                        } else {
+                          res2({
+                            ..._,
+                            signatureUrl: data2.Url,
+                          })
+                        }
+                      }
+                    )
+                  })
+                })
+              )
+                .then(listWithSignatureUrl => {
+                  res({
+                    success: true,
+                    data: {
+                      ...resData,
+                      list: listWithSignatureUrl,
+                    },
+                  })
+                })
+                .catch(e => {
+                  console.log('腾讯云签名url生成失败', e)
+                  res({
+                    success: true,
+                    data: {
+                      ...resData,
+                      list,
+                    },
+                  })
+                })
+            }
           }
         }
       )
@@ -447,23 +553,26 @@ class Tencent extends CSPAdaptor {
     success: boolean
     msg?: string
   }> {
+    const that = this
     return new Promise((res, rej) => {
       this.cos.putObjectCopy(
         {
           Bucket: this.bucket,
           Region: this.region,
           Key: keysInfo.newKey,
-          CopySource: `${this.bucket}.cos.${this.region}.myqcloud.com/${keysInfo.originalKey}`,
+          CopySource: encodeURI(
+            `${that.bucket}.cos.${that.region}.myqcloud.com/${keysInfo.originalKey}`
+          ),
         },
         (copyErr, data) => {
           if (copyErr) {
             res({ success: false, msg: '复制阶段出错，' + copyErr.message })
           } else {
             /* 删除a/1.jpg */
-            this.cos.deleteObject(
+            that.cos.deleteObject(
               {
-                Bucket: this.bucket,
-                Region: this.region,
+                Bucket: that.bucket,
+                Region: that.region,
                 Key: keysInfo.originalKey,
               },
               function (deleteErr, data) {

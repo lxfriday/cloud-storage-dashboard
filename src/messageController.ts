@@ -108,11 +108,25 @@ export default function messageController(
             const getResourceListRes = await csp.getResourceList(
               message.data.fromBegin,
               message.data.prefix,
-              message.data.marker
+              message.data.marker,
+              message.data.isBucketPrivateRead,
+              message.data.domain
             )
             postMessage({
               uniqueId: message.uniqueId,
               data: getResourceListRes,
+            })
+            return
+          }
+          case MESSAGE_COMMANDS.getSignatureUrl: {
+            const csp = cspAdaptor(message.cspInfo)
+            const getSignatureUrlRes = await csp.getSignatureUrl(
+              message.data.keys,
+              message.data.domain
+            )
+            postMessage({
+              uniqueId: message.uniqueId,
+              data: getSignatureUrlRes,
             })
             return
           }

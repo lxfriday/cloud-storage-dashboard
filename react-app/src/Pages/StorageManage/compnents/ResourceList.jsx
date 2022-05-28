@@ -15,6 +15,7 @@ import {
 import styles from './ResourceList.module.less'
 
 export default function ResourceList({
+  bucketInfo,
   uploadFolder,
   commonPrefixList,
   selectedKeys,
@@ -120,6 +121,7 @@ export default function ResourceList({
         onScroll={handleScroll}
         itemData={{
           data: listData,
+          bucketInfo,
           columnCount: gridInfo.columnCount,
           isTopFolder,
           handleBackward,
@@ -166,6 +168,7 @@ const Cell = ({
   style,
   data: {
     data,
+    bucketInfo,
     columnCount,
     isTopFolder,
     handleBackward,
@@ -227,6 +230,7 @@ const Cell = ({
       <div className={styles.cellWrapper} style={style} key={resourceInfo.key}>
         <ResourceCard
           ext={ext}
+          bucketInfo={bucketInfo}
           fileFullName={fileFullName}
           isAudio={isAudioFunc(ext)}
           isVideo={isVideoFunc(ext)}
@@ -241,6 +245,7 @@ const Cell = ({
           mimeType={resourceInfo.mimeType}
           putTime={resourceInfo.putTime}
           url={url}
+          signatureUrl={resourceInfo.signatureUrl}
           selected={selectedKeys.includes(resourceInfo.key)}
           handleToggleSelectKey={handleToggleSelectKey}
           handleDeleteFile={handleDeleteFiles}

@@ -13,6 +13,7 @@ import * as boot from '../boot'
 import {
   constructorParamsType,
   resourceListItemType,
+  resourceListItemWithSignatureUrlType,
   resourceListDataType,
   CSPAdaptor,
   extractCurrentFolders,
@@ -95,9 +96,9 @@ export default class Aliyun extends CSPAdaptor {
     data?: {
       name: string
       region: string
-      acl?: string
-      isPrivateRead?: boolean
-      isPublicRead?: boolean
+      acl: string
+      isPrivateRead: boolean
+      isPublicRead: boolean
     }[]
     msg?: string
   }> {
@@ -106,10 +107,19 @@ export default class Aliyun extends CSPAdaptor {
       that.oss
         .listBuckets({})
         .then(result => {
-          // @ts-ignore
-          const buckets: { name: string; region: string }[] = result.buckets.map(_ => ({
+          const buckets: {
+            name: string
+            region: string
+            acl: string
+            isPrivateRead: boolean
+            isPublicRead: boolean
+            // @ts-ignore
+          }[] = result.buckets.map(_ => ({
             name: _.name,
             region: _.region,
+            acl: '',
+            isPrivateRead: false,
+            isPublicRead: true,
           }))
           if (usedAsLogin) {
             res({
@@ -265,13 +275,34 @@ export default class Aliyun extends CSPAdaptor {
     }
   }
 
+  public async getSignatureUrl(
+    keys: string[],
+    domain: string
+  ): Promise<{ success: boolean; data?: string[]; msg?: string }> {
+    try {
+      const urls = keys.map(_ => this.oss.signatureUrl(_, { expires: 3600 }))
+      return {
+        success: true,
+        data: urls,
+      }
+    } catch (e) {
+      return {
+        success: false,
+        msg: String(e),
+      }
+    }
+  }
+
   public async getResourceList(
     fromBegin: boolean,
     prefix: string,
-    marker: string
+    marker: string,
+    isBucketPrivateRead: boolean,
+    domain: string
   ): Promise<{ success: boolean; data?: resourceListDataType; msg?: string }> {
+    const that = this
     try {
-      const result = await this.oss.list(
+      const result = await that.oss.list(
         {
           'max-keys': 1000,
           prefix,
@@ -280,7 +311,7 @@ export default class Aliyun extends CSPAdaptor {
         },
         {}
       )
-      const list: resourceListItemType[] = []
+      const list: resourceListItemWithSignatureUrlType[] = []
       result.objects.forEach(_ => {
         // 避免把目录名也拉进来
         if (_.name[_.name.length - 1] !== '/') {
@@ -291,6 +322,9 @@ export default class Aliyun extends CSPAdaptor {
             md5: lodashTrim(_.etag, '"'),
             putTime: new Date(_.lastModified).toLocaleString(),
             mimeType: '', // 腾讯没有 mime
+            signatureUrl: isBucketPrivateRead
+              ? that.oss.signatureUrl(_.name, { expires: 3600 })
+              : '',
           })
         }
       })

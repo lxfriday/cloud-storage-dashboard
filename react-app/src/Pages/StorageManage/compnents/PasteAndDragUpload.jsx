@@ -9,6 +9,7 @@ import copy from 'copy-text-to-clipboard'
 
 import styles from './PasteAndDragUpload.module.less'
 import { generateRandomResourceName, copyFormattedBySettings } from '../../../utils'
+import * as messageCenter from '../../../utils/messageCenter'
 import notiSyncBucket from '../../../utils/notiSyncBucket'
 
 // 扫描 entry 对应的文件，或者扫描 entry 对应的文件夹中的所有文件及子文件夹中的所有文件
@@ -58,6 +59,8 @@ function scanEntry(entry) {
 }
 
 export default function PasteAndDragUpload({
+  domain,
+  bucketInfo,
   currentBucket,
   csp,
   resourcePrefix,
@@ -83,20 +86,47 @@ export default function PasteAndDragUpload({
       )
     )
       .then(res => {
-        const uploadedResourceLinks = []
-        res.forEach(
-          resourceInfo =>
-            resourceInfo.key &&
-            uploadedResourceLinks.push(encodeURI(resourcePrefix + resourceInfo.key))
-        )
-        if (uploadedResourceLinks.length) {
-          copyFormattedBySettings(settings.copyFormat, uploadedResourceLinks)
-          message.success(
-            uploadedResourceLinks.length > 1
-              ? '全部上传成功，所有资源已复制到剪切板，刷新之后在列表可见'
-              : '上传成功，已复制到剪切板，刷新之后在列表可见'
+        if (!bucketInfo.isPrivateRead) {
+          const uploadedResourceLinks = []
+          res.forEach(
+            resourceInfo =>
+              resourceInfo.key &&
+              uploadedResourceLinks.push(encodeURI(resourcePrefix + resourceInfo.key))
           )
-          notiSyncBucket()
+          if (uploadedResourceLinks.length) {
+            copyFormattedBySettings(settings.copyFormat, uploadedResourceLinks)
+            message.success(
+              uploadedResourceLinks.length > 1
+                ? '全部上传成功，所有资源已复制到剪切板，刷新之后在列表可见'
+                : '上传成功，已复制到剪切板，刷新之后在列表可见'
+            )
+            notiSyncBucket()
+          }
+        } else {
+          // 是私有读的bucket，需要到后端获取 签名url
+          const keys = []
+          res.forEach(resourceInfo => resourceInfo.key && keys.push(resourceInfo.key))
+          keys.length > 0 &&
+            messageCenter
+              .requestGetSignatureUrl({
+                keys,
+                domain,
+              })
+              .then(getSignatureUrlRes => {
+                if (getSignatureUrlRes.success) {
+                  copyFormattedBySettings(settings.copyFormat, getSignatureUrlRes.data)
+                  message.success(
+                    getSignatureUrlRes.data.length > 1
+                      ? '全部上传成功，所有资源已复制到剪切板，刷新之后在列表可见'
+                      : '上传成功，已复制到剪切板，刷新之后在列表可见'
+                  )
+                } else {
+                  message.error(`获取签名url失败： ${getSignatureUrlRes.msg}`)
+                }
+              })
+              .catch(e => {
+                message.error(`获取签名url失败： ${e}`)
+              })
         }
       })
       .catch(res => {
@@ -114,13 +144,33 @@ export default function PasteAndDragUpload({
         key: `${pendingUploadPrefix}${generateRandomResourceName(file.name, false)}`,
         resourcePrefix,
         shouldCopy: false,
-        shouldShowMsg: true,
+        shouldShowMsg: false,
       })
       .then(res => {
         if (res.key) {
-          const targetUrl = `${resourcePrefix}${res.key}`
-          copyFormattedBySettings(settings.copyFormat, targetUrl)
-          notiSyncBucket()
+          if (!bucketInfo.isPrivateRead) {
+            const targetUrl = `${resourcePrefix}${res.key}`
+            copyFormattedBySettings(settings.copyFormat, targetUrl)
+            notiSyncBucket()
+            message.success('上传成功，已复制到剪切板，刷新之后在列表可见')
+          } else {
+            messageCenter
+              .requestGetSignatureUrl({
+                keys: [res.key],
+                domain,
+              })
+              .then(getSignatureUrlRes => {
+                if (getSignatureUrlRes.success) {
+                  copyFormattedBySettings(settings.copyFormat, getSignatureUrlRes.data)
+                  message.success('上传成功，已复制到剪切板，刷新之后在列表可见')
+                } else {
+                  message.error(`获取签名url失败： ${getSignatureUrlRes.msg}`)
+                }
+              })
+              .catch(e => {
+                message.error(`获取签名url失败： ${e}`)
+              })
+          }
         }
       })
       .catch(res => {

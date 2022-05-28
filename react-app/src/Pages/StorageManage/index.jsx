@@ -45,12 +45,12 @@ let isSearching = false // 是否正在搜索中
 export default function StorageManage() {
   const dispatch = useDispatch()
   const settings = useSelector(state => state.settings)
+  const bucketList = useSelector(state => state.storageManage.bucketList)
   const csp = cloudserviceprovider[settings.currentCSP.csp]
 
   let [bucketDomainInfo, setBucketDomainInfo] = useState({
     bucketDomains: [],
     selectBucketDomain: '',
-    resourcePrefix: '',
   })
   const resourcePrefix = `${settings.forceHTTPS ? 'https://' : 'http://'}${
     bucketDomainInfo.selectBucketDomain
@@ -86,6 +86,7 @@ export default function StorageManage() {
 
   let [searchParams] = useSearchParams()
   const currentBucket = searchParams.get('space')
+  const targetBucketInfo = bucketList.find(_ => _.name === currentBucket)
 
   function handleRefresh(prefixes = []) {
     // 刷新列表
@@ -103,6 +104,10 @@ export default function StorageManage() {
           fromBegin: true,
           prefix: prefixes.join(''),
           marker: '',
+          domain: `${settings.forceHTTPS ? 'https://' : 'http://'}${
+            bucketDomainInfo.selectBucketDomain
+          }`,
+          isBucketPrivateRead: targetBucketInfo.isPrivateRead,
         })
         .then(res => {
           if (res.success) {
@@ -135,11 +140,16 @@ export default function StorageManage() {
   function handleLoadData() {
     if (!isResourceListReachEnd && !isLoadingResource) {
       isLoadingResource = true
+      // 从根目录加载，prefix 为空
       messageCenter
         .requestGetResourceList({
           fromBegin: false,
           prefix: uploadFolders.join(''),
           marker,
+          domain: `${settings.forceHTTPS ? 'https://' : 'http://'}${
+            bucketDomainInfo.selectBucketDomain
+          }`,
+          isBucketPrivateRead: targetBucketInfo.isPrivateRead,
         })
         .then(res => {
           if (res.success) {
@@ -526,27 +536,33 @@ export default function StorageManage() {
           bucketDomains: bucketDomainsRes.data,
           selectBucketDomain: bucketDomainsRes.data[0] || '',
         })
+        try {
+          isLoadingResource = true
+          // 从根目录加载，prefix 为空
+          const targetBucket = bucketList.find(_ => _.name === currentBucket)
+          const resourceListResponse = await messageCenter.requestGetResourceList({
+            fromBegin: true,
+            prefix: '',
+            marker: '',
+            domain: `${settings.forceHTTPS ? 'https://' : 'http://'}${bucketDomainsRes.data[0]}`,
+            isBucketPrivateRead: targetBucket.isPrivateRead,
+          })
+          if (resourceListResponse.success) {
+            marker = resourceListResponse.data.marker
+            setCommonPrefixList(resourceListResponse.data.commonPrefixes)
+            setResourceList(resourceListResponse.data.list)
+            setIsResourceListReachEnd(resourceListResponse.data.reachEnd)
+          } else {
+            message.error('资源列表获取失败：' + resourceListResponse.msg)
+          }
+        } catch (e) {
+          message.error(e)
+        } finally {
+          isLoadingResource = false
+        }
       } else {
         message.error('bucket domain 获取失败：' + bucketDomainsRes.msg)
       }
-
-      isLoadingResource = true
-      // 从根目录加载，prefix 为空
-
-      const resourceListResponse = await messageCenter.requestGetResourceList({
-        fromBegin: true,
-        prefix: '',
-        marker: '',
-      })
-      if (resourceListResponse.success) {
-        marker = resourceListResponse.data.marker
-        setCommonPrefixList(resourceListResponse.data.commonPrefixes)
-        setResourceList(resourceListResponse.data.list)
-        setIsResourceListReachEnd(resourceListResponse.data.reachEnd)
-      } else {
-        message.error('资源列表获取失败：' + resourceListResponse.msg)
-      }
-      isLoadingResource = false
     } catch (e) {
       message.error(e)
     }
@@ -659,6 +675,10 @@ export default function StorageManage() {
         </div>
       </Modal>
       <PasteAndDragUpload
+        domain={`${settings.forceHTTPS ? 'https://' : 'http://'}${
+          bucketDomainInfo.selectBucketDomain
+        }`}
+        bucketInfo={targetBucketInfo}
         currentBucket={currentBucket}
         csp={csp}
         resourcePrefix={resourcePrefix}
@@ -681,6 +701,10 @@ export default function StorageManage() {
         </Select>
         <div className={styles.bucketToolsWrapper}>
           <SelectUpload
+            domain={`${settings.forceHTTPS ? 'https://' : 'http://'}${
+              bucketDomainInfo.selectBucketDomain
+            }`}
+            bucketInfo={targetBucketInfo}
             isDirectory={false}
             multiple={true}
             csp={csp}
@@ -695,6 +719,10 @@ export default function StorageManage() {
             ></Button>
           </SelectUpload>
           <SelectUpload
+            domain={`${settings.forceHTTPS ? 'https://' : 'http://'}${
+              bucketDomainInfo.selectBucketDomain
+            }`}
+            bucketInfo={targetBucketInfo}
             isDirectory={true}
             csp={csp}
             resourcePrefix={resourcePrefix}
@@ -715,9 +743,17 @@ export default function StorageManage() {
           <Button
             title="导出 folder 中所有链接"
             onClick={() => {
-              let totalStr = ''
-              resourceList.forEach(r => (totalStr += `${encodeURI(resourcePrefix + r.key)}\r\n`))
-              copy(totalStr)
+              if (!targetBucketInfo.isPrivateRead) {
+                let totalStr = ''
+                resourceList.forEach(r => (totalStr += `${encodeURI(resourcePrefix + r.key)}\r\n`))
+                copy(totalStr)
+              } else {
+                const signatureUrls = []
+                resourceList.forEach(_ => {
+                  !!_.signatureUrl && signatureUrls.push(_.signatureUrl)
+                })
+                copyFormattedBySettings('url', signatureUrls)
+              }
               message.success('已复制到剪切板')
             }}
             icon={<ProfileOutlined style={{ fontSize: '20px' }} />}
@@ -888,6 +924,7 @@ export default function StorageManage() {
         </div>
       </div>
       <ResourceList
+        bucketInfo={targetBucketInfo}
         uploadFolder={uploadFolders.join('')}
         commonPrefixList={realCommonPrefixList}
         selectedKeys={selectedKeys}
@@ -932,7 +969,11 @@ export default function StorageManage() {
           {resourceList.map(resourceInfo => (
             <Image
               key={Math.random() * 100000000}
-              src={encodeURI(resourcePrefix + resourceInfo.key)}
+              src={
+                targetBucketInfo.isPrivateRead && !!resourceInfo.signatureUrl
+                  ? resourceInfo.signatureUrl
+                  : encodeURI(resourcePrefix + resourceInfo.key)
+              }
             />
           ))}
         </Image.PreviewGroup>

@@ -1,11 +1,13 @@
 import * as qiniu from 'qiniu'
 import * as dayjs from 'dayjs'
+import axios from 'axios'
 
 import * as Request from '../request'
 import * as boot from '../boot'
 import {
   constructorParamsType,
   resourceListItemType,
+  resourceListItemWithSignatureUrlType,
   resourceListDataType,
   CSPAdaptor,
   extractCurrentFolders,
@@ -51,7 +53,7 @@ class Qiniu extends CSPAdaptor {
   // 登录，通过请求一个接口看是否成功来决定登录是否成功
   // 登录的时候有一个很重要的事情：设置当前的 ak、sk
   public async login(cspInfo: { csp: string; ak: string; sk: string; nickname: string }) {
-    const res = await this.getBucketList()
+    const res = await this.getBucketList(true)
     if (!res.success) {
       return {
         success: false,
@@ -106,20 +108,19 @@ class Qiniu extends CSPAdaptor {
             success: false,
             msg: String(respErr),
           })
-          return
-        }
-
-        if (respBody) {
+        } else {
           const list: resourceListItemType[] = []
           ;(<any[]>respBody.items).forEach(_ => {
-            list.push({
-              fsize: _.fsize,
-              hash: _.hash,
-              key: _.key,
-              md5: _.md5,
-              putTime: new Date(+`${_.putTime}`.slice(0, 13)).toLocaleString(),
-              mimeType: _.mimeType,
-            })
+            if (_.key[_.key.length - 1] !== '/') {
+              list.push({
+                fsize: _.fsize,
+                hash: _.hash,
+                key: _.key,
+                md5: _.md5,
+                putTime: new Date(+`${_.putTime}`.slice(0, 13)).toLocaleString(),
+                mimeType: _.mimeType,
+              })
+            }
           })
           resolve({
             success: true,
@@ -136,11 +137,40 @@ class Qiniu extends CSPAdaptor {
     })
   }
 
+  public getSignatureUrl(
+    keys: string[],
+    domain: string
+  ): Promise<{ success: boolean; data?: string[]; msg?: string }> {
+    const that = this
+    const bucketManager = new qiniu.rs.BucketManager(
+      <qiniu.auth.digest.Mac>this.qiniuMac,
+      new qiniu.conf.Config()
+    )
+    return new Promise((res, rej) => {
+      try {
+        const urls = keys.map(_ =>
+          bucketManager.privateDownloadUrl(domain, _, Math.floor(Date.now() / 1000) + 3600)
+        )
+        res({
+          success: true,
+          data: urls,
+        })
+      } catch (e) {
+        res({
+          success: false,
+          msg: String(e),
+        })
+      }
+    })
+  }
+
   // fromBegin 是否从头加载
   public getResourceList(
     fromBegin: boolean,
     prefix: string,
-    marker: string
+    marker: string,
+    isBucketPrivateRead: boolean,
+    domain: string
   ): Promise<{
     success: boolean
     msg?: string
@@ -163,82 +193,193 @@ class Qiniu extends CSPAdaptor {
             success: false,
             msg: String(respErr),
           })
-          return
-        }
-
-        if (respBody) {
+        } else {
           // 加载成之后
           // 更新标记点
-          const list: resourceListItemType[] = []
-          ;(<any[]>respBody.items).forEach(_ => {
-            list.push({
-              fsize: _.fsize,
-              hash: _.hash,
-              key: _.key,
-              md5: _.md5,
-              putTime: new Date(+`${_.putTime}`.slice(0, 13)).toLocaleString(),
-              mimeType: _.mimeType,
+          try {
+            const list: resourceListItemWithSignatureUrlType[] = []
+            ;(<any[]>respBody.items).forEach(_ => {
+              // 删掉文件夹占位文件
+              if (_.key[_.key.length - 1] !== '/') {
+                list.push({
+                  fsize: _.fsize,
+                  hash: _.hash,
+                  key: _.key,
+                  md5: _.md5,
+                  putTime: new Date(+`${_.putTime}`.slice(0, 13)).toLocaleString(),
+                  mimeType: _.mimeType,
+                  signatureUrl: isBucketPrivateRead
+                    ? bucketManager.privateDownloadUrl(
+                        domain,
+                        _.key,
+                        Math.floor(Date.now() / 1000) + 3600
+                      )
+                    : '',
+                })
+              }
             })
-          })
-          resolve({
-            success: true,
-            data: {
-              list,
-              // 文件夹，会自动带上尾缀 /
-              // ['testfoler/', '/']
-              commonPrefixes: extractCurrentFolders(respBody.commonPrefixes, prefix),
-              reachEnd: !!respBody.marker ? false : true,
-              marker: !!respBody.marker ? respBody.marker : '',
-            },
-          })
+            resolve({
+              success: true,
+              data: {
+                list,
+                // 文件夹，会自动带上尾缀 /
+                // ['testfoler/', '/']
+                commonPrefixes: extractCurrentFolders(respBody.commonPrefixes, prefix),
+                reachEnd: !!respBody.marker ? false : true,
+                marker: !!respBody.marker ? respBody.marker : '',
+              },
+            })
+          } catch (e) {
+            resolve({
+              success: false,
+              msg: String(e),
+            })
+          }
         }
       })
     })
   }
 
+  // 通过hack的方式获取到 bucket 的 acl 信息
+  // 通过访问 bucket 绑定的域名
+  // 如果是 401 则表示未授权是私有的
+  // 如果是 404 则表示是正常访问的
+  private _getBucketACL(bucket: string): Promise<{ isPrivate: boolean }> {
+    return new Promise((res, rej) => {
+      Request.qiniuGet(
+        {
+          url: urls.domains,
+          params: {
+            tbl: bucket,
+          },
+        },
+        this.generateHTTPAuthorization
+      )
+        .then(domainRes => {
+          if (domainRes.success) {
+            const domains = domainRes.data
+            if (domains.length) {
+              axios(`http://${domains[0]}`, { method: 'GET' })
+                .then(domainCheckRes => {
+                  // @ts-ignore
+                  if (domainCheckRes.code === 401) {
+                    res({
+                      isPrivate: true,
+                    })
+                  } else {
+                    res({
+                      isPrivate: false,
+                    })
+                  }
+                })
+                .catch(e => {
+                  console.log('axios error', e)
+                  res({
+                    isPrivate: false,
+                  })
+                })
+            } else {
+              res({
+                isPrivate: false,
+              })
+            }
+          }
+        })
+        .catch(e => {
+          res({
+            isPrivate: false,
+          })
+        })
+    })
+  }
+
   // 获取用户的 bucket 列表
-  public async getBucketList(): Promise<{
+  public getBucketList(usedAsLogin: boolean = false): Promise<{
     success: boolean
     data?: {
       name: string
       region: string
-      acl?: string
-      isPrivateRead?: boolean
-      isPublicRead?: boolean
+      acl: string
+      isPrivateRead: boolean
+      isPublicRead: boolean
     }[]
     msg?: string
   }> {
-    try {
-      const res = await Request.qiniuGet(
+    const that = this
+    return new Promise((res, rej) => {
+      Request.qiniuGet(
         {
           url: urls.buckets,
         },
         this.generateHTTPAuthorization
       )
-      if (res.success) {
-        const bucketList: string[] = res.data
-        return {
-          success: true,
-          data: bucketList.map(_ => ({
-            name: _,
-            region: '',
-            acl: '',
-            isPrivateRead: false,
-            isPublicRead: true,
-          })),
-        }
-      } else {
-        return {
-          success: false,
-          msg: res.msg,
-        }
-      }
-    } catch (e) {
-      return {
-        success: false,
-        msg: String(e),
-      }
-    }
+        .then(bucketRes => {
+          if (bucketRes.success) {
+            const bucketList = (bucketRes.data as string[]).map(_ => ({
+              name: _,
+              region: '',
+              acl: '',
+              isPrivateRead: false,
+              isPublicRead: true,
+            }))
+            if (usedAsLogin) {
+              res({
+                success: true,
+                data: bucketList,
+              })
+            } else {
+              Promise.all<
+                Promise<{
+                  name: string
+                  region: string
+                  acl: string
+                  isPrivateRead: boolean
+                  isPublicRead: boolean
+                }>[]
+              >(
+                bucketList.map(
+                  _ =>
+                    new Promise((res2, rej2) => {
+                      that._getBucketACL(_.name).then(result => {
+                        res2({
+                          name: _.name,
+                          region: '',
+                          acl: result.isPrivate ? 'private' : 'public',
+                          isPrivateRead: result.isPrivate,
+                          isPublicRead: true,
+                        })
+                      })
+                    })
+                )
+              )
+                .then(totalACLResult => {
+                  res({
+                    success: true,
+                    data: totalACLResult,
+                  })
+                })
+                .catch(totalACLError => {
+                  console.log('totalACLError', totalACLError)
+                  res({
+                    success: true,
+                    data: bucketList,
+                  })
+                })
+            }
+          } else {
+            res({
+              success: false,
+              msg: bucketRes.msg,
+            })
+          }
+        })
+        .catch(e => {
+          res({
+            success: false,
+            msg: String(e),
+          })
+        })
+    })
   }
 
   // 获取 bucket 对应的 domains

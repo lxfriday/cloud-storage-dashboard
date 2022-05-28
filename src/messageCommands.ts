@@ -2,6 +2,7 @@ export default {
   generateUploadToken: 'generateUploadToken',
   getBucketList: 'getBucketList',
   getResourceList: 'getResourceList',
+  getSignatureUrl: 'getSignatureUrl',
   updateBucket: 'updateBucket',
   getBucketDomains: 'getBucketDomains',
   deleteBucketFiles: 'deleteBucketFiles',

@@ -8,9 +8,12 @@ import { useSelector } from 'react-redux'
 
 import { generateRandomResourceName, copyFormattedBySettings } from '../../../utils'
 import notiSyncBucket from '../../../utils/notiSyncBucket'
+import * as messageCenter from '../../../utils/messageCenter'
 import styles from './SelectUpload.module.less'
 
 export default function SelectUpload({
+  domain,
+  bucketInfo,
   children,
   isDirectory,
   multiple,
@@ -69,20 +72,47 @@ export default function SelectUpload({
       )
     )
       .then(res => {
-        const uploadedResourceLinks = []
-        res.forEach(
-          resourceInfo =>
-            resourceInfo.key &&
-            uploadedResourceLinks.push(encodeURI(resourcePrefix + resourceInfo.key))
-        )
-        if (uploadedResourceLinks.length) {
-          copyFormattedBySettings(settings.copyFormat, uploadedResourceLinks)
-          message.success(
-            uploadedResourceLinks.length > 1
-              ? '全部上传成功，所有资源已复制到剪切板，刷新之后在列表可见'
-              : '上传成功，已复制到剪切板，刷新之后在列表可见'
+        if (!bucketInfo.isPrivateRead) {
+          const uploadedResourceLinks = []
+          res.forEach(
+            resourceInfo =>
+              resourceInfo.key &&
+              uploadedResourceLinks.push(encodeURI(resourcePrefix + resourceInfo.key))
           )
-          notiSyncBucket()
+          if (uploadedResourceLinks.length) {
+            copyFormattedBySettings(settings.copyFormat, uploadedResourceLinks)
+            message.success(
+              uploadedResourceLinks.length > 1
+                ? '全部上传成功，所有资源已复制到剪切板，刷新之后在列表可见'
+                : '上传成功，已复制到剪切板，刷新之后在列表可见'
+            )
+            notiSyncBucket()
+          }
+        } else {
+          // 是私有读的bucket，需要到后端获取 签名url
+          const keys = []
+          res.forEach(resourceInfo => resourceInfo.key && keys.push(resourceInfo.key))
+          keys.length > 0 &&
+            messageCenter
+              .requestGetSignatureUrl({
+                keys,
+                domain,
+              })
+              .then(getSignatureUrlRes => {
+                if (getSignatureUrlRes.success) {
+                  copyFormattedBySettings(settings.copyFormat, getSignatureUrlRes.data)
+                  message.success(
+                    getSignatureUrlRes.data.length > 1
+                      ? '全部上传成功，所有资源已复制到剪切板，刷新之后在列表可见'
+                      : '上传成功，已复制到剪切板，刷新之后在列表可见'
+                  )
+                } else {
+                  message.error(`获取签名url失败： ${getSignatureUrlRes.msg}`)
+                }
+              })
+              .catch(e => {
+                message.error(`获取签名url失败： ${e}`)
+              })
         }
       })
       .catch(res => {

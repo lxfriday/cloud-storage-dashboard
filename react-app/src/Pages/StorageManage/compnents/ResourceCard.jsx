@@ -21,6 +21,7 @@ let clickCount = 0
 
 export default function ResourceCard({
   ext,
+  bucketInfo,
   isAudio,
   isVideo,
   isImage,
@@ -30,6 +31,7 @@ export default function ResourceCard({
   hash,
   md5,
   url,
+  signatureUrl,
   mimeType,
   putTime,
   fkey,
@@ -44,6 +46,9 @@ export default function ResourceCard({
   handleDownloadFile,
   fileFullName,
 }) {
+  const hasSignatureUrl = !!signatureUrl
+  const isPrivateRead = bucketInfo.isPrivateRead
+  const shouldUseSignatureUrl = hasSignatureUrl && isPrivateRead
   const deleteWithoutConfirm = useSelector(state => state.settings.deleteWithoutConfirm)
   // 用来预览的尾缀，压缩图像提升显示性能，但是和 刷新 CDN 有冲突，暂时禁用
   const imagePreviewSuffix = useSelector(state => state.settings.imagePreviewSuffix)
@@ -59,15 +64,26 @@ export default function ResourceCard({
     //     className={styles.img}
     //     draggable={false}
     //   />
-    finalImage = (
-      <div
-        style={{
-          backgroundImage: `url("${isGif || isSvg ? url : url + imagePreviewSuffix}")`,
-          // backgroundImage: `url("${url}")`,
-        }}
-        className={styles.img}
-      />
-    )
+    if (shouldUseSignatureUrl) {
+      finalImage = (
+        <div
+          style={{
+            backgroundImage: `url("${signatureUrl}")`,
+          }}
+          className={styles.img}
+        />
+      )
+    } else {
+      finalImage = (
+        <div
+          style={{
+            backgroundImage: `url("${isGif || isSvg ? url : url + imagePreviewSuffix}")`,
+            // backgroundImage: `url("${url}")`,
+          }}
+          className={styles.img}
+        />
+      )
+    }
   } else if (isVideo) {
     finalImage = <PlayCircleOutlined style={{ color: '#aaa', fontSize: '50px' }} />
   } else if (isAudio) {
@@ -149,7 +165,11 @@ export default function ResourceCard({
         key="7"
         style={{ color: 'green' }}
         onClick={() => {
-          copy(url)
+          if (shouldUseSignatureUrl) {
+            copy(signatureUrl)
+          } else {
+            copy(url)
+          }
           message.success('已复制到剪切板')
         }}
       >
@@ -161,7 +181,11 @@ export default function ResourceCard({
           key="8"
           style={{ color: 'green' }}
           onClick={() => {
-            copy(`![${fileFullName}](${url})`)
+            if (shouldUseSignatureUrl) {
+              copy(`![${fileFullName}](${signatureUrl})`)
+            } else {
+              copy(`![${fileFullName}](${url})`)
+            }
             message.success('已复制到剪切板')
           }}
         >
@@ -252,7 +276,11 @@ export default function ResourceCard({
                 className={styles.buttonWrapper}
                 onClick={e => {
                   e.stopPropagation()
-                  copy(url)
+                  if (shouldUseSignatureUrl) {
+                    copy(signatureUrl)
+                  } else {
+                    copy(url)
+                  }
                   message.success('已复制到剪切板')
                 }}
                 title="复制"

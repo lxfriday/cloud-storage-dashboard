@@ -36,6 +36,16 @@ export function requestGetResourceList(params) {
   })
 }
 
+export function requestGetSignatureUrl(params) {
+  return messageAdaptor({
+    serverCommand: MESSAGE_COMMANDS.getSignatureUrl,
+    data: {
+      ...params,
+    },
+    cspInfo: getCSPInfo(),
+  })
+}
+
 export function requestGetBucketList() {
   return messageAdaptor(
     {

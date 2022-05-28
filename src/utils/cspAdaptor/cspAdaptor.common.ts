@@ -16,8 +16,10 @@ export type resourceListItemType = {
   mimeType: string
 }
 
+export type resourceListItemWithSignatureUrlType = resourceListItemType & { signatureUrl: string }
+
 export type resourceListDataType = {
-  list: resourceListItemType[]
+  list: resourceListItemWithSignatureUrlType[]
   commonPrefixes: string[]
   reachEnd: boolean
   marker: string
@@ -63,9 +65,9 @@ export abstract class CSPAdaptor {
     data?: {
       name: string
       region: string
-      acl?: string
-      isPrivateRead?: boolean
-      isPublicRead?: boolean
+      acl: string
+      isPrivateRead: boolean
+      isPublicRead: boolean
     }[]
     msg?: string
   }>
@@ -82,10 +84,20 @@ export abstract class CSPAdaptor {
     msg?: string
   }>
 
+  // 批量生成 SignatureUrl
+  // 依据传过来的 keys 批量生成 SignatureUrl
+  // 在私有bucket 中上传文件之后会调用该接口
+  public abstract getSignatureUrl(
+    keys: string[],
+    domain: string
+  ): Promise<{ success: boolean; data?: string[]; msg?: string }>
+
   public abstract getResourceList(
-    fromBegin: boolean,
-    prefix: string,
-    marker: string
+    fromBegin: boolean, // 是否是从头开始，用不到了，但是历史原因，还在
+    prefix: string, // 前缀
+    marker: string, // 分页 marker
+    isBucketPrivateRead: boolean, // bucket 是否是私有读，用于判断是否需要添加签名url
+    domain: string // 当前选中的域名
   ): Promise<{ success: boolean; data?: resourceListDataType; msg?: string }>
 
   public abstract deleteBucketFiles(
