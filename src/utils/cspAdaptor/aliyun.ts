@@ -53,7 +53,7 @@ export default class Aliyun extends CSPAdaptor {
     data?: any
   }> {
     try {
-      const res = await this.getBucketList()
+      const res = await this.getBucketList(true)
       if (!res.success) {
         return {
           success: false,
@@ -89,25 +89,92 @@ export default class Aliyun extends CSPAdaptor {
     }
   }
 
-  public async getBucketList(): Promise<{
+  // https://next.api.aliyun.com/api/Oss/2019-05-17/GetBucketAcl?lang=JAVA&sdkStyle=dara&params={%22bucket%22:%22yuny-storage%22}&tab=DEBUG
+  public getBucketList(usedAsLogin: boolean = false): Promise<{
     success: boolean
-    data?: { name: string; region: string; storageClass?: string }[]
+    data?: {
+      name: string
+      region: string
+      acl?: string
+      isPrivateRead?: boolean
+      isPublicRead?: boolean
+    }[]
     msg?: string
   }> {
-    try {
-      const result = await this.oss.listBuckets({})
-      return {
-        success: true,
-        // @ts-ignore
-        data: result.buckets.map(_ => ({
-          name: _.name,
-          region: _.region,
-          storageClass: _.storageClass,
-        })),
-      }
-    } catch (e) {
-      return { success: false, msg: String(e) }
-    }
+    const that = this
+    return new Promise((res, rej) => {
+      that.oss
+        .listBuckets({})
+        .then(result => {
+          // @ts-ignore
+          const buckets: { name: string; region: string }[] = result.buckets.map(_ => ({
+            name: _.name,
+            region: _.region,
+          }))
+          if (usedAsLogin) {
+            res({
+              success: true,
+              data: buckets,
+            })
+          } else {
+            Promise.all<
+              Promise<{
+                name: string
+                region: string
+                acl: string
+                isPrivateRead: boolean
+                isPublicRead: boolean
+              }>[]
+            >(
+              buckets.map(
+                _ =>
+                  new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                      // 设置一个超时时间，防止一直卡在这，只有阿里云有这个问题
+                      reject('getBucketACL 超时了')
+                    }, 5000)
+                    new OSS({
+                      // 没传就给一个默认值，方便getBucketList获取到所有的bucket信息
+                      region: _.region,
+                      accessKeyId: that.accessKeyId,
+                      accessKeySecret: that.accessKeySecret,
+                      bucket: _.name,
+                    })
+                      .getBucketACL(_.name)
+                      .then(getBucketACLRes => {
+                        resolve({
+                          name: _.name,
+                          region: _.region,
+                          acl: getBucketACLRes.acl,
+                          isPrivateRead: getBucketACLRes.acl.includes('private'),
+                          isPublicRead: getBucketACLRes.acl.includes('public-read'),
+                        })
+                      })
+                      .catch(e => {
+                        reject(e)
+                      })
+                  })
+              )
+            )
+              .then(bucketsInfo => {
+                res({
+                  success: true,
+                  data: bucketsInfo,
+                })
+              })
+              .catch(e => {
+                console.log('获取bucket访问权限失败，不返回 ACL 信息', e)
+                res({
+                  success: true,
+                  data: buckets,
+                })
+              })
+          }
+        })
+        .catch(e => {
+          res({ success: false, msg: String(e) })
+        })
+    })
   }
 
   // public getBucketInfo(): Promise<{

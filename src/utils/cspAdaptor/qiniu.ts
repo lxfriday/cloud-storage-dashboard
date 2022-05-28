@@ -199,7 +199,13 @@ class Qiniu extends CSPAdaptor {
   // 获取用户的 bucket 列表
   public async getBucketList(): Promise<{
     success: boolean
-    data?: { name: string; region: string }[]
+    data?: {
+      name: string
+      region: string
+      acl?: string
+      isPrivateRead?: boolean
+      isPublicRead?: boolean
+    }[]
     msg?: string
   }> {
     try {
@@ -216,6 +222,9 @@ class Qiniu extends CSPAdaptor {
           data: bucketList.map(_ => ({
             name: _,
             region: '',
+            acl: '',
+            isPrivateRead: false,
+            isPublicRead: true,
           })),
         }
       } else {

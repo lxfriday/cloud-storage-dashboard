@@ -10,7 +10,7 @@ function getCSPInfo() {
   let _ = !!currentCSP ? currentCSP : {}
   return {
     ..._,
-    bucket: storageManage.selectBucketInfo.bucket,
+    bucket: storageManage.selectBucketInfo.name,
     region: storageManage.selectBucketInfo.region,
   }
 }
@@ -43,7 +43,8 @@ export function requestGetBucketList() {
       data: {},
       cspInfo: getCSPInfo(),
     },
-    false
+    true,
+    20000
   )
 }
 

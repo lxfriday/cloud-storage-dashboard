@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react'
-import { Menu, message, notification, Spin } from 'antd'
+import { Menu, message, notification, Spin, Tooltip } from 'antd'
 import {
-  FolderOpenOutlined,
   SettingOutlined,
   LogoutOutlined,
   HomeOutlined,
+  LockFilled,
+  FolderFilled,
 } from '@ant-design/icons'
 import { NavLink } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 
 import Login from '../Components/Login'
 import { initSettings, logout, setHasLoginTrue } from '../store/settings'
-import { updateBucketListAction } from '../store/storageManage'
+import { updateBucketListAction, resetBucketInfoAction } from '../store/storageManage'
 import * as messageCenter from '../utils/messageCenter'
 import messageCommands from '../../../src/messageCommands'
 import styles from './Nav.module.less'
@@ -28,9 +29,11 @@ export default function Nav({ children }) {
   const [backImg, setBackImg] = useState()
   // 后台是否正在同步数据
   const [isSyncing, setIsSyncing] = useState(false)
+  const [isLoadingBucketList, setIsLoadingBucketList] = useState(false)
   const dispatch = useDispatch()
 
   function handleChangeCSP() {
+    dispatch(resetBucketInfoAction())
     dispatch(logout())
   }
 
@@ -107,6 +110,7 @@ export default function Nav({ children }) {
   useEffect(() => {
     if (hasLogin) {
       // 获取 bucket 列表
+      setIsLoadingBucketList(true)
       messageCenter
         .requestGetBucketList()
         .then(res => {
@@ -118,6 +122,9 @@ export default function Nav({ children }) {
         })
         .catch(() => {
           message.error('bucket 列表获取失败')
+        })
+        .finally(() => {
+          setIsLoadingBucketList(false)
         })
     }
   }, [hasLogin])
@@ -164,20 +171,36 @@ export default function Nav({ children }) {
                   首页
                 </NavLink>
               </Menu.Item>
-              <SubMenu key="sub1" icon={<FolderOpenOutlined />} title="存储空间">
-                {bucketList.map(({ name }) => (
-                  <Menu.Item key={name}>
+              {isLoadingBucketList && (
+                <Menu.Item key="loading-bucketlist">
+                  <div style={{ textAlign: 'left' }}>
+                    <Spin /> loading
+                  </div>
+                </Menu.Item>
+              )}
+
+              {bucketList.map(_ => (
+                <Menu.Item key={_.name} icon={_.isPrivateRead ? <LockFilled /> : <FolderFilled />}>
+                  <Tooltip
+                    placement="right"
+                    title={
+                      <div>
+                        <div>bucket: {_.name}</div>
+                        {!!_.region && <div>region: {_.region}</div>}
+                        {!!_.acl && <div>acl: {_.acl}</div>}
+                      </div>
+                    }
+                  >
                     <NavLink
-                      to={`/storagemanage?space=${name}`}
+                      to={`/storagemanage?space=${_.name}`}
                       className={({ isActive }) => (isActive ? styles.navLinkActive : undefined)}
-                      title={name}
                       style={{ fontSize: 12 }}
                     >
-                      {name}
+                      {_.name}
                     </NavLink>
-                  </Menu.Item>
-                ))}
-              </SubMenu>
+                  </Tooltip>
+                </Menu.Item>
+              ))}
               <Menu.Item key="settings" icon={<SettingOutlined />}>
                 <NavLink
                   to="/settings"

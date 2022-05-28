@@ -21,6 +21,7 @@ axios.interceptors.response.use(function (res) {
   if (res.status >= 200 && res.status < 300) {
     return { success: true, data: res.data }
   } else {
+    console.log('qiniu request error', res)
     return { success: false, msg: res.data.error || res.data.error_code }
   }
 })

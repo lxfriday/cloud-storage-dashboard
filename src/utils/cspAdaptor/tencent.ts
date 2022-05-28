@@ -1,3 +1,4 @@
+// https://console.cloud.tencent.com/api/explorer?Product=cdn&Version=2018-06-06&Action=PurgeUrlsCache API explorer
 import * as COS from 'cos-nodejs-sdk-v5'
 import * as tencentcloud from 'tencentcloud-sdk-nodejs'
 import * as STS from 'qcloud-cos-sts'
@@ -49,7 +50,7 @@ class Tencent extends CSPAdaptor {
     msg?: string
     data?: any
   }> {
-    const res = await this.getBucketList()
+    const res = await this.getBucketList(true)
     if (!res.success) {
       return {
         success: false,
@@ -149,31 +150,91 @@ class Tencent extends CSPAdaptor {
     })
   }
 
-  public getBucketList(): Promise<{
+  public getBucketList(usedAsLogin: boolean = false): Promise<{
     success: boolean
-    data?: { name: string; region: string }[]
+    data?: {
+      name: string
+      region: string
+      acl?: string
+      isPrivateRead?: boolean
+      isPublicRead?: boolean
+    }[]
     msg?: string
   }> {
+    const that = this
     return new Promise((res, rej) => {
-      this.cos.getService({}, function (err, data) {
+      that.cos.getService({}, function (err, data) {
         if (err) {
           res({
             success: false,
             msg: err.message,
           })
         } else {
-          res({
-            success: true,
-            data: data.Buckets.map(_ => ({ name: _.Name, region: _.Location })),
-          })
+          const buckets = data.Buckets.map(_ => ({ name: _.Name, region: _.Location }))
+          if (usedAsLogin) {
+            res({
+              success: true,
+              data: buckets,
+            })
+          } else {
+            Promise.all<
+              Promise<{
+                name: string
+                region: string
+                acl: string
+                isPrivateRead: boolean
+                isPublicRead: boolean
+              }>[]
+            >(
+              buckets.map(
+                _ =>
+                  new Promise((resolve, reject) => {
+                    that.cos.getBucketAcl(
+                      {
+                        Bucket: _.name,
+                        Region: _.region,
+                      },
+                      (err2, data2) => {
+                        if (err2) {
+                          reject(err2)
+                        } else {
+                          // acl："private" "public-read" "public-read-write"
+                          resolve({
+                            name: _.name,
+                            region: _.region,
+                            acl: data2.ACL,
+                            isPrivateRead: data2.ACL.includes('private'),
+                            isPublicRead: data2.ACL.includes('public-read'),
+                          })
+                        }
+                      }
+                    )
+                  })
+              )
+            )
+              .then(bucketsInfo => {
+                res({
+                  success: true,
+                  data: bucketsInfo,
+                })
+              })
+              .catch(e => {
+                console.log('获取bucket访问权限失败', e)
+                res({
+                  success: true,
+                  data: buckets,
+                })
+              })
+          }
         }
       })
     })
   }
 
   public getBucketDomains(): Promise<{ success: boolean; data?: string[]; msg?: string }> {
+    const that = this
     return new Promise((res, rej) => {
-      this.cdn.DescribeDomains({}, (err, data) => {
+      that.cdn.DescribeDomains({}, (err, data) => {
         if (err) {
           res({
             success: false,
@@ -181,8 +242,8 @@ class Tencent extends CSPAdaptor {
           })
         } else {
           const domain = [
-            `${this.bucket}.cos.${this.region}.myqcloud.com`,
-            `${this.bucket}.file.myqcloud.com`,
+            `${that.bucket}.cos.${that.region}.myqcloud.com`,
+            `${that.bucket}.file.myqcloud.com`,
           ]
           data.Domains.forEach(_ => {
             if (_.Cname && _.Cname.length) {
@@ -424,6 +485,7 @@ class Tencent extends CSPAdaptor {
   // 刷新单个文件
   // https://cloud.tencent.com/document/product/228/37870 刷新接口
   // https://cloud.tencent.com/document/product/228/41956 查询额度
+  // https://console.cloud.tencent.com/api/explorer?Product=cdn&Version=2018-06-06&Action=PurgeUrlsCache
   public refreshFiles(fileUrls: string[]): Promise<{
     success: boolean
     msg?: string

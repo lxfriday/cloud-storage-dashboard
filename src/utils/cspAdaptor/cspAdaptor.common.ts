@@ -60,7 +60,13 @@ export abstract class CSPAdaptor {
 
   public abstract getBucketList(): Promise<{
     success: boolean
-    data?: { name: string; region: string; storageClass?: string }[]
+    data?: {
+      name: string
+      region: string
+      acl?: string
+      isPrivateRead?: boolean
+      isPublicRead?: boolean
+    }[]
     msg?: string
   }>
 
