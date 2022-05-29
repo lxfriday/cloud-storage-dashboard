@@ -40,6 +40,7 @@ export function requestGetSignatureUrl(params) {
   return messageAdaptor({
     serverCommand: MESSAGE_COMMANDS.getSignatureUrl,
     data: {
+      expires: 3600, // 过期时间
       ...params,
     },
     cspInfo: getCSPInfo(),

@@ -329,7 +329,8 @@ class Tencent extends CSPAdaptor {
 
   public getSignatureUrl(
     keys: string[],
-    domain: string
+    domain: string,
+    expires: number
   ): Promise<{ success: boolean; data?: string[]; msg?: string }> {
     const that = this
     return new Promise((res, rej) => {
@@ -342,7 +343,7 @@ class Tencent extends CSPAdaptor {
                 Region: that.region,
                 Key: _,
                 Sign: true,
-                Expires: 3600,
+                Expires: expires,
               },
               (err, data) => {
                 if (err) {

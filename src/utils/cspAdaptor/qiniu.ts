@@ -139,7 +139,8 @@ class Qiniu extends CSPAdaptor {
 
   public getSignatureUrl(
     keys: string[],
-    domain: string
+    domain: string,
+    expires: number
   ): Promise<{ success: boolean; data?: string[]; msg?: string }> {
     const that = this
     const bucketManager = new qiniu.rs.BucketManager(
@@ -149,7 +150,7 @@ class Qiniu extends CSPAdaptor {
     return new Promise((res, rej) => {
       try {
         const urls = keys.map(_ =>
-          bucketManager.privateDownloadUrl(domain, _, Math.floor(Date.now() / 1000) + 3600)
+          bucketManager.privateDownloadUrl(domain, _, Math.floor(Date.now() / 1000) + expires)
         )
         res({
           success: true,
@@ -212,7 +213,7 @@ class Qiniu extends CSPAdaptor {
                     ? bucketManager.privateDownloadUrl(
                         domain,
                         _.key,
-                        Math.floor(Date.now() / 1000) + 3600
+                        Math.floor(Date.now() / 1000) + 10
                       )
                     : '',
                 })
@@ -242,7 +243,7 @@ class Qiniu extends CSPAdaptor {
 
   // 通过hack的方式获取到 bucket 的 acl 信息
   // 通过访问 bucket 绑定的域名
-  // 如果是 401 则表示未授权是私有的
+  // 如果是 401 403 则表示未授权是私有的
   // 如果是 404 则表示是正常访问的
   private _getBucketACL(bucket: string): Promise<{ isPrivate: boolean }> {
     return new Promise((res, rej) => {
@@ -262,7 +263,7 @@ class Qiniu extends CSPAdaptor {
               axios(`http://${domains[0]}`, { method: 'GET' })
                 .then(domainCheckRes => {
                   // @ts-ignore
-                  if (domainCheckRes.code === 401) {
+                  if (domainCheckRes.code === 401 || domainCheckRes.code === 403) {
                     res({
                       isPrivate: true,
                     })

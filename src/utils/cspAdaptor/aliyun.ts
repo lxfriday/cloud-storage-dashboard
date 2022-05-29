@@ -277,10 +277,11 @@ export default class Aliyun extends CSPAdaptor {
 
   public async getSignatureUrl(
     keys: string[],
-    domain: string
+    domain: string,
+    expires: number
   ): Promise<{ success: boolean; data?: string[]; msg?: string }> {
     try {
-      const urls = keys.map(_ => this.oss.signatureUrl(_, { expires: 3600 }))
+      const urls = keys.map(_ => this.oss.signatureUrl(_, { expires: expires }))
       return {
         success: true,
         data: urls,

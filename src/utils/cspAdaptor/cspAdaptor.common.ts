@@ -89,7 +89,8 @@ export abstract class CSPAdaptor {
   // 在私有bucket 中上传文件之后会调用该接口
   public abstract getSignatureUrl(
     keys: string[],
-    domain: string
+    domain: string,
+    expires: number
   ): Promise<{ success: boolean; data?: string[]; msg?: string }>
 
   public abstract getResourceList(

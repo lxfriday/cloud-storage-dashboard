@@ -122,7 +122,8 @@ export default function messageController(
             const csp = cspAdaptor(message.cspInfo)
             const getSignatureUrlRes = await csp.getSignatureUrl(
               message.data.keys,
-              message.data.domain
+              message.data.domain,
+              message.data.expires
             )
             postMessage({
               uniqueId: message.uniqueId,
@@ -230,7 +231,7 @@ export default function messageController(
           }
           case MESSAGE_COMMANDS.syncBucket_searchFile: {
             const csp = cspAdaptor(message.cspInfo)
-            const res = searchFile(csp, message.data.keyword)
+            const res = await searchFile(csp, message.data.keyword)
 
             postMessage({
               uniqueId: message.uniqueId,
