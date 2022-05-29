@@ -36,6 +36,7 @@ export default function ResourceList({
   handleRefreshResource,
   handleRefreshDir,
   handleDownloadFiles,
+  handleUpdateStorageClass,
 }) {
   // 资源框实际大小
   const resourceWidth = 130
@@ -140,6 +141,7 @@ export default function ResourceList({
           handleRenameResource,
           handleRefreshResource,
           handleDownloadFiles,
+          handleUpdateStorageClass,
         }}
       >
         {Cell}
@@ -187,6 +189,7 @@ const Cell = ({
     handleRenameResource,
     handleRefreshResource,
     handleDownloadFiles,
+    handleUpdateStorageClass,
   },
 }) => {
   // 注意 ind 指的是第多少个格子，不是 listData 的第 ind 个
@@ -264,6 +267,7 @@ const Cell = ({
               },
             ])
           }
+          handleUpdateStorageClass={handleUpdateStorageClass}
         />
       </div>
     )

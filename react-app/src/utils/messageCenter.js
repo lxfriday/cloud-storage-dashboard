@@ -83,6 +83,18 @@ export function requestDeleteBucketFiles(keysList) {
   )
 }
 
+// 变更存储类型
+export function requestUpdateStorageClass(params) {
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.updateStorageClass,
+      data: params,
+      cspInfo: getCSPInfo(),
+    },
+    false
+  )
+}
+
 // 移动或者重命名资源，都走这个接口
 export function requestMoveBucketFile(keysInfo) {
   return messageAdaptor(

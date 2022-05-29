@@ -149,6 +149,15 @@ export default function messageController(
             })
             return
           }
+          case MESSAGE_COMMANDS.updateStorageClass: {
+            const csp = cspAdaptor(message.cspInfo)
+            const res = await csp.updateStorageClass(message.data.key, message.data.storageClass)
+            postMessage({
+              uniqueId: message.uniqueId,
+              data: res,
+            })
+            return
+          }
           case MESSAGE_COMMANDS.moveBucketFile: {
             const csp = cspAdaptor(message.cspInfo)
             const moveBucketFileRes = await csp.moveBucketFile(message.data.keysInfo)

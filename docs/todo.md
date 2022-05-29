@@ -2,9 +2,9 @@
 
 ## high priority
 
+- 增删 bucket
+- 生成签名 url，自己指定时间
 - 新增一键更新 CORS 规则
-
-- 按照 大小、创建时间筛选
 - 更改列表显示模式
   - 由 grid 变更为 list（二维变一维）
 

@@ -490,6 +490,16 @@ class Tencent extends CSPAdaptor {
     })
   }
 
+  public async updateStorageClass(
+    key: string,
+    storageClass: string // 新的存储类型，都是字符串，七牛需要转换为数字
+  ): Promise<{ success: boolean; msg?: string }> {
+    return {
+      success: false,
+      msg: '腾讯云SDK不支持文件类型转换，请前往腾讯云控制台进行操作',
+    }
+  }
+
   public deleteBucketFiles(
     keysList: string[]
   ): Promise<{ success: boolean; data?: 'alldeleted' | 'partdeleted' | 'error'; msg?: string }> {

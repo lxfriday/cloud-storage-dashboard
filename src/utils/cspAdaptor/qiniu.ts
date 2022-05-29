@@ -4,6 +4,7 @@ import axios from 'axios'
 
 import * as Request from '../request'
 import * as boot from '../boot'
+import { urlsafeBase64Encode } from '../index'
 import {
   constructorParamsType,
   resourceListItemType,
@@ -21,6 +22,7 @@ function notiTpl(msg: string) {
 const urls = {
   buckets: 'https://rs.qbox.me/buckets', //空间列表
   domains: 'https://api.qiniu.com/v6/domain/list', //空间对应的域名列表(授权空间域名返回为空)
+  changeStorageClass: 'https://rs.qbox.me/chtype', // 变更文件存储类型
   count: 'https://api.qiniu.com/v6/count', //统计文件数量(标准存储)
   countLine: 'https://api.qiniu.com/v6/count_line', //统计文件数量(低频存储)
   space: 'https://api.qiniu.com/v6/space', //统计文件空间(低频存储)
@@ -422,6 +424,38 @@ class Qiniu extends CSPAdaptor {
   // 要作为参数传递，所以是箭头函数
   private generateHTTPAuthorization = (url: string) => {
     return qiniu.util.generateAccessToken(<qiniu.auth.digest.Mac>this.qiniuMac, url)
+  }
+
+  public async updateStorageClass(
+    key: string,
+    storageClass: string // 新的存储类型，都是字符串，七牛需要转换为数字
+  ): Promise<{ success: boolean; msg?: string }> {
+    try {
+      const bucket = this.bucket
+      const res = await Request.qiniuPost(
+        {
+          url: `${urls.changeStorageClass}/${urlsafeBase64Encode(
+            bucket + ':' + key
+          )}/type/${storageClass}`,
+        },
+        this.generateHTTPAuthorization
+      )
+      if (res.success) {
+        return {
+          success: true,
+        }
+      } else {
+        return {
+          success: false,
+          msg: res.msg,
+        }
+      }
+    } catch (e) {
+      return {
+        success: false,
+        msg: String(e),
+      }
+    }
   }
 
   // 删除 bucket 中的文件

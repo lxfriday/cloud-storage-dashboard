@@ -52,6 +52,33 @@ export function qiniuGet(
     })
 }
 
+export function qiniuPost(
+  { url, params, config }: requestParam,
+  getAuthorization: (url: string) => string
+) {
+  if (params) {
+    url += `?${qs.stringify(params)}`
+  }
+  if (!config) {
+    config = {}
+  }
+  // 七牛api
+  config = {
+    ...config,
+    headers: {
+      ...config.headers,
+      authorization: getAuthorization(url),
+    },
+  }
+  return axios(url, { method: 'POST', ...config })
+    .then(res => {
+      return res
+    })
+    .catch(e => {
+      return e
+    })
+}
+
 export function get({ url, params, config }: requestParam) {
   if (params) {
     url += `?${qs.stringify(params)}`

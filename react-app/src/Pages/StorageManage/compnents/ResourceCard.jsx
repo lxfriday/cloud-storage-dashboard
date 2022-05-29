@@ -7,8 +7,9 @@ import {
   PlayCircleOutlined,
   ZoomInOutlined,
   CustomerServiceFilled,
+  InfoCircleFilled,
 } from '@ant-design/icons'
-import { message, Menu, Dropdown, Modal, Input } from 'antd'
+import { message, Menu, Dropdown, Modal, Input, Radio } from 'antd'
 import copy from 'copy-text-to-clipboard'
 import classnames from 'classnames'
 import { useSelector } from 'react-redux'
@@ -38,6 +39,7 @@ export default function ResourceCard({
   storageClass,
   fkey,
   selected,
+  fileFullName,
   handleToggleSelectKey,
   handleDeleteFile,
   handleSelectAll,
@@ -46,7 +48,7 @@ export default function ResourceCard({
   handleRenameResource,
   handleRefreshResource,
   handleDownloadFile,
-  fileFullName,
+  handleUpdateStorageClass,
 }) {
   const hasSignatureUrl = !!signatureUrl
   const isPrivateRead = bucketInfo.isPrivateRead
@@ -57,6 +59,8 @@ export default function ResourceCard({
   const cspName = useSelector(state => state.settings.currentCSP.csp)
   const [renameOpModalVisible, setRenameOpModalVisible] = useState(false)
   const [moveOpModalVisible, setMoveOpModalVisible] = useState(false)
+  const [updateStorageClassModalVisible, setUpdateStorageClassModalVisible] = useState(false)
+  const [selectedStorageClass, setSelectedStorageClass] = useState(String(storageClass))
   const [newKey, setNewKey] = useState(fkey)
   let finalImage = null
 
@@ -167,8 +171,12 @@ export default function ResourceCard({
         全选
       </Menu.Item>
       <Menu.Divider />
+      <Menu.Item key="7" onClick={() => setUpdateStorageClassModalVisible(true)}>
+        修改存储类型
+      </Menu.Item>
+      <Menu.Divider />
       <Menu.Item
-        key="7"
+        key="8"
         style={{ color: 'green' }}
         onClick={() => {
           if (shouldUseSignatureUrl) {
@@ -184,7 +192,7 @@ export default function ResourceCard({
       <Menu.Divider />
       {isImage && (
         <Menu.Item
-          key="8"
+          key="9"
           style={{ color: 'green' }}
           onClick={() => {
             if (shouldUseSignatureUrl) {
@@ -199,7 +207,7 @@ export default function ResourceCard({
         </Menu.Item>
       )}
       <Menu.Divider />
-      <Menu.Item key="9" style={{ color: 'red' }} onClick={handlePressDelete}>
+      <Menu.Item key="10" style={{ color: 'red' }} onClick={handlePressDelete}>
         删除
       </Menu.Item>
     </Menu>
@@ -207,8 +215,53 @@ export default function ResourceCard({
   const finalExtName = ext && ext.length ? ext : 'unknown'
   const finalExtIsKnown = !(ext && ext.length)
 
+  useEffect(() => {
+    setSelectedStorageClass(String(storageClass))
+  }, [storageClass])
+
   return (
     <Fragment>
+      <Modal
+        title={
+          <span>
+            <InfoCircleFilled style={{ color: '#EE7700 ', marginRight: 8 }} />
+            修改存储类型
+          </span>
+        }
+        width={700}
+        visible={updateStorageClassModalVisible}
+        onOk={() => {
+          setUpdateStorageClassModalVisible(false)
+          setSelectedStorageClass(String(storageClass))
+          handleUpdateStorageClass({
+            key: fkey,
+            storageClass: selectedStorageClass,
+            // 存储类型对应的中文提示，只用于弹窗提醒
+            storageClassName: storageClassMap[cspName][selectedStorageClass],
+          })
+        }}
+        onCancel={() => {
+          setUpdateStorageClassModalVisible(false)
+          setSelectedStorageClass(String(storageClass))
+        }}
+        okText="确定"
+        cancelText="取消"
+      >
+        <div>
+          <Radio.Group
+            onChange={e => {
+              setSelectedStorageClass(e.target.value)
+            }}
+            value={selectedStorageClass}
+          >
+            {Object.keys(storageClassMap[cspName]).map(_ => (
+              <Radio key={_} value={_}>
+                {storageClassMap[cspName][_]}
+              </Radio>
+            ))}
+          </Radio.Group>
+        </div>
+      </Modal>
       {/* 移动和重命名实际上是一样的 */}
       <Modal
         title="重命名"

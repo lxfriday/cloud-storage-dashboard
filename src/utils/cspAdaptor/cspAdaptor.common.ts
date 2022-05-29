@@ -133,9 +133,16 @@ export abstract class CSPAdaptor {
     domain: string // 当前选中的域名
   ): Promise<{ success: boolean; data?: resourceListDataType; msg?: string }>
 
+  // 删除文件
   public abstract deleteBucketFiles(
     keysList: string[]
   ): Promise<{ success: boolean; data?: 'alldeleted' | 'partdeleted' | 'error'; msg?: string }>
+
+  // 变更存储类型
+  public abstract updateStorageClass(
+    key: string,
+    storageClass: string
+  ): Promise<{ success: boolean; msg?: string }>
 
   public abstract getOverviewInfo(): Promise<{
     success: boolean

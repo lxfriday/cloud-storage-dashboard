@@ -116,15 +116,7 @@ export default function StorageManage() {
             setUploadFolders([...prefixes])
             setPendingUploadPrefix(prefixes.join(''))
             setCommonPrefixList(data.commonPrefixes)
-            const nRList = []
-
-            data.list.forEach(r => {
-              // 七牛在网页端创建文件夹的时候，会自动创建一个空文件占位，把它删掉
-              if (r.mimeType !== 'application/qiniu-object-manager') {
-                nRList.push(r)
-              }
-            })
-            setResourceList(nRList)
+            setResourceList(data.list)
             setIsResourceListReachEnd(data.reachEnd)
           } else {
             message.error('资源列表加载失败：' + res.msg)
@@ -525,6 +517,34 @@ export default function StorageManage() {
     } else {
       message.error('正在搜索中，请稍后')
     }
+  }
+
+  function handleUpdateStorageClass({ key, storageClass, storageClassName }) {
+    messageCenter
+      .requestUpdateStorageClass({ key, storageClass })
+      .then(res => {
+        if (res.success) {
+          const newList = []
+          resourceList.forEach(r => {
+            if (r.key === key) {
+              newList.push({
+                ...r,
+                storageClass,
+              })
+            } else {
+              newList.push(r)
+            }
+          })
+          setResourceList(newList)
+          message.success(`存储类型已变更为 【${storageClassName}】`)
+        } else {
+          message.error('变更存储类型失败：' + res.msg)
+          message.error('转换失败时请先前往云服务商控制台解冻文件')
+        }
+      })
+      .catch(e => {
+        message.error('变更存储类型失败：' + e)
+      })
   }
 
   useEffect(async () => {
@@ -961,6 +981,7 @@ export default function StorageManage() {
         handleRefreshResource={handleRefreshResource}
         handleRefreshDir={handleRefreshDir}
         handleDownloadFiles={handleDownloadFiles}
+        handleUpdateStorageClass={handleUpdateStorageClass}
       />
       {/* 注意这里 display 一定要为 none，否则页面底部会出现多余的图片 */}
       <div style={{ display: 'none' }}>

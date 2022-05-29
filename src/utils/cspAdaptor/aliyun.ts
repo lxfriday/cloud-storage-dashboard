@@ -348,6 +348,25 @@ export default class Aliyun extends CSPAdaptor {
     }
   }
 
+  public async updateStorageClass(
+    key: string,
+    storageClass: string // 新的存储类型，都是字符串，七牛需要转换为数字
+  ): Promise<{ success: boolean; msg?: string }> {
+    try {
+      const result = await this.oss.copy(key, key, {
+        headers: { 'x-oss-storage-class': storageClass },
+      })
+      return {
+        success: true,
+      }
+    } catch (e) {
+      return {
+        success: false,
+        msg: String(e),
+      }
+    }
+  }
+
   public async deleteBucketFiles(
     keysList: string[]
   ): Promise<{ success: true; data?: 'alldeleted' | 'partdeleted' | 'error'; msg?: string }> {

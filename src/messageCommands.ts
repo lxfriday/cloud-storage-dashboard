@@ -6,6 +6,7 @@ export default {
   updateBucket: 'updateBucket',
   getBucketDomains: 'getBucketDomains',
   deleteBucketFiles: 'deleteBucketFiles',
+  updateStorageClass: 'updateStorageClass',
   getOverviewInfo: 'getOverviewInfo',
   open: 'open',
   readPaths: 'readPaths',
