@@ -292,11 +292,11 @@ export function requestSyncBucket(forceSync) {
   )
 }
 
-export function requestSyncBucketSearchFile(keyword) {
+export function requestSyncBucketSearchFile(params) {
   return messageAdaptor(
     {
       serverCommand: MESSAGE_COMMANDS.syncBucket_searchFile,
-      data: { keyword },
+      data: params,
       cspInfo: getCSPInfo(),
     },
     true,

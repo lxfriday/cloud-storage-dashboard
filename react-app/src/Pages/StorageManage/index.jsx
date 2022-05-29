@@ -496,7 +496,13 @@ export default function StorageManage() {
       // 搜索的时候，默认直接回到最顶层目录
 
       messageCenter
-        .requestSyncBucketSearchFile(keyword)
+        .requestSyncBucketSearchFile({
+          keyword,
+          domain: `${settings.forceHTTPS ? 'https://' : 'http://'}${
+            bucketDomainInfo.selectBucketDomain
+          }`,
+          isBucketPrivateRead: targetBucketInfo.isPrivateRead,
+        })
         .then(res => {
           if (res.success) {
             if (!res.data.length) {
@@ -510,8 +516,7 @@ export default function StorageManage() {
               setResourceList(res.data)
             }
           } else {
-            message.error(res.msg)
-            console.log('搜索失败', res)
+            message.error('搜索失败：' + res.msg)
           }
         })
         .finally(() => {

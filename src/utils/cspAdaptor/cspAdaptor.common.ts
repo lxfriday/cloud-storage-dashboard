@@ -37,6 +37,9 @@ export function extractCurrentFolders(cps: string[], prefix: string) {
   }
 }
 
+// resourcelist 和搜索获得的列表，签名url的过期时间，单位：秒
+export const signatureUrlExpires: number = 3600
+
 export abstract class CSPAdaptor {
   constructor(params: constructorParamsType) {}
   public abstract login(cspInfo: {

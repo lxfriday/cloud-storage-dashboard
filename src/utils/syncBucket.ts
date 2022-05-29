@@ -7,7 +7,11 @@ import * as fs from 'fs'
 import { CSPAdaptorType } from './cspAdaptor'
 import { extPath } from './boot'
 import messageCommands from '../messageCommands'
-import { resourceListItemType } from './cspAdaptor/cspAdaptor.common'
+import {
+  resourceListItemType,
+  resourceListItemWithSignatureUrlType,
+  signatureUrlExpires,
+} from './cspAdaptor/cspAdaptor.common'
 
 const syncDirName = 'sync'
 const syncSettingsFileName = 'syncSettings.json'
@@ -28,36 +32,85 @@ function getSyncFileName(csp: CSPAdaptorType): { fileName: string; fullFileName:
   return { fileName, fullFileName: `${fileName}.json` }
 }
 
-export function searchFile(
+export async function searchFile(
   csp: CSPAdaptorType,
-  keyword: string
-): { success: boolean; data?: resourceListItemType[]; msg?: string } {
-  const { fileName, fullFileName } = getSyncFileName(csp)
-  const bucketSyncPath = path.resolve(syncDirPath, fullFileName)
-  if (fs.existsSync(bucketSyncPath)) {
-    const files = JSON.parse(fs.readFileSync(bucketSyncPath).toString())
-    const res: resourceListItemType[] = []
+  keyword: string,
+  domain: string,
+  isBucketPrivateRead: boolean
+): Promise<{ success: boolean; data?: resourceListItemWithSignatureUrlType[]; msg?: string }> {
+  try {
+    const { fileName, fullFileName } = getSyncFileName(csp)
+    const bucketSyncPath = path.resolve(syncDirPath, fullFileName)
+    if (fs.existsSync(bucketSyncPath)) {
+      const files = JSON.parse(fs.readFileSync(bucketSyncPath).toString())
+      const res: resourceListItemWithSignatureUrlType[] = []
 
-    const startTime = Date.now()
-    console.log('search start')
+      const startTime = Date.now()
+      console.log('search start')
 
-    for (const _ of <resourceListItemType[]>files) {
-      if (_.key.toLowerCase().includes(keyword)) {
-        res.push(_)
+      for (const _ of <resourceListItemType[]>files) {
+        if (_.key.toLowerCase().includes(keyword)) {
+          res.push({
+            ..._,
+            signatureUrl: '',
+          })
+        }
+        if (res.length >= 1000) {
+          break
+        }
       }
-      if (res.length >= 1000) {
-        break
+
+      // 非私有读的bucket
+      if (isBucketPrivateRead) {
+        console.log('isBucketPrivateRead 是私有读的 bucket')
+
+        const resourceListWithSignatureUrl = await Promise.all<
+          Promise<resourceListItemWithSignatureUrlType>[]
+        >(
+          res.map(
+            _ =>
+              new Promise((res, rej) => {
+                csp
+                  .getSignatureUrl([_.key], domain, signatureUrlExpires)
+                  .then(getSignatureUrlResult => {
+                    if (getSignatureUrlResult.success) {
+                      res({
+                        ..._,
+                        // @ts-ignore
+                        signatureUrl: getSignatureUrlResult.data[0],
+                      })
+                    } else {
+                      res({
+                        ..._,
+                        signatureUrl: '',
+                      })
+                    }
+                  })
+              })
+          )
+        )
+        console.log('search end, cost time:', Date.now() - startTime)
+        return {
+          success: true,
+          data: resourceListWithSignatureUrl,
+        }
+      } else {
+        console.log('search end, cost time:', Date.now() - startTime)
+        return {
+          success: true,
+          data: res,
+        }
+      }
+    } else {
+      return {
+        success: false,
+        msg: 'bucket 内文件信息统计中，请稍后再试',
       }
     }
-    console.log('search end, cost time:', Date.now() - startTime)
-    return {
-      success: true,
-      data: res,
-    }
-  } else {
+  } catch (e) {
     return {
       success: false,
-      msg: 'bucket 内文件信息统计中，请稍后再试',
+      msg: String(e),
     }
   }
 }

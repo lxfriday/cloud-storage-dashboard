@@ -11,6 +11,7 @@ import {
   resourceListDataType,
   CSPAdaptor,
   extractCurrentFolders,
+  signatureUrlExpires,
 } from './cspAdaptor.common'
 
 function notiTpl(msg: string) {
@@ -213,7 +214,7 @@ class Qiniu extends CSPAdaptor {
                     ? bucketManager.privateDownloadUrl(
                         domain,
                         _.key,
-                        Math.floor(Date.now() / 1000) + 10
+                        Math.floor(Date.now() / 1000) + signatureUrlExpires
                       )
                     : '',
                 })

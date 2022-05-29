@@ -17,6 +17,7 @@ import {
   resourceListDataType,
   CSPAdaptor,
   extractCurrentFolders,
+  signatureUrlExpires,
 } from './cspAdaptor.common'
 
 export default class Aliyun extends CSPAdaptor {
@@ -324,7 +325,7 @@ export default class Aliyun extends CSPAdaptor {
             putTime: new Date(_.lastModified).toLocaleString(),
             mimeType: '', // 腾讯没有 mime
             signatureUrl: isBucketPrivateRead
-              ? that.oss.signatureUrl(_.name, { expires: 3600 })
+              ? that.oss.signatureUrl(_.name, { expires: signatureUrlExpires })
               : '',
           })
         }

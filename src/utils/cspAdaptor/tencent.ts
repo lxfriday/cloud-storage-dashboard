@@ -14,6 +14,7 @@ import {
   resourceListDataType,
   CSPAdaptor,
   extractCurrentFolders,
+  signatureUrlExpires,
 } from './cspAdaptor.common'
 
 const CdnClient = tencentcloud.cdn.v20180606.Client
@@ -443,7 +444,7 @@ class Tencent extends CSPAdaptor {
                         Region: that.region,
                         Key: _.key,
                         Sign: true,
-                        Expires: 3600,
+                        Expires: signatureUrlExpires,
                       },
                       (err2, data2) => {
                         if (err2) {

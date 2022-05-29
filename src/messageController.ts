@@ -231,7 +231,12 @@ export default function messageController(
           }
           case MESSAGE_COMMANDS.syncBucket_searchFile: {
             const csp = cspAdaptor(message.cspInfo)
-            const res = await searchFile(csp, message.data.keyword)
+            const res = await searchFile(
+              csp,
+              message.data.keyword,
+              message.data.domain,
+              message.data.isBucketPrivateRead
+            )
 
             postMessage({
               uniqueId: message.uniqueId,
