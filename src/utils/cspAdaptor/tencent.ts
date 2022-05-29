@@ -15,6 +15,7 @@ import {
   CSPAdaptor,
   extractCurrentFolders,
   signatureUrlExpires,
+  tencentStorageClass,
 } from './cspAdaptor.common'
 
 const CdnClient = tencentcloud.cdn.v20180606.Client
@@ -310,6 +311,7 @@ class Tencent extends CSPAdaptor {
                   md5: lodashTrim(_.ETag, '"'),
                   putTime: new Date(_.LastModified).toLocaleString(),
                   mimeType: '', // 腾讯没有 mime
+                  storageClass: _.StorageClass as tencentStorageClass,
                 })
               }
             })
@@ -415,6 +417,7 @@ class Tencent extends CSPAdaptor {
               // 腾讯云在查询带prefix的列表返回值中，列表第一个是 prefix，要删掉
               // 查询 prefix 的时候，要带尾 /
               if (_.Key[_.Key.length - 1] !== '/') {
+                console.log('tencent getResourceList', _)
                 list.push({
                   fsize: +_.Size,
                   hash: '',
@@ -423,6 +426,7 @@ class Tencent extends CSPAdaptor {
                   putTime: new Date(_.LastModified).toLocaleString(),
                   mimeType: '', // 腾讯没有 mime+
                   signatureUrl: '',
+                  storageClass: _.StorageClass as tencentStorageClass,
                 })
               }
             })

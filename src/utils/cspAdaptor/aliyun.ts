@@ -18,6 +18,7 @@ import {
   CSPAdaptor,
   extractCurrentFolders,
   signatureUrlExpires,
+  aliyunStorageClass,
 } from './cspAdaptor.common'
 
 export default class Aliyun extends CSPAdaptor {
@@ -260,6 +261,7 @@ export default class Aliyun extends CSPAdaptor {
             md5: lodashTrim(_.etag, '"'),
             putTime: new Date(_.lastModified).toLocaleString(),
             mimeType: '', // 腾讯没有 mime
+            storageClass: _.storageClass as aliyunStorageClass,
           })
         }
       })
@@ -295,6 +297,7 @@ export default class Aliyun extends CSPAdaptor {
     }
   }
 
+  // https://help.aliyun.com/document_detail/111389.html
   public async getResourceList(
     fromBegin: boolean,
     prefix: string,
@@ -327,6 +330,7 @@ export default class Aliyun extends CSPAdaptor {
             signatureUrl: isBucketPrivateRead
               ? that.oss.signatureUrl(_.name, { expires: signatureUrlExpires })
               : '',
+            storageClass: _.storageClass as aliyunStorageClass,
           })
         }
       })

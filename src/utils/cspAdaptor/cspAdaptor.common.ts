@@ -14,6 +14,7 @@ export type resourceListItemType = {
   md5: string
   putTime: string
   mimeType: string
+  storageClass: qiniuStorageClass | tencentStorageClass | aliyunStorageClass
 }
 
 export type resourceListItemWithSignatureUrlType = resourceListItemType & { signatureUrl: string }
@@ -24,6 +25,34 @@ export type resourceListDataType = {
   reachEnd: boolean
   marker: string
 }
+
+export type qiniuStorageClass =
+  // 标准存储
+  | 0
+  // 低频存储
+  | 1
+  // 归档存储
+  | 2
+  // 深度归档存储
+  | 3
+
+export type tencentStorageClass =
+  // 标准存储
+  | 'STANDARD'
+  // 低频存储
+  | 'STANDARD_IA'
+  // 归档存储
+  | 'ARCHIVE'
+  // 深度归档存储
+  | 'DEEP_ARCHIVE'
+
+export type aliyunStorageClass =
+  // 标准存储
+  | 'Standard'
+  // 归档存储
+  | 'Archive'
+  // 冷归档
+  | 'ColdArchive'
 
 // 依据 prefix 从 commonPrefixes 中分离出当前的 folders
 export function extractCurrentFolders(cps: string[], prefix: string) {

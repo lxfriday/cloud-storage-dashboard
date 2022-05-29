@@ -14,6 +14,7 @@ import classnames from 'classnames'
 import { useSelector } from 'react-redux'
 
 import { getFullTime, getFileSize } from '../../../utils'
+import { storageClass as storageClassMap } from '../../../utils/cloudserviceprovider'
 import styles from './ResourceCard.module.less'
 
 // 用来解决双击和单机事件冲突
@@ -34,6 +35,7 @@ export default function ResourceCard({
   signatureUrl,
   mimeType,
   putTime,
+  storageClass,
   fkey,
   selected,
   handleToggleSelectKey,
@@ -52,10 +54,10 @@ export default function ResourceCard({
   const deleteWithoutConfirm = useSelector(state => state.settings.deleteWithoutConfirm)
   // 用来预览的尾缀，压缩图像提升显示性能，但是和 刷新 CDN 有冲突，暂时禁用
   const imagePreviewSuffix = useSelector(state => state.settings.imagePreviewSuffix)
+  const cspName = useSelector(state => state.settings.currentCSP.csp)
   const [renameOpModalVisible, setRenameOpModalVisible] = useState(false)
   const [moveOpModalVisible, setMoveOpModalVisible] = useState(false)
   const [newKey, setNewKey] = useState(fkey)
-
   let finalImage = null
 
   if (isImage) {
@@ -124,6 +126,10 @@ export default function ResourceCard({
           {!!md5 && <p>md5：{md5}</p>}
           {!!mimeType && <p>mime：{mimeType}</p>}
           <p>创建时间：{putTime}</p>
+          <p>
+            存储类型：{storageClassMap[cspName] && storageClassMap[cspName][storageClass]} (
+            {storageClass})
+          </p>
         </div>
       ),
       width: 750,

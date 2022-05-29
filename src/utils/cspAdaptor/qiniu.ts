@@ -120,6 +120,7 @@ class Qiniu extends CSPAdaptor {
                 md5: _.md5,
                 putTime: new Date(+`${_.putTime}`.slice(0, 13)).toLocaleString(),
                 mimeType: _.mimeType,
+                storageClass: _.type,
               })
             }
           })
@@ -166,6 +167,7 @@ class Qiniu extends CSPAdaptor {
     })
   }
 
+  // https://developer.qiniu.com/kodo/1284/list
   // fromBegin 是否从头加载
   public getResourceList(
     fromBegin: boolean,
@@ -217,6 +219,7 @@ class Qiniu extends CSPAdaptor {
                         Math.floor(Date.now() / 1000) + signatureUrlExpires
                       )
                     : '',
+                  storageClass: _.type,
                 })
               }
             })

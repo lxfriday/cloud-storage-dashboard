@@ -244,6 +244,7 @@ const Cell = ({
           md5={resourceInfo.md5}
           mimeType={resourceInfo.mimeType}
           putTime={resourceInfo.putTime}
+          storageClass={resourceInfo.storageClass}
           url={url}
           signatureUrl={resourceInfo.signatureUrl}
           selected={selectedKeys.includes(resourceInfo.key)}
