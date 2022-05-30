@@ -447,7 +447,7 @@ export default function StorageManage() {
       })
       return
     }
-    const processedFilesInfo = getDownloadFilesInfo(filesInfo)
+    const processedFilesInfo = getDownloadFilesInfo(filesInfo, targetBucketInfo.isPrivateRead)
     setSelectedKeys([])
     // message.info('文件下载开始')
     downloadManager(processedFilesInfo)
@@ -469,6 +469,7 @@ export default function StorageManage() {
         const keyS = r.key.split('/')
         const fileFullName = keyS[keyS.length - 1]
         downloadFilesInfo.push({
+          signatureUrl: r.signatureUrl,
           url: resourcePrefix + r.key,
           ...getResourceExtAndName(fileFullName),
         })

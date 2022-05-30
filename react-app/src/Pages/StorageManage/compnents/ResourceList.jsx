@@ -261,6 +261,7 @@ const Cell = ({
           handleDownloadFile={() =>
             handleDownloadFiles([
               {
+                signatureUrl: resourceInfo.signatureUrl, // 不 encode
                 url: resourcePrefix + resourceInfo.key, // 不 encode
                 fname,
                 ext,

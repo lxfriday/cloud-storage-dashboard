@@ -417,7 +417,6 @@ class Tencent extends CSPAdaptor {
               // 腾讯云在查询带prefix的列表返回值中，列表第一个是 prefix，要删掉
               // 查询 prefix 的时候，要带尾 /
               if (_.Key[_.Key.length - 1] !== '/') {
-                console.log('tencent getResourceList', _)
                 list.push({
                   fsize: +_.Size,
                   hash: '',
