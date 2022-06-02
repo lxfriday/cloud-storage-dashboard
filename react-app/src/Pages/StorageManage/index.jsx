@@ -813,7 +813,6 @@ export default function StorageManage() {
             onClick={() => handleRefresh(uploadFolders)}
             icon={<SyncOutlined style={{ fontSize: '20px' }} />}
           ></Button>
-
           <Dropdown
             overlay={
               <Menu>
@@ -829,7 +828,6 @@ export default function StorageManage() {
               icon={<EllipsisOutlined style={{ fontSize: '20px' }} />}
             ></Button>
           </Dropdown>
-
           <span className={styles.searchWrapper}>
             <Input.Search
               placeholder="在这里搜索"

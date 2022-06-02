@@ -140,6 +140,15 @@ export default function messageController(
             })
             return
           }
+          case MESSAGE_COMMANDS.getBucketCORS: {
+            const csp = cspAdaptor(message.cspInfo)
+            const corsRulesRes = await csp.getBucketCORS()
+            postMessage({
+              uniqueId: message.uniqueId,
+              data: corsRulesRes,
+            })
+            return
+          }
           case MESSAGE_COMMANDS.deleteBucketFiles: {
             const csp = cspAdaptor(message.cspInfo)
             const res = await csp.deleteBucketFiles(message.data.keysList)

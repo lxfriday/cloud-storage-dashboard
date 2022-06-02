@@ -16,6 +16,7 @@ import {
   extractCurrentFolders,
   signatureUrlExpires,
   tencentStorageClass,
+  corsListItemType,
 } from './cspAdaptor.common'
 
 const CdnClient = tencentcloud.cdn.v20180606.Client
@@ -686,6 +687,44 @@ class Tencent extends CSPAdaptor {
                 })
               }
             })
+          }
+        }
+      )
+    })
+  }
+
+  public getBucketCORS(): Promise<{
+    success: boolean
+    msg?: string
+    data?: corsListItemType[]
+  }> {
+    const that = this
+    return new Promise((res, rej) => {
+      this.cos.getBucketCors(
+        {
+          Bucket: that.bucket,
+          Region: that.region,
+        },
+        (err, data) => {
+          if (err) {
+            res({ success: false, msg: err.message })
+          } else {
+            try {
+              const rules: corsListItemType[] = []
+              // @ts-ignore
+              data.CORSRules.forEach(_ => {
+                rules.push({
+                  allowedHeaders: _.AllowedHeaders,
+                  allowedMethods: _.AllowedMethods,
+                  allowedOrigins: _.AllowedOrigins,
+                  exposeHeaders: _.ExposeHeaders,
+                  maxAgeSeconds: !!_.MaxAgeSeconds ? _.MaxAgeSeconds : '0',
+                })
+              })
+              res({ success: true, data: rules })
+            } catch (e) {
+              res({ success: false, msg: '处理 CORS 配置失败' })
+            }
           }
         }
       )

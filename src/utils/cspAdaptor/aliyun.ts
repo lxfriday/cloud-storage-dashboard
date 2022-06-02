@@ -19,6 +19,7 @@ import {
   extractCurrentFolders,
   signatureUrlExpires,
   aliyunStorageClass,
+  corsListItemType,
 } from './cspAdaptor.common'
 
 export default class Aliyun extends CSPAdaptor {
@@ -141,7 +142,7 @@ export default class Aliyun extends CSPAdaptor {
               buckets.map(
                 _ =>
                   new Promise((resolve, reject) => {
-                    setTimeout(() => {
+                    const timer = setTimeout(() => {
                       // 设置一个超时时间，防止一直卡在这，只有阿里云有这个问题
                       reject('getBucketACL 超时了')
                     }, 5000)
@@ -154,6 +155,7 @@ export default class Aliyun extends CSPAdaptor {
                     })
                       .getBucketACL(_.name)
                       .then(getBucketACLRes => {
+                        clearTimeout(timer)
                         resolve({
                           name: _.name,
                           region: _.region,
@@ -209,6 +211,7 @@ export default class Aliyun extends CSPAdaptor {
 
   public async getBucketDomains(): Promise<{ success: boolean; data?: string[]; msg?: string }> {
     try {
+      await this.getBucketCORS()
       // 默认域名
       const domains = [`${this.bucket}.${this.region}.aliyuncs.com`]
       // 从cdn获取域名
@@ -509,6 +512,63 @@ export default class Aliyun extends CSPAdaptor {
       }
     } catch (e) {
       return { success: false, msg: String(e) }
+    }
+  }
+
+  public async getBucketCORS(): Promise<{
+    success: boolean
+    msg?: string
+    data?: corsListItemType[]
+  }> {
+    try {
+      const bucketRes = await this.oss.getBucketCORS(this.bucket)
+      const rules: corsListItemType[] = []
+      bucketRes.rules.forEach(_ => {
+        rules.push({
+          allowedHeaders:
+            // 可能是字符串或者数组或者 undifined
+            typeof _.allowedHeader === 'object'
+              ? _.allowedHeader
+              : [_.allowedHeader === undefined ? '' : _.allowedHeader],
+          allowedMethods:
+            typeof _.allowedMethod === 'object'
+              ? _.allowedMethod
+              : [_.allowedMethod === undefined ? '' : _.allowedMethod],
+          allowedOrigins:
+            typeof _.allowedOrigin === 'object'
+              ? _.allowedOrigin
+              : [_.allowedOrigin === undefined ? '' : _.allowedOrigin],
+          exposeHeaders:
+            typeof _.exposeHeader === 'object'
+              ? _.exposeHeader
+              : [_.exposeHeader === undefined ? '' : _.exposeHeader],
+          maxAgeSeconds:
+            typeof _.maxAgeSeconds === 'object'
+              ? _.maxAgeSeconds.join(' ')
+              : _.maxAgeSeconds === undefined || _.maxAgeSeconds === ''
+              ? '0'
+              : _.maxAgeSeconds,
+        })
+      })
+      return {
+        success: true,
+        data: rules,
+      }
+    } catch (e) {
+      // @ts-ignore
+      if (e.name === 'NoSuchCORSConfigurationError') {
+        // 没有 CORS 配置
+        return {
+          success: true,
+          data: [],
+        }
+      } else {
+        // 其他错误
+        return {
+          success: false,
+          msg: String(e),
+        }
+      }
     }
   }
 }

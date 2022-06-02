@@ -13,6 +13,7 @@ import {
   CSPAdaptor,
   extractCurrentFolders,
   signatureUrlExpires,
+  corsListItemType,
 } from './cspAdaptor.common'
 
 function notiTpl(msg: string) {
@@ -677,6 +678,19 @@ class Qiniu extends CSPAdaptor {
             })
           }
         }
+      })
+    })
+  }
+
+  public getBucketCORS(): Promise<{
+    success: boolean
+    msg?: string
+    data?: corsListItemType[]
+  }> {
+    return new Promise((res, rej) => {
+      res({
+        success: false,
+        msg: '七牛云未提供 CORS 相关操作',
       })
     })
   }

@@ -26,6 +26,14 @@ export type resourceListDataType = {
   marker: string
 }
 
+export type corsListItemType = {
+  allowedHeaders: string[]
+  allowedMethods: string[]
+  allowedOrigins: string[]
+  exposeHeaders: string[]
+  maxAgeSeconds: string
+}
+
 export type qiniuStorageClass =
   // 标准存储
   | 0
@@ -179,5 +187,17 @@ export abstract class CSPAdaptor {
     data?: {
       leftCount: number | string // 剩余可刷新余额
     }
+  }>
+
+  // 获取 CORS 规则
+  public abstract getBucketCORS(): Promise<{
+    success: boolean
+    msg?: string
+    data?: {
+      allowedHeaders: string[]
+      allowedMethods: string[]
+      allowedOrigins: string[]
+      maxAgeSeconds: string
+    }[]
   }>
 }

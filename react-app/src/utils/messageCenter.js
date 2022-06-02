@@ -69,6 +69,24 @@ export function requestGetBucketDomains() {
     false
   )
 }
+export function requestGetBucketCORS(bucket, region) {
+  const {
+    settings: { currentCSP },
+  } = store.getState()
+  let _ = !!currentCSP ? currentCSP : {}
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.getBucketCORS,
+      data: {},
+      cspInfo: {
+        ..._,
+        bucket,
+        region,
+      },
+    },
+    true
+  )
+}
 // 删除一个或多个文件都走这个接口
 export function requestDeleteBucketFiles(keysList) {
   return messageAdaptor(

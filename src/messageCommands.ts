@@ -5,6 +5,7 @@ export default {
   getSignatureUrl: 'getSignatureUrl',
   updateBucket: 'updateBucket',
   getBucketDomains: 'getBucketDomains',
+  getBucketCORS: 'getBucketCORS',
   deleteBucketFiles: 'deleteBucketFiles',
   updateStorageClass: 'updateStorageClass',
   getOverviewInfo: 'getOverviewInfo',

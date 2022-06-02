@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from 'react'
-import { Menu, message, notification, Spin, Tooltip } from 'antd'
+import {
+  Menu,
+  message,
+  notification,
+  Spin,
+  Tooltip,
+  Button,
+  Modal,
+  Form,
+  Input,
+  Checkbox,
+} from 'antd'
 import {
   SettingOutlined,
   LogoutOutlined,
@@ -26,6 +37,11 @@ export default function Nav({ children }) {
   const bucketList = useSelector(state => state.storageManage.bucketList)
   // 是否已经初始化了，用于在获取到登录信息之前做过渡
   const [hasInitialized, setHasInitialized] = useState(false)
+  // 查看用
+  const [checkCORSRulesModalVisible, setCheckCORSRulesModalVisible] = useState(false)
+  // 更新用
+  const [updateCORSRulesModalVisible, setUpdateCORSRulesModalVisible] = useState(false)
+  const [CORSRules, setCORSRules] = useState([])
   const [backImg, setBackImg] = useState()
   // 后台是否正在同步数据
   const [isSyncing, setIsSyncing] = useState(false)
@@ -35,6 +51,23 @@ export default function Nav({ children }) {
   function handleChangeCSP() {
     dispatch(resetBucketInfoAction())
     dispatch(logout())
+  }
+
+  // 点击查看 CORS 信息
+  function handleCheckBucketCORS(bucket, region) {
+    messageCenter
+      .requestGetBucketCORS(bucket, region)
+      .then(res => {
+        if (res.success) {
+          setCORSRules(res.data)
+          setCheckCORSRulesModalVisible(true)
+        } else {
+          message.error('CORS 信息获取失败：' + res.msg)
+        }
+      })
+      .catch(e => {
+        message.error('CORS 信息获取失败')
+      })
   }
 
   useEffect(() => {
@@ -150,9 +183,101 @@ export default function Nav({ children }) {
     )
   }
 
+  const layout = {
+    labelCol: { span: 0 },
+    wrapperCol: { span: 24 },
+  }
+
   if (hasLogin) {
     return (
       <div className={styles.wrapper}>
+        <Modal
+          visible={checkCORSRulesModalVisible}
+          title="CORS 信息"
+          width={500}
+          okText="确认"
+          cancelText="取消"
+          onOk={() => {
+            setCheckCORSRulesModalVisible(false)
+            setCORSRules([])
+          }}
+          onCancel={() => {
+            setCheckCORSRulesModalVisible(false)
+            setCORSRules([])
+          }}
+        >
+          <div className={styles.checkCORSWrapper}>
+            {CORSRules.map((_, i) => (
+              <div key={i} className={styles.CORSItemWrapper}>
+                <div className={styles.title}>Access-Control-Allow-Methods</div>
+                <span className={styles.info}>{_.allowedMethods.join(', ')}</span>
+                <div className={styles.title}>Access-Control-Allow-Headers</div>
+                <span className={styles.info}>{_.allowedHeaders.join(', ')}</span>
+                <div className={styles.title}>
+                  Access-Control-Allow-Origin
+                  <span className={styles.noti}>(如果不包含 * 将不能在本软件内上传文件)</span>
+                </div>
+                <div className={styles.info}>
+                  {_.allowedOrigins.map((__, ii) => [
+                    <span key={ii} className={styles.detailList}>
+                      {__}
+                    </span>,
+                    <br key={ii + 'br'} />,
+                  ])}
+                </div>
+                <div className={styles.title}>Access-Control-Expose-Headers</div>
+                <span className={styles.info}>{_.exposeHeaders.join(', ')}</span>
+                <div className={styles.title}>Access-Control-Max-Age</div>
+                <span className={styles.info}>{_.maxAgeSeconds} 秒</span>
+              </div>
+            ))}
+            {CORSRules.length === 0 && '没有配置 CORS 规则，将不能在本软件内上传文件'}
+          </div>
+        </Modal>
+        <Modal
+          visible={updateCORSRulesModalVisible}
+          title="CORS 信息"
+          width={500}
+          okText="确认"
+          cancelText="取消"
+          onOk={() => {}}
+          onCancel={() => {
+            setUpdateCORSRulesModalVisible(false)
+          }}
+        >
+          <Form {...layout} className={styles.CORSForm}>
+            <span className={styles.title}>Access-Control-Allow-Methods</span>
+            <Form.Item name={['user', 'name']} className={styles.formItemWrapper}>
+              <Checkbox.Group
+                options={[
+                  { label: 'PUT', value: 'PUT' },
+                  { label: 'GET', value: 'GET' },
+                  { label: 'POST', value: 'POST' },
+                  { label: 'DELETE', value: 'DELETE' },
+                  { label: 'HEAD', value: 'HEAD' },
+                ]}
+                defaultValue={[]}
+                onChange={() => {}}
+              />
+            </Form.Item>
+            <span className={styles.title}>Access-Control-Allow-Headers</span>
+            <Form.Item name={['user', 'name']} className={styles.formItemWrapper}>
+              <Input.TextArea />
+            </Form.Item>
+            <span className={styles.title}>Access-Control-Expose-Headers</span>
+            <Form.Item name={['user', 'name']} className={styles.formItemWrapper}>
+              <Input.TextArea />
+            </Form.Item>
+            <span className={styles.title}>Access-Control-Allow-Origin</span>
+            <Form.Item name={['user', 'name']} className={styles.formItemWrapper}>
+              <Input.TextArea />
+            </Form.Item>
+            <span className={styles.title}>Access-Control-Max-Age</span>
+            <Form.Item name={['user', 'name']} className={styles.formItemWrapper}>
+              <Input placeholder="CORS 过期时间，单位：秒" />
+            </Form.Item>
+          </Form>
+        </Modal>
         <div className={styles.sideWrapper}>
           <div className={styles.sideTopWrapper}>
             <div className={styles.siteTitle}>云存储管理</div>
@@ -186,8 +311,26 @@ export default function Nav({ children }) {
                     title={
                       <div>
                         <div>bucket: {_.name}</div>
-                        {!!_.region && <div>region: {_.region}</div>}
-                        {!!_.acl && <div>acl: {_.acl}</div>}
+                        {!!_.region && <div>区域: {_.region}</div>}
+                        {!!_.acl && <div>读写规则: {_.acl}</div>}
+                        <div style={{ margin: '10px 0 18px' }}>
+                          <Button
+                            size="small"
+                            type="primary"
+                            onClick={handleCheckBucketCORS.bind(null, _.name, _.region)}
+                          >
+                            查看 CORS
+                          </Button>
+                          <Button
+                            size="small"
+                            type="primary"
+                            danger
+                            onClick={handleCheckBucketCORS.bind(null, _.name, _.region)}
+                            style={{ marginLeft: 12 }}
+                          >
+                            更新 CORS
+                          </Button>
+                        </div>
                       </div>
                     }
                   >
@@ -196,7 +339,7 @@ export default function Nav({ children }) {
                       className={({ isActive }) => (isActive ? styles.navLinkActive : undefined)}
                       style={{ fontSize: 12 }}
                     >
-                      {_.name}
+                      <div>{_.name}</div>
                     </NavLink>
                   </Tooltip>
                 </Menu.Item>
