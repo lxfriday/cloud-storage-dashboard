@@ -15,7 +15,7 @@ import classnames from 'classnames'
 import { useSelector } from 'react-redux'
 
 import { getFullTime, getFileSize } from '../../../utils'
-import { storageClass as storageClassMap } from '../../../utils/cloudserviceprovider'
+import { storageClassMap, safelyGetStorageClass } from '../../../utils/cloudserviceprovider'
 import styles from './ResourceCard.module.less'
 
 // 用来解决双击和单机事件冲突
@@ -49,6 +49,7 @@ export default function ResourceCard({
   handleRefreshResource,
   handleDownloadFile,
   handleUpdateStorageClass,
+  handleGenTmpLink,
 }) {
   const hasSignatureUrl = !!signatureUrl
   const isPrivateRead = bucketInfo.isPrivateRead
@@ -60,6 +61,8 @@ export default function ResourceCard({
   const [renameOpModalVisible, setRenameOpModalVisible] = useState(false)
   const [moveOpModalVisible, setMoveOpModalVisible] = useState(false)
   const [updateStorageClassModalVisible, setUpdateStorageClassModalVisible] = useState(false)
+  const [genTmpLinkModalVisible, setGenTmpLinkModalVisible] = useState(false)
+  const [tmpLinkExpires, setTmpLinkExpires] = useState(3600)
   const [selectedStorageClass, setSelectedStorageClass] = useState(String(storageClass))
   const [newKey, setNewKey] = useState(fkey)
   let finalImage = null
@@ -131,8 +134,8 @@ export default function ResourceCard({
           {!!mimeType && <p>mime：{mimeType}</p>}
           <p>创建时间：{putTime}</p>
           <p>
-            存储类型：{storageClassMap[cspName] && storageClassMap[cspName][storageClass]} (
-            {storageClass})
+            存储类型：
+            {safelyGetStorageClass(cspName, storageClass).name} ({storageClass})
           </p>
         </div>
       ),
@@ -143,40 +146,50 @@ export default function ResourceCard({
 
   const contextMenu = (
     <Menu>
-      <Menu.Item key="0" onClick={handlePressDetail}>
+      <Menu.Item key="detail" onClick={handlePressDetail}>
         详情
       </Menu.Item>
       <Menu.Divider />
-      <Menu.Item key="1" onClick={handleRefreshResource}>
+      <Menu.Item key="refreshcdn" onClick={handleRefreshResource}>
         刷新CDN
       </Menu.Item>
       <Menu.Divider />
-      <Menu.Item key="2" onClick={handleDownloadFile}>
+      <Menu.Item key="download" onClick={handleDownloadFile}>
         下载
       </Menu.Item>
       <Menu.Divider />
-      <Menu.Item key="3" onClick={() => setRenameOpModalVisible(true)}>
+      <Menu.Item key="rename" onClick={() => setRenameOpModalVisible(true)}>
         重命名
       </Menu.Item>
       <Menu.Divider />
-      <Menu.Item key="4" onClick={() => setRenameOpModalVisible(true)}>
+      <Menu.Item key="move" onClick={() => setRenameOpModalVisible(true)}>
         移动
       </Menu.Item>
       <Menu.Divider />
-      <Menu.Item key="5" onClick={() => handleToggleSelectKey(fkey)}>
+      <Menu.Item key="select" onClick={() => handleToggleSelectKey(fkey)}>
         选择
       </Menu.Item>
       <Menu.Divider />
-      <Menu.Item key="6" onClick={handleSelectAll}>
+      <Menu.Item key="selectall" onClick={handleSelectAll}>
         全选
       </Menu.Item>
       <Menu.Divider />
-      <Menu.Item key="7" onClick={() => setUpdateStorageClassModalVisible(true)}>
-        修改存储类型
+      {isPrivateRead && [
+        <Menu.Item key="gentmplink" onClick={() => setGenTmpLinkModalVisible(true)}>
+          生成临时链接
+        </Menu.Item>,
+        <Menu.Divider key="divider" />,
+      ]}
+      <Menu.Item
+        key="updatestorageclass"
+        onClick={() => setUpdateStorageClassModalVisible(true)}
+        disabled={!safelyGetStorageClass(cspName, storageClass).canChange}
+      >
+        修改存储类型{!safelyGetStorageClass(cspName, storageClass).canChange && '(需解冻)'}
       </Menu.Item>
       <Menu.Divider />
       <Menu.Item
-        key="8"
+        key="copy"
         style={{ color: 'green' }}
         onClick={() => {
           if (shouldUseSignatureUrl) {
@@ -192,7 +205,7 @@ export default function ResourceCard({
       <Menu.Divider />
       {isImage && (
         <Menu.Item
-          key="9"
+          key="copyasmd"
           style={{ color: 'green' }}
           onClick={() => {
             if (shouldUseSignatureUrl) {
@@ -207,7 +220,7 @@ export default function ResourceCard({
         </Menu.Item>
       )}
       <Menu.Divider />
-      <Menu.Item key="10" style={{ color: 'red' }} onClick={handlePressDelete}>
+      <Menu.Item key="delete" style={{ color: 'red' }} onClick={handlePressDelete}>
         删除
       </Menu.Item>
     </Menu>
@@ -237,7 +250,7 @@ export default function ResourceCard({
             key: fkey,
             storageClass: selectedStorageClass,
             // 存储类型对应的中文提示，只用于弹窗提醒
-            storageClassName: storageClassMap[cspName][selectedStorageClass],
+            storageClassName: safelyGetStorageClass(cspName, selectedStorageClass).name,
           })
         }}
         onCancel={() => {
@@ -256,11 +269,36 @@ export default function ResourceCard({
           >
             {Object.keys(storageClassMap[cspName]).map(_ => (
               <Radio key={_} value={_}>
-                {storageClassMap[cspName][_]}
+                {storageClassMap[cspName][_].name}
               </Radio>
             ))}
           </Radio.Group>
         </div>
+      </Modal>
+      {/* 生成临时链接 */}
+      <Modal
+        title="生成临时链接（秒）"
+        width={500}
+        visible={genTmpLinkModalVisible}
+        onOk={() => {
+          handleGenTmpLink(fkey, tmpLinkExpires)
+          setGenTmpLinkModalVisible(false)
+          setTmpLinkExpires(3600)
+        }}
+        onCancel={() => {
+          setGenTmpLinkModalVisible(false)
+          setTmpLinkExpires(3600)
+        }}
+        okText="确定"
+        cancelText="取消"
+      >
+        <Input
+          type="number"
+          placeholder="输入链接有效时间，单位：秒"
+          value={tmpLinkExpires}
+          onChange={e => setTmpLinkExpires(e.target.value)}
+          onPaste={e => e.stopPropagation()}
+        />
       </Modal>
       {/* 移动和重命名实际上是一样的 */}
       <Modal

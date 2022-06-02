@@ -84,7 +84,6 @@ export function base64ToUrlSafe(v: string) {
   return v.replace(/\//g, '_').replace(/\+/g, '-')
 }
 export function urlsafeBase64Encode(str: string) {
-  console.log('urlsafeBase64Encode', str)
   const encoded = Buffer.from(str).toString('base64')
   return base64ToUrlSafe(encoded)
 }

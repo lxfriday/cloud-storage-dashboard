@@ -9,22 +9,66 @@ export default {
 }
 
 // 存储类型
-export const storageClass = {
+export const storageClassMap = {
   qiniu: {
-    0: '标准存储',
-    1: '低频存储',
-    2: '归档存储',
-    3: '深度归档存储',
+    0: {
+      name: '标准存储', // 存储类型中文解释
+      canChange: true, // 能否直接变更类型
+    },
+    1: {
+      name: '低频存储',
+      canChange: true,
+    },
+    2: {
+      name: '归档存储',
+      canChange: false, // 不能直接变更类型，需要解冻
+    },
+    3: {
+      name: '深度归档存储',
+      canChange: false,
+    },
   },
   tencent: {
-    STANDARD: '标准存储',
-    STANDARD_IA: '低频存储',
-    ARCHIVE: '归档存储',
-    DEEP_ARCHIVE: '深度归档存储',
+    STANDARD: {
+      name: '标准存储',
+      canChange: true,
+    },
+    STANDARD_IA: {
+      name: '低频存储',
+      canChange: true,
+    },
+    ARCHIVE: {
+      name: '归档存储',
+      canChange: true,
+    },
+    DEEP_ARCHIVE: {
+      name: '深度归档存储',
+      canChange: true,
+    },
   },
   aliyun: {
-    Standard: '标准存储',
-    Archive: '归档存储',
-    ColdArchive: '冷归档',
+    Standard: {
+      name: '标准存储',
+      canChange: true,
+    },
+    Archive: {
+      name: '归档存储',
+      canChange: false,
+    },
+    ColdArchive: {
+      name: '冷归档',
+      canChange: false,
+    },
   },
+}
+
+export function safelyGetStorageClass(csp, key) {
+  let res = {
+    name: '无存储类型',
+    canChange: false,
+  }
+  if (storageClassMap[csp] && storageClassMap[csp][key]) {
+    res = storageClassMap[csp][key]
+  }
+  return res
 }

@@ -548,6 +548,30 @@ export default function StorageManage() {
       })
   }
 
+  // 生成临时链接
+  function handleGenTmpLink(key, expires) {
+    const domain = `${settings.forceHTTPS ? 'https://' : 'http://'}${
+      bucketDomainInfo.selectBucketDomain
+    }`
+    messageCenter
+      .requestGetSignatureUrl({
+        keys: [key],
+        domain,
+        expires: +expires,
+      })
+      .then(getSignatureUrlRes => {
+        if (getSignatureUrlRes.success) {
+          copy(getSignatureUrlRes.data[0])
+          message.success(`临时链接已复制到剪切板，有效期 ${expires} 秒`)
+        } else {
+          message.error(`获取临时链接失败：${getSignatureUrlRes.msg}`)
+        }
+      })
+      .catch(e => {
+        message.error(`获取临时链接失败： ${e}`)
+      })
+  }
+
   useEffect(async () => {
     dispatch(updateBucketAction(currentBucket))
     // 打开一个 bucket 的时候，更新 localside bucket
@@ -983,6 +1007,7 @@ export default function StorageManage() {
         handleRefreshDir={handleRefreshDir}
         handleDownloadFiles={handleDownloadFiles}
         handleUpdateStorageClass={handleUpdateStorageClass}
+        handleGenTmpLink={handleGenTmpLink}
       />
       {/* 注意这里 display 一定要为 none，否则页面底部会出现多余的图片 */}
       <div style={{ display: 'none' }}>
