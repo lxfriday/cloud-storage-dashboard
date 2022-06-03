@@ -890,17 +890,36 @@ export default function StorageManage() {
           <div className={styles.bulkToolsWrapper}>
             {selectedKeys.length > 0 && (
               <Fragment>
-                <span className={styles.bulkTypeNoti}>文件操作 {'=>'}</span>
-                <Button size="small" onClick={handleCancelSelectAll}>
+                <Button
+                  size="small"
+                  type="ghost"
+                  style={{ color: '#fff' }}
+                  onClick={handleCancelSelectAll}
+                >
                   取消
                 </Button>
-                <Button size="small" onClick={handleSelectAll}>
+                <Button
+                  size="small"
+                  type="ghost"
+                  style={{ color: '#fff' }}
+                  onClick={handleSelectAll}
+                >
                   全选
                 </Button>
-                <Button size="small" onClick={handleRefreshSelectedResources}>
+                <Button
+                  size="small"
+                  type="ghost"
+                  style={{ color: '#fff' }}
+                  onClick={handleRefreshSelectedResources}
+                >
                   刷新缓存({selectedKeys.length})
                 </Button>
-                <Button size="small" onClick={handleBulkDownload}>
+                <Button
+                  size="small"
+                  type="ghost"
+                  style={{ color: '#fff' }}
+                  onClick={handleBulkDownload}
+                >
                   下载({selectedKeys.length})
                 </Button>
                 <Button
@@ -930,14 +949,23 @@ export default function StorageManage() {
             )}
             {selectedFolders.length > 0 && (
               <Fragment>
-                <span className={styles.bulkTypeNoti}>目录操作 {'=>'}</span>
-                <Button size="small" onClick={handleCancelSelectAllFolders}>
+                <Button
+                  size="small"
+                  type="ghost"
+                  style={{ color: '#fff' }}
+                  onClick={handleCancelSelectAllFolders}
+                >
                   取消
                 </Button>
                 {/* <Button size="small" onClick={null}>
                   全选
                 </Button> */}
-                <Button size="small" onClick={handleRefreshSelectedDir}>
+                <Button
+                  size="small"
+                  type="ghost"
+                  style={{ color: '#fff' }}
+                  onClick={handleRefreshSelectedDir}
+                >
                   刷新缓存({selectedFolders.length})
                 </Button>
                 {/* <Button size="small">下载({selectedFolders.length})</Button> */}
