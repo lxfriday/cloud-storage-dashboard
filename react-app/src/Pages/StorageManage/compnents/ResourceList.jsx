@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, Fragment } from 'react'
-import { FixedSizeGrid as Grid } from 'react-window'
+import { FixedSizeGrid as Grid, FixedSizeList as List } from 'react-window'
 import { VerticalAlignTopOutlined } from '@ant-design/icons'
+import classnames from 'classnames'
 
 import ResourceCard from './ResourceCard'
 import FolderCard from './FolderCard'
@@ -15,6 +16,7 @@ import {
 import styles from './ResourceList.module.less'
 
 export default function ResourceList({
+  listType,
   bucketInfo,
   uploadFolder,
   commonPrefixList,
@@ -51,12 +53,22 @@ export default function ResourceList({
     cellWrapperWidth: 0,
     cellWrapperheight: 0,
   })
+  // 普通列表的一些信息
+  const [listInfo, setListInfo] = useState({
+    containerWidth: 0,
+    containerheight: 0,
+  })
   const [isToTopVisible, setIsToTopVisible] = useState(false)
   // grid 外层 ref
   const gridOutterEle = useRef(null)
-  // 列表 wrapper ref
+  // grid 列表 wrapper ref
   const gridInnerEle = useRef(null)
   const gridRef = useRef(null)
+  // list 外层 ref
+  const listOutterEle = useRef(null)
+  // list 列表 wrapper ref
+  const listInnerEle = useRef(null)
+  const listRef = useRef(null)
 
   // 行数由总条目数文件夹数和列数计算得出，+1 是因为要加上 第一个返回上一层的按钮
   const isTopFolder = uploadFolder.length === 0
@@ -64,8 +76,9 @@ export default function ResourceList({
     (resourceList.length + commonPrefixList.length + (isTopFolder ? 0 : 1)) / gridInfo.columnCount
   )
   const listData = [...commonPrefixList, ...resourceList]
+  const listItemCount = listData.length + (isTopFolder ? 0 : 1)
 
-  function handleScroll({ scrollTop }) {
+  function handleGridScroll({ scrollTop }) {
     const threshhold = 20
     const reachEnd =
       scrollTop + gridInfo.containerheight + threshhold > gridInnerEle.current.clientHeight
@@ -78,8 +91,22 @@ export default function ResourceList({
     }
   }
 
+  function handleListScroll({ scrollOffset }) {
+    const threshhold = 20
+    const reachEnd =
+      scrollOffset + listInfo.containerheight + threshhold > listInnerEle.current.clientHeight
+    const shouldShowToTop = scrollOffset > listInfo.containerheight + 200
+    if (shouldShowToTop !== isToTopVisible) {
+      setIsToTopVisible(shouldShowToTop)
+    }
+    if (reachEnd) {
+      handleLoadData()
+    }
+  }
+
   useEffect(() => {
-    function calcGridInfo() {
+    // 计算 Grid List 的布局信息
+    function calcListGridInfo() {
       const { width: bodyWidth, height: bodyHeight } = document.body.getBoundingClientRect()
       const containerWidth = bodyWidth - 180
       const containerheight = bodyHeight - 104
@@ -98,65 +125,115 @@ export default function ResourceList({
         cellWrapperWidth: cellWrapperWH,
         cellWrapperheight: cellWrapperWH,
       })
+      setListInfo({
+        containerWidth,
+        containerheight,
+      })
     }
-    window.addEventListener('resize', calcGridInfo)
-    calcGridInfo()
+    window.addEventListener('resize', calcListGridInfo)
+    calcListGridInfo()
     handleLoadData()
     return () => {
-      window.removeEventListener('resize', calcGridInfo)
+      window.removeEventListener('resize', calcListGridInfo)
     }
   }, [])
 
   return (
     <div className={styles.wrapper}>
-      <Grid
-        ref={r => (gridRef.current = r)}
-        outerRef={r => (gridOutterEle.current = r)}
-        innerRef={r => (gridInnerEle.current = r)}
-        className={styles.grid}
-        columnCount={gridInfo.columnCount}
-        columnWidth={gridInfo.cellWrapperWidth}
-        height={gridInfo.containerheight}
-        rowCount={rowCount}
-        rowHeight={gridInfo.cellWrapperheight}
-        width={gridInfo.containerWidth}
-        onScroll={handleScroll}
-        itemData={{
-          data: listData,
-          bucketInfo,
-          columnCount: gridInfo.columnCount,
-          isTopFolder,
-          handleBackward,
-          selectedFolders,
-          handleViewFolder,
-          handleRefreshDir,
-          handleToggleSelectFolder,
-          commonPrefixList,
-          resourcePrefix,
-          selectedKeys,
-          handleToggleSelectKey,
-          handleDeleteFiles,
-          handleSelectAll,
-          handlePreviewAsImg,
-          handleOpenInBrowser,
-          handleRenameResource,
-          handleRefreshResource,
-          handleDownloadFiles,
-          handleUpdateStorageClass,
-          handleGenTmpLink,
-        }}
-      >
-        {Cell}
-      </Grid>
+      {listType === 'grid' ? (
+        <Grid
+          ref={r => (gridRef.current = r)}
+          outerRef={r => (gridOutterEle.current = r)}
+          innerRef={r => (gridInnerEle.current = r)}
+          className={styles.grid}
+          columnCount={gridInfo.columnCount}
+          columnWidth={gridInfo.cellWrapperWidth}
+          height={gridInfo.containerheight}
+          rowCount={rowCount}
+          rowHeight={gridInfo.cellWrapperheight}
+          width={gridInfo.containerWidth}
+          onScroll={handleGridScroll}
+          itemData={{
+            data: listData,
+            listType,
+            bucketInfo,
+            columnCount: gridInfo.columnCount,
+            isTopFolder,
+            handleBackward,
+            selectedFolders,
+            handleViewFolder,
+            handleRefreshDir,
+            handleToggleSelectFolder,
+            commonPrefixList,
+            resourcePrefix,
+            selectedKeys,
+            handleToggleSelectKey,
+            handleDeleteFiles,
+            handleSelectAll,
+            handlePreviewAsImg,
+            handleOpenInBrowser,
+            handleRenameResource,
+            handleRefreshResource,
+            handleDownloadFiles,
+            handleUpdateStorageClass,
+            handleGenTmpLink,
+          }}
+        >
+          {GridCell}
+        </Grid>
+      ) : (
+        <List
+          ref={r => (listRef.current = r)}
+          outerRef={r => (listOutterEle.current = r)}
+          innerRef={r => (listInnerEle.current = r)}
+          className={styles.list}
+          height={listInfo.containerheight}
+          width={listInfo.containerWidth}
+          itemSize={32}
+          itemCount={listItemCount}
+          onScroll={handleListScroll}
+          itemData={{
+            data: listData,
+            listType,
+            bucketInfo,
+            columnCount: gridInfo.columnCount,
+            isTopFolder,
+            handleBackward,
+            selectedFolders,
+            handleViewFolder,
+            handleRefreshDir,
+            handleToggleSelectFolder,
+            commonPrefixList,
+            resourcePrefix,
+            selectedKeys,
+            handleToggleSelectKey,
+            handleDeleteFiles,
+            handleSelectAll,
+            handlePreviewAsImg,
+            handleOpenInBrowser,
+            handleRenameResource,
+            handleRefreshResource,
+            handleDownloadFiles,
+            handleUpdateStorageClass,
+            handleGenTmpLink,
+          }}
+        >
+          {GridCell}
+        </List>
+      )}
       {isToTopVisible && (
         <div
           className={styles.toTopWrapper}
           title="返回顶部"
-          onClick={() =>
-            gridRef.current.scrollToItem({
-              rowIndex: 0,
-            })
-          }
+          onClick={() => {
+            if (listType === 'grid') {
+              gridRef.current.scrollToItem({
+                rowIndex: 0,
+              })
+            } else {
+              listRef.current.scrollToItem(0)
+            }
+          }}
         >
           <VerticalAlignTopOutlined style={{ color: '#000', fontSize: '25px' }} />
         </div>
@@ -166,12 +243,14 @@ export default function ResourceList({
 }
 
 // 当个 item 的渲染组件
-const Cell = ({
+const GridCell = ({
   columnIndex,
   rowIndex,
+  index,
   style,
   data: {
     data,
+    listType,
     bucketInfo,
     columnCount,
     isTopFolder,
@@ -195,12 +274,30 @@ const Cell = ({
     handleGenTmpLink,
   },
 }) => {
+  // 判断是网格布局还是普通列表
+  const isGridCell = listType === 'grid'
   // 注意 ind 指的是第多少个格子，不是 listData 的第 ind 个
-  const ind = columnCount * rowIndex + columnIndex
+  let ind = 0
+  if (isGridCell) {
+    ind = columnCount * rowIndex + columnIndex
+  } else {
+    ind = index
+  }
   if (!isTopFolder && ind === 0) {
     return (
-      <div className={styles.cellWrapper} style={style}>
-        <FolderCard isBackward={true} folderName={''} handleClick={handleBackward} />
+      <div
+        className={classnames(
+          styles.cellWrapper,
+          isGridCell ? styles.gridCellWrapper : styles.listCellWrapper
+        )}
+        style={style}
+      >
+        <FolderCard
+          isGridCell={isGridCell}
+          isBackward={true}
+          folderName={''}
+          handleClick={handleBackward}
+        />
       </div>
     )
   }
@@ -211,8 +308,15 @@ const Cell = ({
   } else if (typeof resourceInfo === 'string') {
     // 是文件夹
     return (
-      <div className={styles.cellWrapper} style={style}>
+      <div
+        className={classnames(
+          styles.cellWrapper,
+          isGridCell ? styles.gridCellWrapper : styles.listCellWrapper
+        )}
+        style={style}
+      >
         <FolderCard
+          isGridCell={isGridCell}
           selected={selectedFolders.includes(resourceInfo)}
           isBackward={false}
           folderName={resourceInfo}
@@ -233,8 +337,16 @@ const Cell = ({
     const { ext, fname } = getResourceExtAndName(fileFullName)
 
     return (
-      <div className={styles.cellWrapper} style={style} key={resourceInfo.key}>
+      <div
+        className={classnames(
+          styles.cellWrapper,
+          isGridCell ? styles.gridCellWrapper : styles.listCellWrapper
+        )}
+        style={style}
+        key={resourceInfo.key}
+      >
         <ResourceCard
+          isGridCell={isGridCell}
           ext={ext}
           bucketInfo={bucketInfo}
           fileFullName={fileFullName}

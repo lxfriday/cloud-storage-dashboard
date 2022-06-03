@@ -13,9 +13,15 @@
   }
   .grid {
     .cellWrapper {
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      &.gridCellWrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      &.listCellWrapper {
+        display: block;
+      }
+
       // .cell {
       //   width: 130px;
       //   height: 130px;

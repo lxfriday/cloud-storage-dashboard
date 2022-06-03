@@ -19,8 +19,9 @@ import {
   LinkOutlined,
   CopyOutlined,
   FileMarkdownFilled,
+  PictureFilled,
 } from '@ant-design/icons'
-import { message, Menu, Dropdown, Modal, Input, Radio } from 'antd'
+import { message, Menu, Dropdown, Modal, Input, Radio, Tooltip } from 'antd'
 import copy from 'copy-text-to-clipboard'
 import classnames from 'classnames'
 import { useSelector } from 'react-redux'
@@ -51,6 +52,7 @@ export default function ResourceCard({
   fkey,
   selected,
   fileFullName,
+  isGridCell,
   handleToggleSelectKey,
   handleDeleteFile,
   handleSelectAll,
@@ -84,7 +86,9 @@ export default function ResourceCard({
     //     className={styles.img}
     //     draggable={false}
     //   />
-    if (shouldUseSignatureUrl) {
+    if (!isGridCell) {
+      finalImage = <PictureFilled style={{ color: '#eee', fontSize: 16 }} />
+    } else if (shouldUseSignatureUrl) {
       finalImage = (
         <div
           style={{
@@ -105,11 +109,11 @@ export default function ResourceCard({
       )
     }
   } else if (isVideo) {
-    finalImage = <PlayCircleOutlined style={{ color: '#aaa', fontSize: '50px' }} />
+    finalImage = <PlayCircleOutlined style={{ color: '#eee', fontSize: isGridCell ? 50 : 16 }} />
   } else if (isAudio) {
-    finalImage = <CustomerServiceFilled style={{ color: '#aaa', fontSize: '50px' }} />
+    finalImage = <CustomerServiceFilled style={{ color: '#eee', fontSize: isGridCell ? 50 : 16 }} />
   } else {
-    finalImage = <FileFilled style={{ color: '#aaa', fontSize: '50px' }} />
+    finalImage = <FileFilled style={{ color: '#eee', fontSize: isGridCell ? 50 : 16 }} />
   }
 
   function handlePressDelete() {
@@ -402,7 +406,11 @@ export default function ResourceCard({
       </Modal>
       <Dropdown overlay={contextMenu} trigger={['contextMenu']}>
         <div
-          className={classnames(styles.wrapper, selected && styles.selected)}
+          className={classnames(
+            styles.wrapper,
+            selected && styles.selected,
+            isGridCell ? styles.isGridCell : styles.isListCell
+          )}
           onClick={e => {
             clickCount += 1
             setTimeout(() => {
@@ -420,7 +428,29 @@ export default function ResourceCard({
             {finalExtName}
           </div>
           <div className={styles.iconWrapper}>{finalImage}</div>
-          <div className={styles.fileFullName}>{fileFullName}</div>
+          {!isGridCell && isImage && (
+            <Tooltip
+              overlayInnerStyle={{ boxShadow: '0 0 6px #fff', borderRadius: 3 }}
+              mouseEnterDelay={0}
+              placement="right"
+              title={
+                <div className={styles.imagePreviewTooltipWrapper}>
+                  <img src={shouldUseSignatureUrl ? signatureUrl : url} />
+                </div>
+              }
+            >
+              <div className={styles.fileFullName}>{fileFullName}</div>
+            </Tooltip>
+          )}
+          {(isGridCell || (!isGridCell && !isImage)) && (
+            <div className={styles.fileFullName}>{fileFullName}</div>
+          )}
+
+          <div className={styles.storageClass}>
+            {safelyGetStorageClass(cspName, storageClass).name} ({storageClass})
+          </div>
+          <div className={styles.fileSize}>{getFileSize(fsize)}</div>
+          <div className={styles.createdTime}>{putTime}</div>
           <div className={styles.toolsWrapper}>
             <div className={styles.operateZone}></div>
             <div className={styles.tools}>
@@ -437,17 +467,21 @@ export default function ResourceCard({
                 }}
                 title="复制"
               >
-                <CopyFilled style={{ fontSize: '18px', color: 'green' }} />
+                <CopyFilled
+                  style={{ fontSize: isGridCell ? 18 : 13, color: isGridCell ? 'green' : '#fff' }}
+                />
               </div>
               <div
-                className={styles.buttonWrapper}
+                className={classnames(styles.buttonWrapper, styles.isDelete)}
                 onClick={e => {
                   e.stopPropagation()
                   handlePressDelete()
                 }}
                 title="删除"
               >
-                <DeleteFilled style={{ fontSize: '18px', color: 'red' }} />
+                <DeleteFilled
+                  style={{ fontSize: isGridCell ? 18 : 13, color: isGridCell ? 'red' : 'red' }}
+                />
               </div>
               {isImage && (
                 <div
@@ -458,7 +492,9 @@ export default function ResourceCard({
                   }}
                   title="预览"
                 >
-                  <ZoomInOutlined style={{ fontSize: '18px', color: '#666' }} />
+                  <ZoomInOutlined
+                    style={{ fontSize: isGridCell ? 18 : 13, color: isGridCell ? '#666' : '#fff' }}
+                  />
                 </div>
               )}
               {(isVideo || isAudio) && (
@@ -470,7 +506,9 @@ export default function ResourceCard({
                   }}
                   title="在浏览器中打开"
                 >
-                  <PlayCircleOutlined style={{ fontSize: '18px', color: '#666' }} />
+                  <PlayCircleOutlined
+                    style={{ fontSize: isGridCell ? 18 : 13, color: isGridCell ? '#666' : '#fff' }}
+                  />
                 </div>
               )}
             </div>

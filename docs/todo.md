@@ -3,8 +3,7 @@
 ## high priority
 
 - 支持获取文件 http 请求信息
-- 更改列表显示模式
-  - 由 grid 变更为 list（二维变一维）
+- 增删 bucket
 
 ## new feat
 

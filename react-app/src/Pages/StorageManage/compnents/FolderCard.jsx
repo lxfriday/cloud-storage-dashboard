@@ -13,6 +13,7 @@ import styles from './FolderCard.module.less'
 let clickCount = 0
 
 export default function FolderCard({
+  isGridCell,
   folderName,
   handleClick,
   isBackward,
@@ -48,7 +49,11 @@ export default function FolderCard({
   return (
     <Dropdown overlay={contextMenu} trigger={['contextMenu']}>
       <div
-        className={classnames(styles.wrapper, selected && styles.selected)}
+        className={classnames(
+          styles.wrapper,
+          selected && styles.selected,
+          isGridCell ? styles.isGridCell : styles.isListCell
+        )}
         onClick={e => {
           if (!isBackward) {
             clickCount += 1
@@ -68,9 +73,9 @@ export default function FolderCard({
       >
         <div className={styles.iconWrapper}>
           {isBackward ? (
-            <RollbackOutlined style={{ color: '#aaa', fontSize: '50px' }} />
+            <RollbackOutlined style={{ color: '#eee', fontSize: isGridCell ? 50 : 16 }} />
           ) : (
-            <FolderFilled style={{ color: '#aaa', fontSize: '60px' }} />
+            <FolderFilled style={{ color: '#eee', fontSize: isGridCell ? 60 : 18 }} />
           )}
         </div>
         <div className={styles.fileFullName}>{trimmedFolderName}</div>

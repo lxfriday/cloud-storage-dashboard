@@ -10,6 +10,8 @@ import {
   HomeFilled,
   FolderOpenOutlined,
   EllipsisOutlined,
+  AppstoreOutlined,
+  MenuOutlined,
 } from '@ant-design/icons'
 import copy from 'copy-text-to-clipboard'
 import classnames from 'classnames'
@@ -83,6 +85,7 @@ export default function StorageManage() {
   let [searchValue, setSearchValue] = useState('')
   // 对应的就是取消搜索
   let [showSearchResult, setShowSearchResult] = useState(false)
+  let [listType, setListType] = useState('grid')
 
   let [searchParams] = useSearchParams()
   const currentBucket = searchParams.get('space')
@@ -997,9 +1000,30 @@ export default function StorageManage() {
             {bucketOverviewInfo[currentBucket] ? bucketOverviewInfo[currentBucket].space : '?'}{' '}
             存储空间
           </div>
+          <div className={styles.changeListTypeWrapper}>
+            {listType === 'list' && (
+              <div
+                className={styles.wrapper}
+                onClick={() => setListType('grid')}
+                title="变更为网格列表"
+              >
+                <AppstoreOutlined className={styles.button} />
+              </div>
+            )}
+            {listType === 'grid' && (
+              <div
+                className={styles.wrapper}
+                onClick={() => setListType('list')}
+                title="变更为普通列表"
+              >
+                <MenuOutlined className={styles.button} />
+              </div>
+            )}
+          </div>
         </div>
       </div>
       <ResourceList
+        listType={listType}
         bucketInfo={targetBucketInfo}
         uploadFolder={uploadFolders.join('')}
         commonPrefixList={realCommonPrefixList}

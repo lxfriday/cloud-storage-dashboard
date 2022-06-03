@@ -117,8 +117,33 @@
 
     .infoWrapper {
       margin-left: 12px;
-      margin-right: 20px;
       color: #ccc;
+    }
+    .changeListTypeWrapper {
+      display: flex;
+      margin-left: 10px;
+      margin-right: 30px;
+      align-items: center;
+
+      .wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 25px;
+        height: 25px;
+        border: 1px solid #999;
+        border-radius: 2px;
+        transition: opacity;
+
+        &:hover {
+          opacity: 0.6;
+        }
+        .button {
+          color: #fff;
+          font-size: 16px;
+          cursor: pointer;
+        }
+      }
     }
   }
 }

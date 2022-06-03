@@ -1,43 +1,82 @@
 .wrapper {
   color: #fff;
   position: relative;
-  width: 130px;
-  height: 130px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-sizing: border-box;
-  padding-top: 15px;
-  border: 1px solid #222;
-  border-radius: 5px;
-  justify-self: center;
-  user-select: none;
-  cursor: pointer;
-  transition: opacity .2s;
-
-  &.selected {
-    border: 1px solid #eee;
-  }
-
-  &:hover {
-    opacity: .6;
-  }
-
-  .iconWrapper {
-    width: 85px;
-    height: 85px;
+  &.isGridCell {
+    width: 130px;
+    height: 130px;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
+    box-sizing: border-box;
+    padding-top: 15px;
+    border: 1px solid #222;
+    border-radius: 5px;
+    justify-self: center;
+    user-select: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+
+    &.selected {
+      border: 1px solid #eee;
+    }
+
+    &:hover {
+      opacity: 0.6;
+    }
+
+    .iconWrapper {
+      width: 85px;
+      height: 85px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .fileFullName {
+      text-align: center;
+      margin-top: 3px;
+      color: #fff;
+      font-size: 11px;
+      width: 100%;
+      padding: 0 10px;
+      .ellipsis();
+    }
   }
 
-  .fileFullName {
-    text-align: center;
-    margin-top: 3px;
-    color: #fff;
-    font-size: 11px;
+  &.isListCell {
     width: 100%;
-    padding: 0 10px;
-    .ellipsis();
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    border-bottom: 1px solid #222;
+    user-select: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+
+    &.selected {
+      background-color: #333;
+    }
+
+    &:hover {
+      opacity: 0.6;
+    }
+
+    .iconWrapper {
+      width: 30px;
+      height: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .fileFullName {
+      color: #fff;
+      font-size: 11px;
+      margin-left: 6px;
+      .ellipsis();
+    }
   }
 }
