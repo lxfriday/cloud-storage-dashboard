@@ -20,6 +20,7 @@ const storageManageSlice = createSlice({
       //   region: '',
       // },
     ],
+    listType: 'grid',
   },
   reducers: {
     // 更新某一个设置
@@ -37,6 +38,9 @@ const storageManageSlice = createSlice({
     updateBucketListAction: (state, { payload }) => {
       state.bucketList = payload
     },
+    updateListTypeAction: (state, { payload }) => {
+      state.listType = payload
+    },
     // 重置 bucket 中的信息
     resetBucketInfoAction: state => {
       state.selectBucketInfo = {
@@ -47,7 +51,11 @@ const storageManageSlice = createSlice({
   },
 })
 
-export const { updateBucketAction, updateBucketListAction, resetBucketInfoAction } =
-  storageManageSlice.actions
+export const {
+  updateBucketAction,
+  updateBucketListAction,
+  resetBucketInfoAction,
+  updateListTypeAction,
+} = storageManageSlice.actions
 
 export default storageManageSlice.reducer

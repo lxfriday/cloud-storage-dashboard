@@ -34,7 +34,7 @@ import {
 } from '../../utils'
 import cloudserviceprovider from '../../utils/cloudserviceprovider'
 import notiSyncBucket from '../../utils/notiSyncBucket'
-import { updateBucketAction } from '../../store/storageManage'
+import { updateBucketAction, updateListTypeAction } from '../../store/storageManage'
 import messageCommands from '../../../../src/messageCommands'
 
 const { Option } = Select
@@ -48,6 +48,7 @@ export default function StorageManage() {
   const dispatch = useDispatch()
   const settings = useSelector(state => state.settings)
   const bucketList = useSelector(state => state.storageManage.bucketList)
+  const listType = useSelector(state => state.storageManage.listType)
   const csp = cloudserviceprovider[settings.currentCSP.csp]
 
   let [bucketDomainInfo, setBucketDomainInfo] = useState({
@@ -85,7 +86,6 @@ export default function StorageManage() {
   let [searchValue, setSearchValue] = useState('')
   // 对应的就是取消搜索
   let [showSearchResult, setShowSearchResult] = useState(false)
-  let [listType, setListType] = useState('grid')
 
   let [searchParams] = useSearchParams()
   const currentBucket = searchParams.get('space')
@@ -1004,7 +1004,7 @@ export default function StorageManage() {
             {listType === 'list' && (
               <div
                 className={styles.wrapper}
-                onClick={() => setListType('grid')}
+                onClick={() => dispatch(updateListTypeAction('grid'))}
                 title="变更为网格列表"
               >
                 <AppstoreOutlined className={styles.button} />
@@ -1013,7 +1013,7 @@ export default function StorageManage() {
             {listType === 'grid' && (
               <div
                 className={styles.wrapper}
-                onClick={() => setListType('list')}
+                onClick={() => dispatch(updateListTypeAction('list'))}
                 title="变更为普通列表"
               >
                 <MenuOutlined className={styles.button} />
