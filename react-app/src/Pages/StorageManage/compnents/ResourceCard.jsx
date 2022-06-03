@@ -298,6 +298,12 @@ export default function ResourceCard({
           value={tmpLinkExpires}
           onChange={e => setTmpLinkExpires(e.target.value)}
           onPaste={e => e.stopPropagation()}
+          onPressEnter={() => {
+            handleGenTmpLink(fkey, tmpLinkExpires)
+            setGenTmpLinkModalVisible(false)
+            setTmpLinkExpires(3600)
+          }}
+          autoFocus
         />
       </Modal>
       {/* 移动和重命名实际上是一样的 */}

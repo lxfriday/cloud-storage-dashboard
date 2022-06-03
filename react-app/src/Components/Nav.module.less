@@ -123,14 +123,60 @@
       margin-left: 12px;
       border-bottom: 1px solid red;
     }
+    div.info {
+      margin-left: 12px;
+      .detailList {
+        border-bottom: 1px solid red;
+      }
+    }
   }
 }
 
 .CORSForm {
-  .title {
-    font-weight: bold;
-  }
-  .formItemWrapper {
-    margin-bottom: 10px;
+  .formItemsWrapper {
+    position: relative;
+    border: 1px dotted #aaa;
+    border-radius: 5px;
+    padding: 12px 6px;
+    margin-bottom: 12px;
+
+    &.isNew {
+      background-color: #eef;
+    }
+    .isNew {
+      position: absolute;
+      right: 0px;
+      bottom: 0px;
+      padding: 0 8px;
+      color: #fff;
+      font-size: 10px;
+      font-weight: bold;
+      background-color: green;
+      border-radius: 3px;
+    }
+    .delete {
+      position: absolute;
+      right: 8px;
+      top: 8px;
+      color: red;
+      cursor: pointer;
+      transition: opacity 0.5s ease;
+      font-size: 16px;
+
+      :hover {
+        opacity: 0.8;
+      }
+    }
+    .title {
+      font-weight: bold;
+      .noti {
+        color: red;
+        font-weight: normal;
+        font-size: 10px;
+      }
+    }
+    .formItemWrapper {
+      margin-bottom: 10px;
+    }
   }
 }

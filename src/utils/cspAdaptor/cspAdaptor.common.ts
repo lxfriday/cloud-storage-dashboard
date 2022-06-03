@@ -34,6 +34,14 @@ export type corsListItemType = {
   maxAgeSeconds: string
 }
 
+export type putCORSRulesListItemType = {
+  allowedMethods: string[]
+  allowedHeaders: string[]
+  exposeHeaders: string[]
+  allowedOrigins: string[]
+  maxAgeSeconds: string
+}
+
 export type qiniuStorageClass =
   // 标准存储
   | 0
@@ -199,5 +207,11 @@ export abstract class CSPAdaptor {
       allowedOrigins: string[]
       maxAgeSeconds: string
     }[]
+  }>
+
+  // 设置 CORS 规则
+  public abstract putBucketCORS(rules: putCORSRulesListItemType[]): Promise<{
+    success: boolean
+    msg?: string
   }>
 }

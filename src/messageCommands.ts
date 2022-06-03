@@ -6,6 +6,7 @@ export default {
   updateBucket: 'updateBucket',
   getBucketDomains: 'getBucketDomains',
   getBucketCORS: 'getBucketCORS',
+  putBucketCORS: 'putBucketCORS',
   deleteBucketFiles: 'deleteBucketFiles',
   updateStorageClass: 'updateStorageClass',
   getOverviewInfo: 'getOverviewInfo',

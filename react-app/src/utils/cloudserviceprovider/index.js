@@ -72,3 +72,28 @@ export function safelyGetStorageClass(csp, key) {
   }
   return res
 }
+
+// 新增 CORS 规则的时候，提供的默认规则
+export const defaultCORSRule = {
+  qiniu: {
+    allowedMethods: ['GET', 'POST', 'PUT', 'HEAD', 'DELETE'],
+    allowedHeaders: '',
+    exposeHeaders: '',
+    allowedOrigins: '',
+    maxAgeSeconds: '0',
+  },
+  tencent: {
+    allowedMethods: ['GET', 'POST', 'PUT', 'HEAD', 'DELETE'],
+    allowedHeaders: '*',
+    exposeHeaders: 'ETag,Content-Length,x-cos-request-id',
+    allowedOrigins: '*',
+    maxAgeSeconds: '3600',
+  },
+  aliyun: {
+    allowedMethods: ['GET', 'POST', 'PUT', 'HEAD', 'DELETE'],
+    allowedHeaders: '*',
+    exposeHeaders: 'etag',
+    allowedOrigins: '*',
+    maxAgeSeconds: '3600',
+  },
+}

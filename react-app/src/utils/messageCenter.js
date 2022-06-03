@@ -87,6 +87,24 @@ export function requestGetBucketCORS(bucket, region) {
     true
   )
 }
+export function requestPutBucketCORS({ bucket, region, rules }) {
+  const {
+    settings: { currentCSP },
+  } = store.getState()
+  let _ = !!currentCSP ? currentCSP : {}
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.putBucketCORS,
+      data: { rules },
+      cspInfo: {
+        ..._,
+        bucket,
+        region,
+      },
+    },
+    true
+  )
+}
 // 删除一个或多个文件都走这个接口
 export function requestDeleteBucketFiles(keysList) {
   return messageAdaptor(

@@ -20,6 +20,7 @@ import {
   signatureUrlExpires,
   aliyunStorageClass,
   corsListItemType,
+  putCORSRulesListItemType,
 } from './cspAdaptor.common'
 
 export default class Aliyun extends CSPAdaptor {
@@ -568,6 +569,36 @@ export default class Aliyun extends CSPAdaptor {
           success: false,
           msg: String(e),
         }
+      }
+    }
+  }
+
+  public async putBucketCORS(rules: putCORSRulesListItemType[]): Promise<{
+    success: boolean
+    msg?: string
+  }> {
+    try {
+      const putBucketCORSRes = await this.oss.putBucketCORS(
+        this.bucket,
+        rules.map(_ => ({
+          allowedOrigin: _.allowedOrigins,
+          // 指定允许的跨域请求方法，支持GET、PUT、DELETE、POST和HEAD方法。
+          allowedMethod: _.allowedMethods,
+          // 指定允许跨域请求的响应头。建议无特殊情况下将此项设置为通配符星号（*）。
+          allowedHeader: _.allowedHeaders,
+          // 指定允许用户从应用程序中访问的响应头，例如一个JavaScript的XMLHttpRequest对象。不允许使用通配符星号（*）。
+          exposeHeader: _.exposeHeaders,
+          // 指定浏览器对特定资源的预取（OPTIONS）请求返回结果的缓存时间，单位为秒。
+          maxAgeSeconds: _.maxAgeSeconds,
+        }))
+      )
+      return {
+        success: true,
+      }
+    } catch (e) {
+      return {
+        success: false,
+        msg: String(e),
       }
     }
   }
