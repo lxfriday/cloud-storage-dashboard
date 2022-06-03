@@ -1,5 +1,10 @@
 import React from 'react'
-import { FolderFilled, RollbackOutlined } from '@ant-design/icons'
+import {
+  FolderFilled,
+  RollbackOutlined,
+  RedoOutlined,
+  AppstoreAddOutlined,
+} from '@ant-design/icons'
 import { Menu, Dropdown } from 'antd'
 import classnames from 'classnames'
 
@@ -19,13 +24,21 @@ export default function FolderCard({
   const trimmedFolderName = folderName.slice(0, -1)
 
   const contextMenu = (
-    <Menu>
+    <Menu style={{ borderRadius: 8, boxShadow: '0 0 4px #fff', border: '1px solid #ccc' }}>
       <Menu.Divider />
-      <Menu.Item key="1" onClick={handleRefreshDir}>
+      <Menu.Item
+        key="1"
+        onClick={handleRefreshDir}
+        icon={<RedoOutlined style={{ color: 'brown', fontSize: 14 }} />}
+      >
         刷新CDN
       </Menu.Item>
       <Menu.Divider />
-      <Menu.Item key="2" onClick={handleToggleSelectFolder}>
+      <Menu.Item
+        key="2"
+        onClick={handleToggleSelectFolder}
+        icon={<AppstoreAddOutlined style={{ color: '#8B008B  ', fontSize: 14 }} />}
+      >
         选择
       </Menu.Item>
       <Menu.Divider />

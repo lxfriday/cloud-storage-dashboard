@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { Menu, message, notification, Spin, Tooltip, Button, Modal, Input, Checkbox } from 'antd'
 import {
-  SettingOutlined,
+  SettingFilled,
   LogoutOutlined,
-  HomeOutlined,
+  HomeFilled,
   LockFilled,
   FolderFilled,
   DeleteFilled,
@@ -519,7 +519,7 @@ export default function Nav({ children }) {
               mode="inline"
               theme="light"
             >
-              <Menu.Item key="home" icon={<HomeOutlined />}>
+              <Menu.Item key="home" icon={<HomeFilled />}>
                 <NavLink
                   to="/"
                   className={({ isActive }) => (isActive ? styles.navLinkActive : undefined)}
@@ -569,7 +569,7 @@ export default function Nav({ children }) {
                   </Tooltip>
                 </Menu.Item>
               ))}
-              <Menu.Item key="settings" icon={<SettingOutlined />}>
+              <Menu.Item key="settings" icon={<SettingFilled />}>
                 <NavLink
                   to="/settings"
                   className={({ isActive }) => (isActive ? styles.navLinkActive : undefined)}

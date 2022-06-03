@@ -8,6 +8,17 @@ import {
   ZoomInOutlined,
   CustomerServiceFilled,
   InfoCircleFilled,
+  FileTextOutlined,
+  RedoOutlined,
+  CloudDownloadOutlined,
+  EditFilled,
+  SendOutlined,
+  AppstoreFilled,
+  AppstoreAddOutlined,
+  CloudServerOutlined,
+  LinkOutlined,
+  CopyOutlined,
+  FileMarkdownFilled,
 } from '@ant-design/icons'
 import { message, Menu, Dropdown, Modal, Input, Radio } from 'antd'
 import copy from 'copy-text-to-clipboard'
@@ -145,37 +156,69 @@ export default function ResourceCard({
   }
 
   const contextMenu = (
-    <Menu>
-      <Menu.Item key="detail" onClick={handlePressDetail}>
+    <Menu style={{ borderRadius: 8, boxShadow: '0 0 4px #fff', border: '1px solid #ccc' }}>
+      <Menu.Item
+        key="detail"
+        onClick={handlePressDetail}
+        icon={<FileTextOutlined style={{ color: '#4682B4', fontSize: 14 }} />}
+      >
         详情
       </Menu.Item>
       <Menu.Divider />
-      <Menu.Item key="refreshcdn" onClick={handleRefreshResource}>
+      <Menu.Item
+        key="refreshcdn"
+        onClick={handleRefreshResource}
+        icon={<RedoOutlined style={{ color: 'brown', fontSize: 14 }} />}
+      >
         刷新CDN
       </Menu.Item>
       <Menu.Divider />
-      <Menu.Item key="download" onClick={handleDownloadFile}>
+      <Menu.Item
+        key="download"
+        onClick={handleDownloadFile}
+        icon={<CloudDownloadOutlined style={{ color: '#0000CC ', fontSize: 14 }} />}
+      >
         下载
       </Menu.Item>
       <Menu.Divider />
-      <Menu.Item key="rename" onClick={() => setRenameOpModalVisible(true)}>
+      <Menu.Item
+        key="rename"
+        onClick={() => setRenameOpModalVisible(true)}
+        icon={<EditFilled style={{ color: '#FF0000 ', fontSize: 14 }} />}
+      >
         重命名
       </Menu.Item>
       <Menu.Divider />
-      <Menu.Item key="move" onClick={() => setRenameOpModalVisible(true)}>
+      <Menu.Item
+        key="move"
+        onClick={() => setRenameOpModalVisible(true)}
+        icon={<SendOutlined style={{ color: '#FF1493 ', fontSize: 14 }} />}
+      >
         移动
       </Menu.Item>
       <Menu.Divider />
-      <Menu.Item key="select" onClick={() => handleToggleSelectKey(fkey)}>
+      <Menu.Item
+        key="select"
+        onClick={() => handleToggleSelectKey(fkey)}
+        icon={<AppstoreAddOutlined style={{ color: '#8B008B  ', fontSize: 14 }} />}
+      >
         选择
       </Menu.Item>
       <Menu.Divider />
-      <Menu.Item key="selectall" onClick={handleSelectAll}>
+      <Menu.Item
+        key="selectall"
+        onClick={handleSelectAll}
+        icon={<AppstoreFilled style={{ color: '#8B4513  ', fontSize: 14 }} />}
+      >
         全选
       </Menu.Item>
       <Menu.Divider />
       {isPrivateRead && [
-        <Menu.Item key="gentmplink" onClick={() => setGenTmpLinkModalVisible(true)}>
+        <Menu.Item
+          key="gentmplink"
+          onClick={() => setGenTmpLinkModalVisible(true)}
+          icon={<LinkOutlined style={{ color: '#2F4F4F   ', fontSize: 14 }} />}
+        >
           生成临时链接
         </Menu.Item>,
         <Menu.Divider key="divider" />,
@@ -184,13 +227,13 @@ export default function ResourceCard({
         key="updatestorageclass"
         onClick={() => setUpdateStorageClassModalVisible(true)}
         disabled={!safelyGetStorageClass(cspName, storageClass).canChange}
+        icon={<CloudServerOutlined style={{ color: '#FF4500   ', fontSize: 14 }} />}
       >
         修改存储类型{!safelyGetStorageClass(cspName, storageClass).canChange && '(需解冻)'}
       </Menu.Item>
       <Menu.Divider />
       <Menu.Item
         key="copy"
-        style={{ color: 'green' }}
         onClick={() => {
           if (shouldUseSignatureUrl) {
             copy(signatureUrl)
@@ -199,6 +242,7 @@ export default function ResourceCard({
           }
           message.success('已复制到剪切板')
         }}
+        icon={<CopyOutlined style={{ color: 'green', fontSize: 14 }} />}
       >
         复制链接
       </Menu.Item>
@@ -206,7 +250,6 @@ export default function ResourceCard({
       {isImage && (
         <Menu.Item
           key="copyasmd"
-          style={{ color: 'green' }}
           onClick={() => {
             if (shouldUseSignatureUrl) {
               copy(`![${fileFullName}](${signatureUrl})`)
@@ -215,12 +258,18 @@ export default function ResourceCard({
             }
             message.success('已复制到剪切板')
           }}
+          icon={<FileMarkdownFilled style={{ color: 'green', fontSize: 14 }} />}
         >
-          复制链接(Markdown)
+          复制链接(MD)
         </Menu.Item>
       )}
       <Menu.Divider />
-      <Menu.Item key="delete" style={{ color: 'red' }} onClick={handlePressDelete}>
+      <Menu.Item
+        key="delete"
+        style={{ color: 'red' }}
+        onClick={handlePressDelete}
+        icon={<DeleteFilled style={{ color: 'red', fontSize: 14 }} />}
+      >
         删除
       </Menu.Item>
     </Menu>
