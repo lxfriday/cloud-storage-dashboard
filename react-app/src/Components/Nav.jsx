@@ -539,12 +539,37 @@ export default function Nav({ children }) {
                 <Menu.Item key={_.name} icon={_.isPrivateRead ? <LockFilled /> : <FolderFilled />}>
                   <Tooltip
                     placement="right"
+                    overlayInnerStyle={{
+                      border: '1px solid #666',
+                      boxShadow: '0 0 8px #ccc',
+                      borderRadius: 5,
+                      width: 250,
+                    }}
                     title={
                       <div>
-                        <div>bucket: {_.name}</div>
-                        {!!_.region && <div>区域: {_.region}</div>}
-                        {!!_.acl && <div>读写规则: {_.acl}</div>}
-                        <div style={{ margin: '10px 0 18px' }}>
+                        <div style={{ fontWeight: 'bold' }}>CORS 信息</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span>bucket: </span> <span>{_.name}</span>
+                        </div>
+                        {!!_.region && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span>区域: </span>
+                            <span>{_.region}</span>
+                          </div>
+                        )}
+                        {!!_.acl && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span>读写规则:</span> <span>{_.acl}</span>
+                          </div>
+                        )}
+                        <div
+                          style={{
+                            margin: '10px 0 18px',
+                            borderTop: '1px solid #333',
+                            paddingTop: 14,
+                            textAlign: 'center',
+                          }}
+                        >
                           <Button
                             size="small"
                             type="primary"
