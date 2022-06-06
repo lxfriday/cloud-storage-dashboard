@@ -355,7 +355,7 @@ export default function StorageManage() {
   // 多选的时候
   // 对选中的文件刷新缓存，一次最多只能有100个
   function handleRefreshSelectedResources() {
-    const fileUrls = selectedKeys.map(k => resourcePrefix + k)
+    const fileUrls = selectedKeys.map(k => encodeURI(resourcePrefix + k))
     messageCenter
       .requestRefreshFiles(fileUrls)
       .then(res => {
@@ -377,7 +377,7 @@ export default function StorageManage() {
   // 直接右键某个文件
   function handleRefreshResource(url) {
     messageCenter
-      .requestRefreshFiles([url])
+      .requestRefreshFiles([encodeURI(url)])
       .then(res => {
         if (res.success) {
           const { data } = res
@@ -398,7 +398,7 @@ export default function StorageManage() {
     const realDirPath = uploadFolders.join('') + dir
     const dirUrl = resourcePrefix + realDirPath
     messageCenter
-      .requestRefreshDirs([dirUrl])
+      .requestRefreshDirs([encodeURI(dirUrl)])
       .then(res => {
         if (res.success) {
           const { data } = res
