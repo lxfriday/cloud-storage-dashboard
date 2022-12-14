@@ -83,6 +83,7 @@
     "@alicloud/tea-typescript": "^1.7.2",
     "@alicloud/tea-util": "^1.4.3",
     "@lxfriday/nodejs-file-downloader": "^4.9.5",
+    "@reduxjs/toolkit": "^1.9.1",
     "ali-oss": "^6.17.1",
     "async": "^3.2.3",
     "axios": "^0.26.1",
@@ -93,6 +94,7 @@
     "open": "^8.4.0",
     "qcloud-cos-sts": "^3.1.0",
     "qiniu": "^7.4.0",
+    "react-redux": "^8.0.5",
     "tencentcloud-sdk-nodejs": "^4.0.347",
     "vsce": "^2.7.0"
   }
