@@ -26,14 +26,18 @@ export function requestGenerateUploadToken() {
   )
 }
 
-export function requestGetResourceList(params) {
-  return messageAdaptor({
-    serverCommand: MESSAGE_COMMANDS.getResourceList,
-    data: {
-      ...params,
+export function requestGetResourceList(params, timeout = 10000) {
+  return messageAdaptor(
+    {
+      serverCommand: MESSAGE_COMMANDS.getResourceList,
+      data: {
+        ...params,
+      },
+      cspInfo: getCSPInfo(),
     },
-    cspInfo: getCSPInfo(),
-  })
+    true,
+    timeout
+  )
 }
 
 export function requestGetSignatureUrl(params) {

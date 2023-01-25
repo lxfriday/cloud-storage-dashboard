@@ -41,8 +41,14 @@ const { Option } = Select
 
 let marker = '' // 分页标记
 
-let isLoadingResource = false // 是否正在加载资源
 let isSearching = false // 是否正在搜索中
+// app内路由控制，解决问题：如果当前正在加载资源，突然切换文件夹的时候，前面请求的资源返回与现在的资源发生冲突
+// 遵循的原则：基于用户操作，操作到哪个层级，就应该显示当前层级的内容，如果加载到的内部不属于该层级，则不显示
+let routeStr = ''
+
+function genRouteStr(bucket, pfxstr) {
+  return `${bucket} => ${pfxstr}`
+}
 
 export default function StorageManage() {
   const dispatch = useDispatch()
@@ -92,60 +98,66 @@ export default function StorageManage() {
   const targetBucketInfo = bucketList.find(_ => _.name === currentBucket)
 
   function handleRefresh(prefixes = []) {
-    // 刷新列表
-    // 刷新文件数量，存储空间
-    if (!isLoadingResource) {
-      isLoadingResource = true
-      marker = ''
-      // setResourceList([])
-      // setUploadFolders([]) // 需要，否则点击返回上次层的时候，返回的图标会保留
-      // setCommonPrefixList([])
-      setSelectedKeys([])
-      setSelectedFolders([])
-      messageCenter
-        .requestGetResourceList({
+    const pfxStr = prefixes.join('')
+    routeStr = genRouteStr(currentBucket, pfxStr)
+    LogR('routeStr is ', routeStr)
+    setSelectedKeys([])
+    setSelectedFolders([])
+    // 如果从子文件夹回到顶层文件夹，优先直接显示 syncbucketinfo 中拿到的文件夹信息，文件信息等待后续加载出来
+    if (pfxStr === '') {
+      setUploadFolders([...prefixes])
+      setPendingUploadPrefix(pfxStr)
+      setResourceList([])
+      setIsResourceListReachEnd(false)
+    }
+    // marker = ''
+    messageCenter
+      .requestGetResourceList(
+        {
           fromBegin: true,
-          prefix: prefixes.join(''),
+          prefix: pfxStr,
           marker: '',
           domain: `${settings.forceHTTPS ? 'https://' : 'http://'}${
             bucketDomainInfo.selectBucketDomain
           }`,
           isBucketPrivateRead: targetBucketInfo.isPrivateRead,
-        })
-        .then(res => {
-          if (res.success) {
+        },
+        60000
+      )
+      .then(res => {
+        if (res.success) {
+          if (routeStr === genRouteStr(currentBucket, pfxStr)) {
             const { data } = res
             marker = data.marker
             setUploadFolders([...prefixes])
-            setPendingUploadPrefix(prefixes.join(''))
+            setPendingUploadPrefix(pfxStr)
             setCommonPrefixList(data.commonPrefixes)
             setResourceList(data.list)
             setIsResourceListReachEnd(data.reachEnd)
-          } else {
-            message.error('资源列表加载失败：' + res.msg)
           }
-        })
-        .finally(() => {
-          isLoadingResource = false
-        })
-    }
+        } else {
+          message.error('资源列表加载失败：' + res.msg)
+        }
+      })
   }
 
   // 加载列表数据，非第一页以后的调用这里
   function handleLoadData() {
-    if (!isResourceListReachEnd && !isLoadingResource) {
-      isLoadingResource = true
+    if (!isResourceListReachEnd) {
       // 从根目录加载，prefix 为空
       messageCenter
-        .requestGetResourceList({
-          fromBegin: false,
-          prefix: uploadFolders.join(''),
-          marker,
-          domain: `${settings.forceHTTPS ? 'https://' : 'http://'}${
-            bucketDomainInfo.selectBucketDomain
-          }`,
-          isBucketPrivateRead: targetBucketInfo.isPrivateRead,
-        })
+        .requestGetResourceList(
+          {
+            fromBegin: false,
+            prefix: uploadFolders.join(''),
+            marker,
+            domain: `${settings.forceHTTPS ? 'https://' : 'http://'}${
+              bucketDomainInfo.selectBucketDomain
+            }`,
+            isBucketPrivateRead: targetBucketInfo.isPrivateRead,
+          },
+          60000
+        )
         .then(res => {
           if (res.success) {
             const { data } = res
@@ -157,9 +169,6 @@ export default function StorageManage() {
           } else {
             message.error('资源列表加载失败：' + res.msg)
           }
-        })
-        .finally(() => {
-          isLoadingResource = false
         })
     }
   }
@@ -575,6 +584,7 @@ export default function StorageManage() {
       })
   }
 
+  // 打开bucket 请求bucket内的数据
   useEffect(async () => {
     dispatch(updateBucketAction(currentBucket))
     // 打开一个 bucket 的时候，更新 localside bucket
@@ -590,28 +600,31 @@ export default function StorageManage() {
           selectBucketDomain: bucketDomainsRes.data[0] || '',
         })
         try {
-          isLoadingResource = true
           // 从根目录加载，prefix 为空
           const targetBucket = bucketList.find(_ => _.name === currentBucket)
-          const resourceListResponse = await messageCenter.requestGetResourceList({
-            fromBegin: true,
-            prefix: '',
-            marker: '',
-            domain: `${settings.forceHTTPS ? 'https://' : 'http://'}${bucketDomainsRes.data[0]}`,
-            isBucketPrivateRead: targetBucket.isPrivateRead,
-          })
+          routeStr = genRouteStr(currentBucket, '')
+          const resourceListResponse = await messageCenter.requestGetResourceList(
+            {
+              fromBegin: true,
+              prefix: '',
+              marker: '',
+              domain: `${settings.forceHTTPS ? 'https://' : 'http://'}${bucketDomainsRes.data[0]}`,
+              isBucketPrivateRead: targetBucket.isPrivateRead,
+            },
+            60000
+          )
           if (resourceListResponse.success) {
-            marker = resourceListResponse.data.marker
-            setCommonPrefixList(resourceListResponse.data.commonPrefixes)
-            setResourceList(resourceListResponse.data.list)
-            setIsResourceListReachEnd(resourceListResponse.data.reachEnd)
+            if (routeStr === genRouteStr(currentBucket, '')) {
+              marker = resourceListResponse.data.marker
+              setCommonPrefixList(resourceListResponse.data.commonPrefixes)
+              setResourceList(resourceListResponse.data.list)
+              setIsResourceListReachEnd(resourceListResponse.data.reachEnd)
+            }
           } else {
             message.error('资源列表获取失败：' + resourceListResponse.msg)
           }
         } catch (e) {
           message.error(e)
-        } finally {
-          isLoadingResource = false
         }
       } else {
         message.error('bucket domain 获取失败：' + bucketDomainsRes.msg)

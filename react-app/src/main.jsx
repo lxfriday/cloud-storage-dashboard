@@ -8,13 +8,13 @@ import './index.less'
 import App from './App'
 
 window.LogR = function (...args) {
-  console.log('%c%s', 'color: red;font-weight:bold;', ...args)
+  console.log('%c%s', 'color: red;font-weight:bold;font-size:25px', ...args)
 }
 window.LogG = function (...args) {
-  console.log('%c%s', 'color: green;font-weight:bold;', ...args)
+  console.log('%c%s', 'color: green;font-weight:bold;font-size:25px', ...args)
 }
 window.LogO = function (...args) {
-  console.log('%c%s', 'color: orange;font-weight:bold;', ...args)
+  console.log('%c%s', 'color: orange;font-weight:bold;font-size:25px', ...args)
 }
 
 ReactDOM.render(

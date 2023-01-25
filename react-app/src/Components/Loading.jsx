@@ -6,7 +6,7 @@ import styles from './Loading.module.less'
 function Loading() {
   return (
     <div className={styles.wrapper}>
-      <HashLoader size={120} color="#36D7B7" loading />
+      <HashLoader size={60} color="#36D7B7" loading />
     </div>
   )
 }
