@@ -4,6 +4,7 @@ import {
   RollbackOutlined,
   RedoOutlined,
   AppstoreAddOutlined,
+  FolderOpenOutlined,
 } from '@ant-design/icons'
 import { Menu, Dropdown } from 'antd'
 import classnames from 'classnames'
@@ -26,6 +27,13 @@ export default function FolderCard({
 
   const contextMenu = (
     <Menu style={{ borderRadius: 8, boxShadow: '0 0 4px #fff', border: '1px solid #ccc' }}>
+      <Menu.Item
+        key="0"
+        onClick={handleClick}
+        icon={<FolderOpenOutlined style={{ color: 'brown', fontSize: 14 }} />}
+      >
+        进入
+      </Menu.Item>
       <Menu.Divider />
       <Menu.Item
         key="1"

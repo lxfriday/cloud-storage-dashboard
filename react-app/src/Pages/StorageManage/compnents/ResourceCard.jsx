@@ -20,6 +20,7 @@ import {
   CopyOutlined,
   FileMarkdownFilled,
   PictureFilled,
+  AreaChartOutlined,
 } from '@ant-design/icons'
 import { message, Menu, Dropdown, Modal, Input, Radio, Tooltip } from 'antd'
 import copy from 'copy-text-to-clipboard'
@@ -161,6 +162,14 @@ export default function ResourceCard({
 
   const contextMenu = (
     <Menu style={{ borderRadius: 8, boxShadow: '0 0 4px #fff', border: '1px solid #ccc' }}>
+      <Menu.Item
+        key="view"
+        onClick={handlePreviewAsImg}
+        icon={<AreaChartOutlined style={{ color: '#4682B4', fontSize: 14 }} />}
+      >
+        查看
+      </Menu.Item>
+      <Menu.Divider />
       <Menu.Item
         key="detail"
         onClick={handlePressDetail}

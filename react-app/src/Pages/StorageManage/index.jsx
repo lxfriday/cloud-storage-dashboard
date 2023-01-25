@@ -24,7 +24,6 @@ import PasteAndDragUpload from './compnents/PasteAndDragUpload'
 import styles from './index.module.less'
 import * as messageCenter from '../../utils/messageCenter'
 import {
-  debounce,
   getFileSize,
   isUrl,
   generateRandomResourceName,
@@ -49,6 +48,41 @@ let routeStr = ''
 function genRouteStr(bucket, pfxstr) {
   return `${bucket} => ${pfxstr}`
 }
+
+// 用于记忆加载过的页面中的数据
+// 解决切换目录、bucket时候的性能瓶颈
+class MemorizedBucketController {
+  constructor() {
+    // 如果需要更新某个目录，则直接删除对应的key，然后重建
+    this.memorizedData = {
+      // 'storage => patha/pathb/':
+      // {
+      //   dirs: [],
+      //   resourceList: [],
+      //   reachEnd: false,
+      //   marker: '', // 分页标记点
+      // },
+    }
+  }
+  set(pathKey, data) {
+    this.memorizedData[pathKey] = data
+  }
+  get(pathKey) {
+    const memorizedData = this.memorizedData
+    if (!this.has(pathKey)) {
+      return { dirs: [], resourceList: [] }
+    }
+    return memorizedData[pathKey]
+  }
+  has(pathKey) {
+    return !!this.memorizedData[pathKey]
+  }
+  delete(pathKey) {
+    delete this.memorizedData[pathKey]
+  }
+}
+
+const memoController = new MemorizedBucketController()
 
 export default function StorageManage() {
   const dispatch = useDispatch()
@@ -97,52 +131,68 @@ export default function StorageManage() {
   const currentBucket = searchParams.get('space')
   const targetBucketInfo = bucketList.find(_ => _.name === currentBucket)
 
-  function handleRefresh(prefixes = []) {
+  /**
+   * 刷新目录，回到上层目录
+   */
+  function handleRefresh(prefixes = [], useCacheData = true) {
     const pfxStr = prefixes.join('')
     routeStr = genRouteStr(currentBucket, pfxStr)
-    LogR('routeStr is ', routeStr)
+    const targetRouteStr = routeStr
     setSelectedKeys([])
     setSelectedFolders([])
+
+    if (!useCacheData) memoController.delete(targetRouteStr)
+
     // 如果从子文件夹回到顶层文件夹，优先直接显示 syncbucketinfo 中拿到的文件夹信息，文件信息等待后续加载出来
-    if (pfxStr === '') {
+    if (memoController.has(targetRouteStr)) {
+      const memorizedData = memoController.get(targetRouteStr)
+      marker = memorizedData.marker
       setUploadFolders([...prefixes])
       setPendingUploadPrefix(pfxStr)
-      setResourceList([])
-      setIsResourceListReachEnd(false)
-    }
-    // marker = ''
-    messageCenter
-      .requestGetResourceList(
-        {
-          fromBegin: true,
-          prefix: pfxStr,
-          marker: '',
-          domain: `${settings.forceHTTPS ? 'https://' : 'http://'}${
-            bucketDomainInfo.selectBucketDomain
-          }`,
-          isBucketPrivateRead: targetBucketInfo.isPrivateRead,
-        },
-        60000
-      )
-      .then(res => {
-        if (res.success) {
-          if (routeStr === genRouteStr(currentBucket, pfxStr)) {
-            const { data } = res
-            marker = data.marker
-            setUploadFolders([...prefixes])
-            setPendingUploadPrefix(pfxStr)
-            setCommonPrefixList(data.commonPrefixes)
-            setResourceList(data.list)
-            setIsResourceListReachEnd(data.reachEnd)
+      setCommonPrefixList(memorizedData.dirs)
+      setResourceList(memorizedData.resourceList)
+      setIsResourceListReachEnd(memorizedData.reachEnd)
+    } else {
+      messageCenter
+        .requestGetResourceList(
+          {
+            fromBegin: true,
+            prefix: pfxStr,
+            marker: '',
+            domain: `${settings.forceHTTPS ? 'https://' : 'http://'}${
+              bucketDomainInfo.selectBucketDomain
+            }`,
+            isBucketPrivateRead: targetBucketInfo.isPrivateRead,
+          },
+          60000
+        )
+        .then(res => {
+          if (res.success) {
+            if (routeStr === targetRouteStr) {
+              const { data } = res
+              marker = data.marker
+              setUploadFolders([...prefixes])
+              setPendingUploadPrefix(pfxStr)
+              setCommonPrefixList(data.commonPrefixes)
+              setResourceList(data.list)
+              setIsResourceListReachEnd(data.reachEnd)
+              memoController.set(targetRouteStr, {
+                dirs: data.commonPrefixes,
+                resourceList: data.list,
+                reachEnd: data.reachEnd,
+                marker: data.marker,
+              })
+            }
+          } else {
+            message.error('资源列表加载失败：' + res.msg)
           }
-        } else {
-          message.error('资源列表加载失败：' + res.msg)
-        }
-      })
+        })
+    }
   }
 
   // 加载列表数据，非第一页以后的调用这里
   function handleLoadData() {
+    const targetRouteStr = routeStr
     if (!isResourceListReachEnd) {
       // 从根目录加载，prefix 为空
       messageCenter
@@ -160,12 +210,24 @@ export default function StorageManage() {
         )
         .then(res => {
           if (res.success) {
-            const { data } = res
-            marker = data.marker
-            // 对已有的 commonprefixes 和新传过来的 commonprefixes 做合并，去重
-            setCommonPrefixList([...new Set([...commonPrefixList, ...data.commonPrefixes])])
-            setResourceList([...resourceList, ...data.list])
-            setIsResourceListReachEnd(data.reachEnd)
+            if (routeStr === targetRouteStr) {
+              const { data } = res
+              marker = data.marker
+              // 对已有的 commonprefixes 和新传过来的 commonprefixes 做合并，去重
+              const newCommonPrefixList = [
+                ...new Set([...commonPrefixList, ...data.commonPrefixes]),
+              ]
+              const newResourceList = [...resourceList, ...data.list]
+              setCommonPrefixList(newCommonPrefixList)
+              setResourceList(newResourceList)
+              setIsResourceListReachEnd(data.reachEnd)
+              memoController.set(targetRouteStr, {
+                dirs: newCommonPrefixList,
+                resourceList: newResourceList,
+                reachEnd: data.reachEnd,
+                marker,
+              })
+            }
           } else {
             message.error('资源列表加载失败：' + res.msg)
           }
@@ -603,25 +665,42 @@ export default function StorageManage() {
           // 从根目录加载，prefix 为空
           const targetBucket = bucketList.find(_ => _.name === currentBucket)
           routeStr = genRouteStr(currentBucket, '')
-          const resourceListResponse = await messageCenter.requestGetResourceList(
-            {
-              fromBegin: true,
-              prefix: '',
-              marker: '',
-              domain: `${settings.forceHTTPS ? 'https://' : 'http://'}${bucketDomainsRes.data[0]}`,
-              isBucketPrivateRead: targetBucket.isPrivateRead,
-            },
-            60000
-          )
-          if (resourceListResponse.success) {
-            if (routeStr === genRouteStr(currentBucket, '')) {
-              marker = resourceListResponse.data.marker
-              setCommonPrefixList(resourceListResponse.data.commonPrefixes)
-              setResourceList(resourceListResponse.data.list)
-              setIsResourceListReachEnd(resourceListResponse.data.reachEnd)
-            }
+          const targetRouteStr = routeStr
+          if (memoController.has(targetRouteStr)) {
+            const memorizedData = memoController.get(targetRouteStr)
+            marker = memorizedData.marker
+            setCommonPrefixList(memorizedData.dirs)
+            setResourceList(memorizedData.resourceList)
+            setIsResourceListReachEnd(memorizedData.reachEnd)
           } else {
-            message.error('资源列表获取失败：' + resourceListResponse.msg)
+            const resourceListResponse = await messageCenter.requestGetResourceList(
+              {
+                fromBegin: true,
+                prefix: '',
+                marker: '',
+                domain: `${settings.forceHTTPS ? 'https://' : 'http://'}${
+                  bucketDomainsRes.data[0]
+                }`,
+                isBucketPrivateRead: targetBucket.isPrivateRead,
+              },
+              60000
+            )
+            if (resourceListResponse.success) {
+              if (routeStr === targetRouteStr) {
+                marker = resourceListResponse.data.marker
+                setCommonPrefixList(resourceListResponse.data.commonPrefixes)
+                setResourceList(resourceListResponse.data.list)
+                setIsResourceListReachEnd(resourceListResponse.data.reachEnd)
+                memoController.set(targetRouteStr, {
+                  dirs: resourceListResponse.data.commonPrefixes,
+                  resourceList: resourceListResponse.data.list,
+                  reachEnd: resourceListResponse.data.reachEnd,
+                  marker: resourceListResponse.data.marker,
+                })
+              }
+            } else {
+              message.error('资源列表获取失败：' + resourceListResponse.msg)
+            }
           }
         } catch (e) {
           message.error(e)
@@ -706,6 +785,9 @@ export default function StorageManage() {
   }
 
   realCommonPrefixList = showSearchResult ? [] : realCommonPrefixList
+
+  LogR('routeStr is ', routeStr)
+  LogR('memorizedData ', memoController.memorizedData)
 
   return (
     <Fragment>
@@ -826,7 +908,7 @@ export default function StorageManage() {
           ></Button>
           <Button
             title="刷新"
-            onClick={() => handleRefresh(uploadFolders)}
+            onClick={() => handleRefresh(uploadFolders, false)}
             icon={<SyncOutlined style={{ fontSize: '20px' }} />}
           ></Button>
           <Dropdown
