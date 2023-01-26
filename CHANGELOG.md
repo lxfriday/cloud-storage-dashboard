@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.6.1]
+
+- 添加缓存清理
+- 调整 routeStr 生成规则，避免同名 bucket 导致数据错误
+
 ## [v1.6.0]
 
 - **speed up!!!**
