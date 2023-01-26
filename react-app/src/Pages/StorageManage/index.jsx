@@ -12,6 +12,7 @@ import {
   EllipsisOutlined,
   AppstoreOutlined,
   MenuOutlined,
+  StopOutlined,
 } from '@ant-design/icons'
 import copy from 'copy-text-to-clipboard'
 import classnames from 'classnames'
@@ -45,8 +46,8 @@ let isSearching = false // 是否正在搜索中
 // 遵循的原则：基于用户操作，操作到哪个层级，就应该显示当前层级的内容，如果加载到的内部不属于该层级，则不显示
 let routeStr = ''
 
-function genRouteStr(bucket, pfxstr) {
-  return `${bucket} => ${pfxstr}`
+function genRouteStr(cspNickname, bucket, pfxstr) {
+  return `${cspNickname}:${bucket} => ${pfxstr}`
 }
 
 // 用于记忆加载过的页面中的数据
@@ -80,6 +81,12 @@ class MemorizedBucketController {
   delete(pathKey) {
     delete this.memorizedData[pathKey]
   }
+  /**
+   * 清理缓存
+   */
+  clear() {
+    this.memorizedData = {}
+  }
 }
 
 const memoController = new MemorizedBucketController()
@@ -90,6 +97,7 @@ export default function StorageManage() {
   const bucketList = useSelector(state => state.storageManage.bucketList)
   const listType = useSelector(state => state.storageManage.listType)
   const csp = cloudserviceprovider[settings.currentCSP.csp]
+  const cspNickname = settings.currentCSP.nickname
 
   let [bucketDomainInfo, setBucketDomainInfo] = useState({
     bucketDomains: [],
@@ -136,12 +144,14 @@ export default function StorageManage() {
    */
   function handleRefresh(prefixes = [], useCacheData = true) {
     const pfxStr = prefixes.join('')
-    routeStr = genRouteStr(currentBucket, pfxStr)
+    routeStr = genRouteStr(cspNickname, currentBucket, pfxStr)
     const targetRouteStr = routeStr
     setSelectedKeys([])
     setSelectedFolders([])
 
-    if (!useCacheData) memoController.delete(targetRouteStr)
+    if (!useCacheData) {
+      memoController.delete(targetRouteStr)
+    }
 
     // 如果从子文件夹回到顶层文件夹，优先直接显示 syncbucketinfo 中拿到的文件夹信息，文件信息等待后续加载出来
     if (memoController.has(targetRouteStr)) {
@@ -363,6 +373,11 @@ export default function StorageManage() {
   // 点击回到最顶层文件夹
   function handleGoToHome() {
     handleRefresh([])
+  }
+  // 点击回到最顶层文件夹
+  function handleClearCache() {
+    memoController.clear()
+    message.success('缓存已清理')
   }
 
   function handleComfirmFetchFromUrl(url, key) {
@@ -664,7 +679,7 @@ export default function StorageManage() {
         try {
           // 从根目录加载，prefix 为空
           const targetBucket = bucketList.find(_ => _.name === currentBucket)
-          routeStr = genRouteStr(currentBucket, '')
+          routeStr = genRouteStr(cspNickname, currentBucket, '')
           const targetRouteStr = routeStr
           if (memoController.has(targetRouteStr)) {
             const memorizedData = memoController.get(targetRouteStr)
@@ -711,7 +726,7 @@ export default function StorageManage() {
     } catch (e) {
       message.error(e)
     }
-  }, [currentBucket])
+  }, [currentBucket, cspNickname])
 
   useEffect(() => {
     // 同步 bucket 文件夹信息之后，会接收的 message
@@ -910,6 +925,11 @@ export default function StorageManage() {
             title="刷新"
             onClick={() => handleRefresh(uploadFolders, false)}
             icon={<SyncOutlined style={{ fontSize: '20px' }} />}
+          ></Button>
+          <Button
+            title="清除缓存"
+            onClick={handleClearCache}
+            icon={<StopOutlined style={{ fontSize: '20px' }} />}
           ></Button>
           <Dropdown
             overlay={
