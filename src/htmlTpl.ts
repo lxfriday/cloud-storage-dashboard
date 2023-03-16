@@ -2,21 +2,25 @@ import * as path from 'path'
 import * as vscode from 'vscode'
 import port from './port.dev'
 
-const serverHost = 'http://localhost'
-const serverPort = port
+export default function (panel: vscode.WebviewPanel) {
+  const serverHost = 'http://localhost'
+  const serverPort = port
 
-const prodCssPath = vscode.Uri.file(path.resolve(__dirname, '../react-app-dist', 'index.css')).with(
-  {
-    scheme: 'vscode-resource',
-  }
-)
-const prodJSPath = vscode.Uri.file(path.resolve(__dirname, '../react-app-dist', 'index.js')).with({
-  scheme: 'vscode-resource',
-})
+  const prodCssPath = panel.webview.asWebviewUri(
+    vscode.Uri.file(path.resolve(__dirname, '../react-app-dist', 'index.css'))
+  )
+  const prodJSPath = panel.webview.asWebviewUri(
+    vscode.Uri.file(path.resolve(__dirname, '../react-app-dist', 'index.js'))
+  )
 
-// prod ref https://stackoverflow.com/questions/56182144/vscode-extension-webview-external-html-and-css
+  console.log('static path', {
+    prodCssPath,
+    prodJSPath,
+  })
 
-const devHtmlTpl = `
+  // prod ref https://stackoverflow.com/questions/56182144/vscode-extension-webview-external-html-and-css
+
+  const devHtmlTpl = `
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -42,7 +46,7 @@ const devHtmlTpl = `
   </body>
 </html>`
 
-const prodHtmlTpl = `
+  const prodHtmlTpl = `
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -57,4 +61,5 @@ const prodHtmlTpl = `
 </html>
 `
 
-export default global.__DEV__ ? devHtmlTpl : prodHtmlTpl
+  return global.__DEV__ ? devHtmlTpl : prodHtmlTpl
+}

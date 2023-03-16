@@ -31,7 +31,7 @@ export function activate(context: vscode.ExtensionContext) {
     // panel.webview.html = fs.readFileSync(htmlPathInfo).toString()
 
     panel.iconPath = vscode.Uri.file(path.resolve(__dirname, '../assets/logo_64x64.png'))
-    panel.webview.html = htmlTpl
+    panel.webview.html = htmlTpl(panel)
     messageController(panel, context)
   })
 

@@ -2,7 +2,7 @@
   "name": "cloud-storage-dashboard",
   "displayName": "Cloud Storage Dashboard（七牛云、腾讯云、阿里云、又拍云）",
   "description": "一个用来管理云存储的vscode扩展。七牛云、腾讯云、阿里云、又拍云",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "license": "MIT",
   "publisher": "lxfriday",
   "icon": "assets/logo-large.png",
@@ -51,7 +51,8 @@
     "build:reactapp": "cd react-app && npm run build",
     "build": "npm run build:reactapp && npm run build:extension",
     "package": "npm run build && vsce package",
-    "lint": "eslint src --ext ts"
+    "lint": "eslint src --ext ts",
+    "clean": "rm -rf ./dist/ && rm -rf ./react-app-dist/"
   },
   "devDependencies": {
     "@types/ali-oss": "^6.16.3",
